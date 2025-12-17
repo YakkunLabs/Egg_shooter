@@ -2,40 +2,53 @@ using UnityEngine;
 
 public class SimpleEnemyAI : MonoBehaviour
 {
-    public Transform player; // Drag your Player object here
+    public Transform player; 
     public float speed = 3f;
     public float damageToPlayer = 20f;
+    
+    // Attack Settings
+    public float attackRange = 1.5f; // How close to be to hit
+    public float attackCooldown = 1.0f; // Time between hits
+    private float nextAttackTime = 0f;
 
     void Update()
     {
         if (player != null)
         {
-            // 1. Look at the player
-            // We lock the y-axis so the egg doesn't tilt up/down weirdly
+            // 1. Calculate Distance
+            float distanceToPlayer = Vector3.Distance(transform.position, player.position);
+
+            // 2. Look at the player
             Vector3 targetPosition = new Vector3(player.position.x, transform.position.y, player.position.z);
             transform.LookAt(targetPosition);
 
-            // 2. Move towards the player
-            transform.position = Vector3.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime);
+            // 3. Move OR Attack
+            if (distanceToPlayer > attackRange)
+            {
+                // If too far, Move closer
+                transform.position = Vector3.MoveTowards(transform.position, targetPosition, speed * Time.deltaTime);
+            }
+            else
+            {
+                // If close enough, Attack!
+                if (Time.time >= nextAttackTime)
+                {
+                    AttackPlayer();
+                    nextAttackTime = Time.time + attackCooldown;
+                }
+            }
         }
     }
 
-    // 3. Attack when touching the player
-    private void OnCollisionEnter(Collision collision)
+    void AttackPlayer()
     {
-        if (collision.gameObject.name == "Player")
+        // Find the health script on the player and hurt them
+        PlayerHealth playerHealth = player.GetComponent<PlayerHealth>();
+        
+        if (playerHealth != null)
         {
-            // Find the health script on the player and hurt them
-            PlayerHealth playerHealth = collision.gameObject.GetComponent<PlayerHealth>();
-            
-            if (playerHealth != null)
-            {
-                playerHealth.TakeDamage(damageToPlayer);
-                
-                // Knock the enemy back slightly so they don't instant-kill you
-                // (Simple bounce back effect)
-                transform.position -= transform.forward * 1.0f;
-            }
+            playerHealth.TakeDamage(damageToPlayer);
+            Debug.Log("Enemy Attacked! Player Health should drop.");
         }
     }
 }
