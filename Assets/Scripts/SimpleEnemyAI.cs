@@ -11,6 +11,19 @@ public class SimpleEnemyAI : MonoBehaviour
     public float attackCooldown = 1.0f; // Time between hits
     private float nextAttackTime = 0f;
 
+    void Start()
+    {
+        // If the player wasn't assigned manually, find them automatically!
+        if (player == null)
+        {
+            GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+            if (playerObj != null) 
+            {
+                player = playerObj.transform;
+            }
+        }
+    }
+
     void Update()
     {
         if (player != null)
