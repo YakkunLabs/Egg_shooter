@@ -18,10 +18,13 @@ public class Target : MonoBehaviour
 
     void Die()
     {
-        // Simple destruction for now
+        // NEW: Find the player and add score
+        PlayerHealth playerScript = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerHealth>();
+        if (playerScript != null)
+        {
+            playerScript.AddKill();
+        }
+
         Destroy(gameObject);
-        
-        // OPTIONAL: Later you can spawn a "Scrambled Egg" particle effect here
-        // Instantiate(scrambledEggEffect, transform.position, Quaternion.identity);
     }
 }

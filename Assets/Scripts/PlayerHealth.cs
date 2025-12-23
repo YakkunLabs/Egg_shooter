@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI; 
 using UnityEngine.SceneManagement; 
+using TMPro; // NEW: Needed for TextMeshPro
 
 public class PlayerHealth : MonoBehaviour
 {
@@ -8,16 +9,21 @@ public class PlayerHealth : MonoBehaviour
     public float maxHealth = 100f;
     public float currentHealth;
 
+    [Header("Score Stats")]
+    public int kills = 0; // NEW: Tracks kills
+
     [Header("UI Reference")]
     public Slider healthSlider; 
-    public GameObject gameOverScreen; // The black panel we just made
+    public GameObject gameOverScreen;
+    public TextMeshProUGUI text_score_hud; // NEW: The text on screen
+    public TextMeshProUGUI text_score_final; // NEW: The text on Game Over
 
     void Start()
     {
         currentHealth = maxHealth;
         UpdateHealthUI();
+        UpdateScoreUI(); // Initialize score text
         
-        // Ensure game is running and cursor is locked when we start
         Time.timeScale = 1f; 
     }
 
@@ -32,6 +38,20 @@ public class PlayerHealth : MonoBehaviour
         }
     }
 
+    // NEW: Function to add points
+    public void AddKill()
+    {
+        kills++;
+        UpdateScoreUI();
+    }
+
+    void UpdateScoreUI()
+    {
+        // Update the top corner text
+        if (text_score_hud != null)
+            text_score_hud.text = "KILLS: " + kills;
+    }
+
     void UpdateHealthUI()
     {
         if (healthSlider != null)
@@ -42,18 +62,17 @@ public class PlayerHealth : MonoBehaviour
 
     void Die()
     {
-        // 1. Show the Game Over Screen
         gameOverScreen.SetActive(true);
+        
+        // NEW: Update the Game Over text with final score
+        if (text_score_final != null)
+            text_score_final.text = "TOTAL KILLS: " + kills;
 
-        // 2. Unlock the Mouse so user can click buttons
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
-
-        // 3. Pause the Game (Stop enemies moving)
         Time.timeScale = 0f;
     }
 
-    // We will link this function to the Button
     public void RestartGame()
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
