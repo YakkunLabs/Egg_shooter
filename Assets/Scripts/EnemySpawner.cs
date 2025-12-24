@@ -3,34 +3,34 @@ using UnityEngine;
 public class EnemySpawner : MonoBehaviour
 {
     [Header("Settings")]
-    public GameObject enemyPrefab; // The enemy blueprint
-    public Transform[] spawnPoints; // List of places where they can appear
+    public GameObject[] enemyPrefabs; // CHANGED: Now a list!
+    public Transform[] spawnPoints; 
     
-    public float timeBetweenSpawns = 3f; // Spawn every 3 seconds
+    public float timeBetweenSpawns = 3f; 
     private float timer;
 
     void Update()
     {
-        // Count down
         timer += Time.deltaTime;
 
-        // If time is up...
         if (timer >= timeBetweenSpawns)
         {
             SpawnEnemy();
-            timer = 0; // Reset timer
+            timer = 0; 
         }
     }
 
     void SpawnEnemy()
     {
-        // 1. Pick a random number between 0 and the number of spawn points
-        int randomIndex = Random.Range(0, spawnPoints.Length);
-        
-        // 2. Get that specific spawn point
-        Transform mySpawnPoint = spawnPoints[randomIndex];
+        // 1. Pick a random spawn point
+        int randomPoint = Random.Range(0, spawnPoints.Length);
+        Transform mySpawnPoint = spawnPoints[randomPoint];
 
-        // 3. Create the enemy at that position
-        Instantiate(enemyPrefab, mySpawnPoint.position, Quaternion.identity);
+        // 2. Pick a random enemy type (Zombie or Sniper)
+        int randomEnemy = Random.Range(0, enemyPrefabs.Length);
+        GameObject chosenEnemy = enemyPrefabs[randomEnemy];
+
+        // 3. Spawn
+        Instantiate(chosenEnemy, mySpawnPoint.position, Quaternion.identity);
     }
 }
