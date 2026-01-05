@@ -221,6 +221,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Target
   health: 50
+  deathEffect: {fileID: 4870575604213302691, guid: 14e88c156f2f94345949f56ddf0e3bff, type: 3}
 --- !u!114 &6420672237853017669
 MonoBehaviour:
   m_ObjectHideFlags: 0

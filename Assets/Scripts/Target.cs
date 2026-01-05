@@ -3,13 +3,11 @@ using UnityEngine;
 public class Target : MonoBehaviour
 {
     public float health = 50f;
+    public GameObject deathEffect; // Drag your Particle Prefab here
 
-    // This function will be called by your Gun
     public void TakeDamage(float amount)
     {
         health -= amount;
-
-        // If health runs out, the egg dies
         if (health <= 0f)
         {
             Die();
@@ -18,13 +16,17 @@ public class Target : MonoBehaviour
 
     void Die()
     {
-        // NEW: Find the player and add score
+        // 1. Add Score 
         PlayerHealth playerScript = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerHealth>();
-        if (playerScript != null)
+        if (playerScript != null) playerScript.AddKill();
+
+        // 2. Spawn the Explosion Effect
+        if (deathEffect != null)
         {
-            playerScript.AddKill();
+            Instantiate(deathEffect, transform.position, Quaternion.identity);
         }
 
+        // 3. Destroy the Enemy Instantly
         Destroy(gameObject);
     }
 }
