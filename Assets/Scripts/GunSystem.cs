@@ -23,6 +23,8 @@ public class GunSystem : MonoBehaviour
     public Transform attackPoint; // Where the bullet visual starts (tip of gun)
     public RaycastHit rayHit;
     public LayerMask whatIsEnemy; // To make sure we only hit valid things
+    public AudioSource audioSource; // Reference to the speaker
+
 
     // --- Graphics ---
     [Header("Graphics")]
@@ -32,6 +34,12 @@ public class GunSystem : MonoBehaviour
     // --- UI ---
     [Header("UI")]
     public TextMeshProUGUI text_ammo; // Drag your UI Text here
+
+    void Start()
+    {
+        // Automatically find the AudioSource if we forgot to drag it in
+        audioSource = GetComponent<AudioSource>(); 
+    }
 
     private void Awake()
     {
@@ -64,6 +72,13 @@ public class GunSystem : MonoBehaviour
 
     private void Shoot()
     {
+        // 1. Play the Sound
+        if (audioSource != null)
+        {
+            audioSource.Play(); 
+            // OR use audioSource.PlayOneShot(audioSource.clip) if you want overlapping sounds
+        }
+
         readyToShoot = false;
 
         // 1. Raycast Logic (The math behind the shot)

@@ -7,6 +7,7 @@ public class EggController : MonoBehaviour
     public float walkSpeed = 12f;
     public float jumpHeight = 2.5f;
     public float gravity = -19.62f; // Higher gravity feels snappier for FPS
+    public AudioSource audioSource;
 
     [Header("Look Settings")]
     public Transform playerCamera; // Drag your Main Camera here
@@ -23,6 +24,7 @@ public class EggController : MonoBehaviour
     void Start()
     {
         characterController = GetComponent<CharacterController>();
+        audioSource = GetComponent<AudioSource>();
 
         // Lock cursor to center of screen and hide it
         Cursor.lockState = CursorLockMode.Locked;
@@ -46,6 +48,11 @@ public class EggController : MonoBehaviour
         if (Input.GetButton("Jump") && canMove && characterController.isGrounded)
         {
             moveDirection.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+            // PLAY JUMP SOUND
+            if (audioSource != null)
+            {
+                audioSource.Play();
+            }
         }
         else
         {

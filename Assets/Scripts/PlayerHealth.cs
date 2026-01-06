@@ -18,9 +18,17 @@ public class PlayerHealth : MonoBehaviour
     public TextMeshProUGUI text_score_hud; // NEW: The text on screen
     public TextMeshProUGUI text_score_final; // NEW: The text on Game Over
 
+    [Header("Audio")]
+    public AudioSource audioSource; // Reference to the speaker
+    public AudioClip hurtSound;     // The actual sound file
+
     void Start()
     {
         currentHealth = maxHealth;
+        // Auto-find the Audio Source if you didn't drag it in
+        if (audioSource == null)
+            audioSource = GetComponent<AudioSource>();
+
         UpdateHealthUI();
         UpdateScoreUI(); // Initialize score text
         
@@ -30,6 +38,12 @@ public class PlayerHealth : MonoBehaviour
     public void TakeDamage(float amount)
     {
         currentHealth -= amount;
+        // --- NEW: Play Hurt Sound ---
+        if (audioSource != null && hurtSound != null)
+        {
+            audioSource.PlayOneShot(hurtSound);
+        }
+
         UpdateHealthUI();
 
         if (currentHealth <= 0)

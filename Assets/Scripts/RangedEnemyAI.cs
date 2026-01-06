@@ -12,11 +12,17 @@ public class RangedEnemyAI : MonoBehaviour
     public float fireRate = 1.5f;     // Shoots every 1.5 seconds
     private float nextFireTime = 0f;
 
+    [Header("Audio")]
+    public AudioSource audioSource; // The speaker
+    public AudioClip shootSound;    // The sound file
+
     private NavMeshAgent agent;
 
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
+
+        if (audioSource == null) audioSource = GetComponent<AudioSource>();
 
         if (player == null)
             player = GameObject.FindGameObjectWithTag("Player").transform;
@@ -54,6 +60,12 @@ public class RangedEnemyAI : MonoBehaviour
 
     void Shoot()
     {
+        // 1. Play Sound
+        if (audioSource != null && shootSound != null)
+        {
+            audioSource.PlayOneShot(shootSound);
+        }
+
         // Spawn the bullet at the firePoint position and rotation
         Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
     }
