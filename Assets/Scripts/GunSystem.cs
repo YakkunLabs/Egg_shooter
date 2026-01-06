@@ -49,6 +49,9 @@ public class GunSystem : MonoBehaviour
 
     private void Update()
     {
+        // NEW: If the game is paused, do NOT run the shooting code
+        if (PauseManager.isPaused) return;
+
         MyInput();
         
         // Update UI Text
