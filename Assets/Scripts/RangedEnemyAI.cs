@@ -4,17 +4,17 @@ using UnityEngine.AI;
 public class RangedEnemyAI : MonoBehaviour
 {
     public Transform player;
-    public GameObject bulletPrefab; // The yellow sphere we just made
-    public Transform firePoint;     // Where the bullet comes out
+    public GameObject bulletPrefab; 
+    public Transform firePoint;     
 
     [Header("Stats")]
-    public float shootingRange = 10f; // Stops 10 meters away
-    public float fireRate = 1.5f;     // Shoots every 1.5 seconds
+    public float shootingRange = 10f; 
+    public float fireRate = 1.5f;     
     private float nextFireTime = 0f;
 
     [Header("Audio")]
-    public AudioSource audioSource; // The speaker
-    public AudioClip shootSound;    // The sound file
+    public AudioSource audioSource; 
+    public AudioClip shootSound;    
 
     private NavMeshAgent agent;
 
@@ -25,7 +25,10 @@ public class RangedEnemyAI : MonoBehaviour
         if (audioSource == null) audioSource = GetComponent<AudioSource>();
 
         if (player == null)
-            player = GameObject.FindGameObjectWithTag("Player").transform;
+        {
+            GameObject p = GameObject.FindGameObjectWithTag("Player");
+            if (p != null) player = p.transform;
+        }
     }
 
     void Update()
@@ -42,10 +45,10 @@ public class RangedEnemyAI : MonoBehaviour
         }
         else
         {
-            // Stop moving if close enough
+            // Stop moving
             agent.isStopped = true;
             
-            // Look at the player
+            // BODY ROTATION: Keep looking horizontally (so the egg doesn't tilt)
             Vector3 targetPostition = new Vector3(player.position.x, transform.position.y, player.position.z);
             transform.LookAt(targetPostition);
 
@@ -66,7 +69,16 @@ public class RangedEnemyAI : MonoBehaviour
             audioSource.PlayOneShot(shootSound);
         }
 
-        // Spawn the bullet at the firePoint position and rotation
-        Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
+        // --- NEW FIX: AIM AT THE PLAYER'S CENTER ---
+        // Instead of using firePoint.rotation (which is flat), 
+        // we calculate the precise direction to the player's chest.
+        
+        Vector3 aimDirection = (player.position - firePoint.position).normalized;
+        
+        // Create a rotation that looks exactly at the player
+        Quaternion bulletRotation = Quaternion.LookRotation(aimDirection);
+
+        // Spawn the bullet using this NEW rotation
+        Instantiate(bulletPrefab, firePoint.position, bulletRotation);
     }
 }
