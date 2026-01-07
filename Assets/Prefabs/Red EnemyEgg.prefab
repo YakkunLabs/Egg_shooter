@@ -108,7 +108,7 @@ GameObject:
   - component: {fileID: -9089962158172099590}
   m_Layer: 0
   m_Name: Red EnemyEgg
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

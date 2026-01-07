@@ -8,7 +8,7 @@ public class GunSystem : MonoBehaviour
     public int damage = 10;
     public float timeBetweenShooting = 0.1f;
     public float spread = 0f;
-    public float range = 100f;
+    public float range = 100f; // (Note: Range is now controlled by Bullet lifetime, but we can keep this)
     public float reloadTime = 1.5f;
     public int magazineSize = 30;
     public int bulletsLeft;
@@ -20,25 +20,22 @@ public class GunSystem : MonoBehaviour
     // --- References ---
     [Header("References")]
     public Camera fpsCamera;
-    public Transform attackPoint; // Where the bullet visual starts (tip of gun)
-    public RaycastHit rayHit;
-    public LayerMask whatIsEnemy; // To make sure we only hit valid things
-    public AudioSource audioSource; // Reference to the speaker
-
+    public Transform attackPoint; // This is the Fire Point (Tip of gun)
+    public GameObject bulletPrefab; // NEW: Drag your "Projectile" prefab here
+    public AudioSource audioSource; 
 
     // --- Graphics ---
     [Header("Graphics")]
-    public GameObject impactEffect; // The hole/spark when you hit a wall
-    public ParticleSystem muzzleFlash; // (Optional) Fire at tip of gun
+    public GameObject impactEffect; // (Optional: You can move this logic to the bullet script later)
+    public ParticleSystem muzzleFlash; 
 
     // --- UI ---
     [Header("UI")]
-    public TextMeshProUGUI text_ammo; // Drag your UI Text here
+    public TextMeshProUGUI text_ammo; 
 
     void Start()
     {
-        // Automatically find the AudioSource if we forgot to drag it in
-        audioSource = GetComponent<AudioSource>(); 
+        if (audioSource == null) audioSource = GetComponent<AudioSource>(); 
     }
 
     private void Awake()
@@ -49,19 +46,18 @@ public class GunSystem : MonoBehaviour
 
     private void Update()
     {
-        // NEW: If the game is paused, do NOT run the shooting code
+        // Check Pause
         if (PauseManager.isPaused) return;
 
         MyInput();
         
-        // Update UI Text
+        // Update UI
         if(text_ammo != null)
             text_ammo.SetText(bulletsLeft + " / " + magazineSize);
     }
 
     private void MyInput()
     {
-        // 0 = Left Click
         if (Input.GetButton("Fire1") && readyToShoot && !reloading && bulletsLeft > 0)
         {
             Shoot();
@@ -75,47 +71,26 @@ public class GunSystem : MonoBehaviour
 
     private void Shoot()
     {
-        // 1. Play the Sound
+        readyToShoot = false;
+
+        // 1. Play Sound
         if (audioSource != null)
         {
             audioSource.Play(); 
-            // OR use audioSource.PlayOneShot(audioSource.clip) if you want overlapping sounds
         }
 
-        readyToShoot = false;
-
-        // 1. Raycast Logic (The math behind the shot)
-        // Calculate direction with spread (optional, kept 0 for now)
-        float x = Screen.width / 2;
-        float y = Screen.height / 2;
-        Ray ray = fpsCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
-
-        // Shoot the ray
-        if (Physics.Raycast(ray, out rayHit, range, whatIsEnemy))
-        {
-            Debug.Log("Hit: " + rayHit.collider.name); // Check Console to see what you hit
-
-            // Check if the object we hit has the "Target" script
-            Target target = rayHit.transform.GetComponent<Target>();
-            
-            // If it DOES have the script, deal damage
-            if (target != null)
-            {
-                target.TakeDamage(damage);
-            }
-
-            // Instantiate Impact Effect (Bullet hole/sparks)
-            if(impactEffect != null)
-                Instantiate(impactEffect, rayHit.point, Quaternion.LookRotation(rayHit.normal));
-        }
-
-        // 2. Visuals
+        // 2. Play Muzzle Flash
         if(muzzleFlash != null)
             muzzleFlash.Play();
 
+        // 3. SPAWN THE BULLET (Replaces Raycast)
+        // We spawn it at 'attackPoint' (tip of gun) and give it the gun's rotation
+        Instantiate(bulletPrefab, attackPoint.position, attackPoint.rotation);
+
+        // 4. Decrease Ammo
         bulletsLeft--;
 
-        // 3. Reset Shot (Fire Rate)
+        // 5. Reset Shot
         Invoke("ResetShot", timeBetweenShooting);
     }
 
