@@ -2,13 +2,49 @@ using UnityEngine;
 
 public class Target : MonoBehaviour
 {
-    public float health = 50f;
-    public GameObject deathEffect; // Drag your Particle Prefab here
+    public float maxHealth = 50f;
+    public float currentHealth;
+    
+    // Drag the "CrackShell" object here in the Inspector
+    public Renderer crackShellRenderer; 
+
+    public GameObject deathEffect;
+
+    void Start()
+    {
+        currentHealth = maxHealth;
+        
+        // Ensure cracks are invisible at start
+        if (crackShellRenderer != null)
+        {
+            Color c = crackShellRenderer.material.color;
+            c.a = 0f; // 0 Alpha = Invisible
+            crackShellRenderer.material.color = c;
+        }
+    }
 
     public void TakeDamage(float amount)
     {
-        health -= amount;
-        if (health <= 0f)
+        currentHealth -= amount;
+
+        // --- UPDATE CRACKS ---
+        if (crackShellRenderer != null)
+        {
+            // Calculate damage % (0 is healthy, 1 is dead)
+            float damagePercent = 1f - (currentHealth / maxHealth);
+            
+            // Get current color
+            Color c = crackShellRenderer.material.color;
+            
+            // Set transparency equal to damage
+            c.a = damagePercent; 
+            
+            // Apply it back
+            crackShellRenderer.material.color = c;
+        }
+        // ---------------------
+
+        if (currentHealth <= 0f)
         {
             Die();
         }
@@ -16,17 +52,15 @@ public class Target : MonoBehaviour
 
     void Die()
     {
-        // 1. Add Score 
-        PlayerHealth playerScript = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerHealth>();
-        if (playerScript != null) playerScript.AddKill();
+        if (deathEffect != null) Instantiate(deathEffect, transform.position, Quaternion.identity);
 
-        // 2. Spawn the Explosion Effect
-        if (deathEffect != null)
+        PlayerHealth playerScript = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerHealth>();
+        if (playerScript != null)
         {
-            Instantiate(deathEffect, transform.position, Quaternion.identity);
+            playerScript.AddKill();
         }
 
-        // 3. Destroy the Enemy Instantly
         Destroy(gameObject);
     }
+
 }
