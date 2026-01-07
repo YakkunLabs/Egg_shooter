@@ -21,6 +21,10 @@ public class EggController : MonoBehaviour
     [Header("Status")]
     public bool canMove = true;
 
+    [Header("Ladder Settings")]
+    public bool isClimbing = false;
+    public float climbSpeed = 6f;
+
     void Start()
     {
         characterController = GetComponent<CharacterController>();
@@ -65,6 +69,26 @@ public class EggController : MonoBehaviour
             moveDirection.y += gravity * Time.deltaTime;
         }
 
+            // LADDER LOGIC
+        if (isClimbing)
+        {
+            // If climbing, pressing "W" moves us UP, "S" moves DOWN
+            float verticalInput = Input.GetAxis("Vertical"); 
+            moveDirection.y = verticalInput * climbSpeed;
+            
+            // Optional: Jump off ladder
+            if (Input.GetButtonDown("Jump"))
+            {
+                moveDirection.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+                isClimbing = false; // Detach
+            }
+        }
+        else 
+        {
+            // STANDARD GRAVITY (Your existing code usually looks like this)
+            moveDirection.y += gravity * Time.deltaTime; 
+        }
+
         // 4. Move the Controller
         characterController.Move(moveDirection * Time.deltaTime);
 
@@ -79,6 +103,22 @@ public class EggController : MonoBehaviour
             
             // Rotate Player Body left/right
             transform.rotation *= Quaternion.Euler(0, Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime, 0);
+        }
+    }
+
+    void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Ladder"))
+        {
+            isClimbing = true;
+        }
+    }
+
+    void OnTriggerExit(Collider other)
+    {
+        if (other.CompareTag("Ladder"))
+        {
+            isClimbing = false;
         }
     }
 }
