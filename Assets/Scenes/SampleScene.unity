@@ -16794,7 +16794,6 @@ GameObject:
   - component: {fileID: 1030482850}
   - component: {fileID: 1030482849}
   - component: {fileID: 1030482848}
-  - component: {fileID: 1030482852}
   m_Layer: 0
   m_Name: MapCamera
   m_TagString: Untagged
@@ -16925,21 +16924,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
---- !u!114 &1030482852
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1030482847}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fb9aed340334a5d469bad6775ae45c5e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Projectile
-  speed: 50
-  damage: 10
-  lifetime: 3
 --- !u!1 &1031933238
 GameObject:
   m_ObjectHideFlags: 0
