@@ -23,6 +23,7 @@ public class GunSystem : MonoBehaviour
     public Transform attackPoint; // This is the Fire Point (Tip of gun)
     public GameObject bulletPrefab; // NEW: Drag your "Projectile" prefab here
     public AudioSource audioSource; 
+    public AudioClip reloadSound;
 
     // --- Graphics ---
     [Header("Graphics")]
@@ -101,6 +102,12 @@ public class GunSystem : MonoBehaviour
 
     private void Reload()
     {
+        // 1. Play the Sound
+        if (audioSource != null && reloadSound != null)
+        {
+            audioSource.PlayOneShot(reloadSound);
+        }
+
         reloading = true;
         Invoke("ReloadFinished", reloadTime);
     }

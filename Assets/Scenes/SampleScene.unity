@@ -23852,6 +23852,7 @@ MonoBehaviour:
   attackPoint: {fileID: 1407973811}
   bulletPrefab: {fileID: 5115898143798426263, guid: b34ebd24c871c8647b8e1fb274878aa4, type: 3}
   audioSource: {fileID: 1410140925}
+  reloadSound: {fileID: 8300000, guid: 4e35aaecdb45b144dbba3efa097126f5, type: 3}
   impactEffect: {fileID: 5115898143798426263, guid: b34ebd24c871c8647b8e1fb274878aa4, type: 3}
   muzzleFlash: {fileID: 579075399}
   text_ammo: {fileID: 167007554}
@@ -24790,6 +24791,7 @@ MonoBehaviour:
   attackPoint: {fileID: 1514277945}
   bulletPrefab: {fileID: 0}
   audioSource: {fileID: 0}
+  reloadSound: {fileID: 0}
   impactEffect: {fileID: 9147624265829706174, guid: d737d024ed0286b46a396ea1652f8b9e, type: 3}
   muzzleFlash: {fileID: 0}
   text_ammo: {fileID: 167007554}
