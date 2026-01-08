@@ -106,6 +106,7 @@ GameObject:
   - component: {fileID: 5333835119083842096}
   - component: {fileID: 6315574521257372844}
   - component: {fileID: 4404942415171912955}
+  - component: {fileID: 1076062510641424074}
   m_Layer: 0
   m_Name: SniperEnemy
   m_TagString: Enemy
@@ -366,6 +367,21 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &1076062510641424074
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4739600679745528363}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 77ae8cd972e59fc4e84989e6222cc4f7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyWaddle
+  eggModel: {fileID: 6446716603771695212}
+  waddleSpeed: 10
+  waddleAmount: 10
 --- !u!1 &5852724719210029544
 GameObject:
   m_ObjectHideFlags: 0
