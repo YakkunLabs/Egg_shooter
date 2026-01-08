@@ -70,28 +70,52 @@ public class GunSystem : MonoBehaviour
         }
     }
 
-    private void Shoot()
+private void Shoot()
     {
         readyToShoot = false;
 
-        // 1. Play Sound
-        if (audioSource != null)
+        // --- NEW ACCURACY LOGIC ---
+        // 1. Find exactly what the Crosshair is looking at
+        // (0.5, 0.5) is the exact center of the screen
+        Ray ray = fpsCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0)); 
+        RaycastHit hit;
+
+        Vector3 targetPoint;
+
+        // 2. Check if the ray hits anything (Enemy, Wall, Floor)
+        if (Physics.Raycast(ray, out hit))
         {
-            audioSource.Play(); 
+            targetPoint = hit.point; // Aim at the hit point
+        }
+        else
+        {
+            targetPoint = ray.GetPoint(75); // Hit nothing? Aim at a point far away in the air
         }
 
-        // 2. Play Muzzle Flash
-        if(muzzleFlash != null)
+        // 3. Calculate direction: Target Position - Gun Barrel Position
+        Vector3 directionWithoutSpread = targetPoint - attackPoint.position;
+        // ---------------------------
+
+        // 4. Play Sound
+        if (audioSource != null)
+        {
+            audioSource.Play();
+        }
+
+        // 5. Play Muzzle Flash
+        if (muzzleFlash != null)
             muzzleFlash.Play();
 
-        // 3. SPAWN THE BULLET (Replaces Raycast)
-        // We spawn it at 'attackPoint' (tip of gun) and give it the gun's rotation
-        Instantiate(bulletPrefab, attackPoint.position, attackPoint.rotation);
+        // 6. SPAWN THE BULLET
+        // We spawn it at 'attackPoint' (tip of gun) but use Quaternion.identity (no rotation yet)
+        GameObject currentBullet = Instantiate(bulletPrefab, attackPoint.position, Quaternion.identity);
 
-        // 4. Decrease Ammo
+        // 7. ROTATE BULLET TO FACE TARGET
+        // This is the magic line that makes it fly towards the crosshair
+        currentBullet.transform.forward = directionWithoutSpread.normalized;
+
+        // 8. Decrease Ammo & Reset
         bulletsLeft--;
-
-        // 5. Reset Shot
         Invoke("ResetShot", timeBetweenShooting);
     }
 
