@@ -8,6 +8,13 @@ public class MainMenu : MonoBehaviour
     public GameObject[] menuGuns; 
 
     private int selectedWeaponIndex = 0;
+    private int selectedSkinIndex = 0;
+
+    [Header("Skin Selection")]
+    // 1. Drag the MeshRenderer of your visible menu player here
+    public MeshRenderer menuPlayerMesh; 
+    // 2. Drag all your skin Materials here (Element 0 = Default)
+    public Material[] allSkins;
 
     void Start()
     {
@@ -18,6 +25,10 @@ public class MainMenu : MonoBehaviour
         // 1. Load the last saved choice (Optional, remembers what you picked last time)
         selectedWeaponIndex = PlayerPrefs.GetInt("SelectedWeapon", 0);
         UpdateMenuVisuals();
+
+        // Load saved skin (Default to 0 if none saved)
+        selectedSkinIndex = PlayerPrefs.GetInt("SelectedSkin", 0);
+        UpdateSkinVisuals();
     }
     
     public void PlayGame()
@@ -60,6 +71,26 @@ public class MainMenu : MonoBehaviour
             {
                 menuGuns[i].SetActive(false);
             }
+        }
+    }
+
+    public void SelectSkin(int index)
+    {
+        selectedSkinIndex = index;
+
+        // 1. Change the material immediately in the menu
+        UpdateSkinVisuals();
+
+        // 2. Save the choice for the game scene
+        PlayerPrefs.SetInt("SelectedSkin", selectedSkinIndex);
+        PlayerPrefs.Save();
+    }
+
+    void UpdateSkinVisuals()
+    {
+        if (menuPlayerMesh != null && allSkins.Length > selectedSkinIndex)
+        {
+             menuPlayerMesh.material = allSkins[selectedSkinIndex];
         }
     }
 }
