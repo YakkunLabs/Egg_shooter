@@ -221,7 +221,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 6928a7775d83acf47805c005620c537d, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 1.76
+      value: 2.38
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 6928a7775d83acf47805c005620c537d, type: 3}
       propertyPath: m_LocalRotation.w
@@ -520,7 +520,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 705561775665358165, guid: bb0a9940944fdd9469f39b8cb1a1f524, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.031
+      value: 0.09
       objectReference: {fileID: 0}
     - target: {fileID: 705561775665358165, guid: bb0a9940944fdd9469f39b8cb1a1f524, type: 3}
       propertyPath: m_LocalPosition.y
@@ -528,7 +528,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 705561775665358165, guid: bb0a9940944fdd9469f39b8cb1a1f524, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.025
+      value: 0.766
       objectReference: {fileID: 0}
     - target: {fileID: 705561775665358165, guid: bb0a9940944fdd9469f39b8cb1a1f524, type: 3}
       propertyPath: m_LocalRotation.w
@@ -585,6 +585,7 @@ GameObject:
   - component: {fileID: 433787811}
   - component: {fileID: 433787810}
   - component: {fileID: 433787809}
+  - component: {fileID: 433787812}
   m_Layer: 5
   m_Name: Button_Quit
   m_TagString: Untagged
@@ -706,6 +707,21 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 433787807}
   m_CullTransparentMesh: 1
+--- !u!114 &433787812
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 433787807}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cfabb0440166ab443bba8876756fdfa9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Shadow
+  m_EffectColor: {r: 0, g: 0, b: 0, a: 0.39215687}
+  m_EffectDistance: {x: 5, y: -5}
+  m_UseGraphicAlpha: 1
 --- !u!1 &467382423
 GameObject:
   m_ObjectHideFlags: 0
@@ -765,8 +781,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Rifle
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: ac613e8ff47893141b50db2e26e5ecbd, type: 2}
+  m_sharedMaterial: {fileID: 32786139584395265, guid: ac613e8ff47893141b50db2e26e5ecbd, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -902,8 +918,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Army Skin
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: ac613e8ff47893141b50db2e26e5ecbd, type: 2}
+  m_sharedMaterial: {fileID: 32786139584395265, guid: ac613e8ff47893141b50db2e26e5ecbd, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -992,6 +1008,7 @@ GameObject:
   - component: {fileID: 697820343}
   - component: {fileID: 697820342}
   - component: {fileID: 697820341}
+  - component: {fileID: 697820344}
   m_Layer: 5
   m_Name: Rifle
   m_TagString: Untagged
@@ -1113,6 +1130,21 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 697820339}
   m_CullTransparentMesh: 1
+--- !u!114 &697820344
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 697820339}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cfabb0440166ab443bba8876756fdfa9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Shadow
+  m_EffectColor: {r: 0, g: 0, b: 0, a: 0.39215687}
+  m_EffectDistance: {x: 5, y: -5}
+  m_UseGraphicAlpha: 1
 --- !u!1 &747533787
 GameObject:
   m_ObjectHideFlags: 0
@@ -1125,6 +1157,7 @@ GameObject:
   - component: {fileID: 747533791}
   - component: {fileID: 747533790}
   - component: {fileID: 747533789}
+  - component: {fileID: 747533792}
   m_Layer: 5
   m_Name: Skin1 (1)
   m_TagString: Untagged
@@ -1246,6 +1279,21 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 747533787}
   m_CullTransparentMesh: 1
+--- !u!114 &747533792
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 747533787}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cfabb0440166ab443bba8876756fdfa9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Shadow
+  m_EffectColor: {r: 0, g: 0, b: 0, a: 0.39215687}
+  m_EffectDistance: {x: 5, y: -5}
+  m_UseGraphicAlpha: 1
 --- !u!1 &813408556
 GameObject:
   m_ObjectHideFlags: 0
@@ -1258,6 +1306,8 @@ GameObject:
   - component: {fileID: 813408560}
   - component: {fileID: 813408559}
   - component: {fileID: 813408558}
+  - component: {fileID: 813408562}
+  - component: {fileID: 813408561}
   m_Layer: 5
   m_Name: Button_Play
   m_TagString: Untagged
@@ -1307,8 +1357,8 @@ MonoBehaviour:
   m_Transition: 1
   m_Colors:
     m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+    m_HighlightedColor: {r: 0.9607844, g: 0.9607844, b: 0.9607844, a: 1}
+    m_PressedColor: {r: 0.8627452, g: 0.8627452, b: 0.8627452, a: 1}
     m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
     m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
     m_ColorMultiplier: 1
@@ -1379,6 +1429,43 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 813408556}
   m_CullTransparentMesh: 1
+--- !u!95 &813408561
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 813408556}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 3de6308019b4e79439d4bdced1ea7406, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &813408562
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 813408556}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cfabb0440166ab443bba8876756fdfa9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Shadow
+  m_EffectColor: {r: 0, g: 0, b: 0, a: 0.39215687}
+  m_EffectDistance: {x: 5, y: -5}
+  m_UseGraphicAlpha: 1
 --- !u!1 &1164318881
 GameObject:
   m_ObjectHideFlags: 0
@@ -6426,15 +6513,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 705561775665358165, guid: bb0a9940944fdd9469f39b8cb1a1f524, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0.08200001
+      value: -0.022
       objectReference: {fileID: 0}
     - target: {fileID: 705561775665358165, guid: bb0a9940944fdd9469f39b8cb1a1f524, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -0.05300005
+      value: -0.134
       objectReference: {fileID: 0}
     - target: {fileID: 705561775665358165, guid: bb0a9940944fdd9469f39b8cb1a1f524, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0.22899997
+      value: 1.04
       objectReference: {fileID: 0}
     - target: {fileID: 705561775665358165, guid: bb0a9940944fdd9469f39b8cb1a1f524, type: 3}
       propertyPath: m_LocalRotation.w
@@ -6486,6 +6573,7 @@ GameObject:
   - component: {fileID: 1390186264}
   - component: {fileID: 1390186263}
   - component: {fileID: 1390186262}
+  - component: {fileID: 1390186265}
   m_Layer: 5
   m_Name: Snipper
   m_TagString: Untagged
@@ -6607,6 +6695,21 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1390186260}
   m_CullTransparentMesh: 1
+--- !u!114 &1390186265
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1390186260}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cfabb0440166ab443bba8876756fdfa9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Shadow
+  m_EffectColor: {r: 0, g: 0, b: 0, a: 0.39215687}
+  m_EffectDistance: {x: 5, y: -5}
+  m_UseGraphicAlpha: 1
 --- !u!1 &1392628910 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2332414970728685264, guid: 76276d30a11c06640aa35415434c6be7, type: 3}
@@ -6933,8 +7036,8 @@ MonoBehaviour:
 
 '
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: ac613e8ff47893141b50db2e26e5ecbd, type: 2}
+  m_sharedMaterial: {fileID: 32786139584395265, guid: ac613e8ff47893141b50db2e26e5ecbd, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -7301,8 +7404,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Pistol
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: ac613e8ff47893141b50db2e26e5ecbd, type: 2}
+  m_sharedMaterial: {fileID: 32786139584395265, guid: ac613e8ff47893141b50db2e26e5ecbd, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -7528,6 +7631,7 @@ GameObject:
   - component: {fileID: 1554128763}
   - component: {fileID: 1554128762}
   - component: {fileID: 1554128761}
+  - component: {fileID: 1554128764}
   m_Layer: 5
   m_Name: Pistol
   m_TagString: Untagged
@@ -7649,6 +7753,21 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1554128759}
   m_CullTransparentMesh: 1
+--- !u!114 &1554128764
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1554128759}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cfabb0440166ab443bba8876756fdfa9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Shadow
+  m_EffectColor: {r: 0, g: 0, b: 0, a: 0.39215687}
+  m_EffectDistance: {x: 5, y: -5}
+  m_UseGraphicAlpha: 1
 --- !u!1 &1601375938
 GameObject:
   m_ObjectHideFlags: 0
@@ -7708,8 +7827,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: White Skin
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: ac613e8ff47893141b50db2e26e5ecbd, type: 2}
+  m_sharedMaterial: {fileID: 32786139584395265, guid: ac613e8ff47893141b50db2e26e5ecbd, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -8109,8 +8228,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: PLAY GAME
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: ac613e8ff47893141b50db2e26e5ecbd, type: 2}
+  m_sharedMaterial: {fileID: 32786139584395265, guid: ac613e8ff47893141b50db2e26e5ecbd, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -8199,6 +8318,7 @@ GameObject:
   - component: {fileID: 1955482862}
   - component: {fileID: 1955482861}
   - component: {fileID: 1955482860}
+  - component: {fileID: 1955482863}
   m_Layer: 5
   m_Name: Skin1
   m_TagString: Untagged
@@ -8320,6 +8440,21 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1955482858}
   m_CullTransparentMesh: 1
+--- !u!114 &1955482863
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1955482858}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cfabb0440166ab443bba8876756fdfa9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Shadow
+  m_EffectColor: {r: 0, g: 0, b: 0, a: 0.39215687}
+  m_EffectDistance: {x: 5, y: -5}
+  m_UseGraphicAlpha: 1
 --- !u!1 &2137233761
 GameObject:
   m_ObjectHideFlags: 0
@@ -8379,8 +8514,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: QUIT
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: ac613e8ff47893141b50db2e26e5ecbd, type: 2}
+  m_sharedMaterial: {fileID: 32786139584395265, guid: ac613e8ff47893141b50db2e26e5ecbd, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
