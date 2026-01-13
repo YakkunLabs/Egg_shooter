@@ -92527,6 +92527,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerHealth
   maxHealth: 100
   currentHealth: 0
+  canRegenerate: 1
+  regenAmount: 10
+  timeBeforeRegen: 3
   kills: 0
   healthSlider: {fileID: 2126509959}
   gameOverScreen: {fileID: 641692924}
