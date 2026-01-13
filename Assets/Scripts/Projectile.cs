@@ -4,50 +4,92 @@ public class Projectile : MonoBehaviour
 {
     public float speed = 50f;
     public float damage = 10f;
+    public float explosionRadius = 0f; // Set this for rockets
     public float lifetime = 3f;
 
     [Header("Visuals")]
     public GameObject enemyHitEffect;
+    public TrailRenderer trail;
 
-    private Rigidbody rb;
+    private Vector3 lastPosition;
+    private bool initialized = false;
 
     void Start()
     {
-        // 1. Get Rigidbody
-        rb = GetComponent<Rigidbody>();
-
-        // 2. APPLY VELOCITY (This replaces transform.Translate)
-        // This makes the physics engine handle the movement, ensuring collisions work.
-        if (rb != null)
+        // 1. Setup visuals
+        if (trail == null) trail = GetComponent<TrailRenderer>();
+        if (trail != null)
         {
-            rb.linearVelocity = transform.forward * speed;
+            trail.Clear();
+            trail.emitting = true;
         }
+
+        // 2. Initialize state
+        lastPosition = transform.position;
+        initialized = true;
 
         Destroy(gameObject, lifetime);
     }
 
-    // Note: We do NOT use Update() anymore. The Rigidbody handles movement.
-
-    void OnCollisionEnter(Collision collision)
+    void Update()
     {
-        // Debugging: Print what we hit to the console
-        Debug.Log("Bullet hit: " + collision.gameObject.name);
+        if (!initialized) return;
 
-        Target enemy = collision.gameObject.GetComponent<Target>();
+        // Calculate distance to move this frame
+        float moveDistance = speed * Time.deltaTime;
         
-        if (enemy != null)
+        // Raycast ahead to detect hits (Prevents tunneling / missing targets at high speed)
+        RaycastHit hit;
+        if (Physics.Raycast(transform.position, transform.forward, out hit, moveDistance))
         {
-            enemy.TakeDamage(damage);
+            HandleHit(hit);
+        }
 
-            if (enemyHitEffect != null)
+        // Move the bullet
+        transform.position += transform.forward * moveDistance;
+        lastPosition = transform.position;
+    }
+
+    void HandleHit(RaycastHit hit)
+    {
+        // Ignore Player
+        if (hit.collider.CompareTag("Player")) return;
+
+        // Visual Effect (Explosion or Impact)
+        if (enemyHitEffect != null)
+        {
+            Instantiate(enemyHitEffect, hit.point, Quaternion.LookRotation(hit.normal));
+        }
+
+        // EXPLOSION LOGIC
+        if (explosionRadius > 0)
+        {
+            Collider[] colliders = Physics.OverlapSphere(hit.point, explosionRadius);
+            foreach (Collider col in colliders)
             {
-                ContactPoint hit = collision.contacts[0];
-                Instantiate(enemyHitEffect, hit.point, Quaternion.LookRotation(hit.normal));
+                Target target = col.GetComponent<Target>();
+                if (target != null)
+                {
+                    target.TakeDamage(damage); // Could apply falloff based on distance if desired
+                }
             }
         }
-        
-        // Don't destroy if we just hit the player (to prevent self-damage bugs)
-        if (collision.gameObject.CompareTag("Player")) return;
+        else 
+        {
+            // SINGLE TARGET logic
+            Target enemy = hit.collider.GetComponent<Target>();
+            if (enemy != null)
+            {
+                enemy.TakeDamage(damage);
+            }
+        }
+
+        // Stop trail properly
+        if (trail != null)
+        {
+            trail.transform.parent = null; // Detach trail so it fades out naturally
+            trail.autodestruct = true;
+        }
 
         Destroy(gameObject);
     }

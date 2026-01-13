@@ -30,6 +30,15 @@ public class EggController : MonoBehaviour
         characterController = GetComponent<CharacterController>();
         audioSource = GetComponent<AudioSource>();
 
+        // CHECK IF MAIN MENU - Disable logic
+        if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "MainMenu")
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+            canMove = false;
+            return;
+        }
+
         // Lock cursor to center of screen and hide it
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
@@ -37,6 +46,9 @@ public class EggController : MonoBehaviour
 
     void Update()
     {
+        // DISABLE IN MAIN MENU
+        if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "MainMenu") return;
+
         // 1. Calculate Movement (WASD)
         Vector3 forward = transform.TransformDirection(Vector3.forward);
         Vector3 right = transform.TransformDirection(Vector3.right);
