@@ -6,10 +6,11 @@ public class Grenade : MonoBehaviour
     public float delay = 3f;
     public float radius = 5f;
     public float force = 700f;
+    public float damage = 100f; // <-- NEW: How much damage it deals
     
     [Header("Effects")]
     public GameObject explosionEffect;
-    public AudioClip explosionSound; // <-- NEW: Drag your BOOM sound here
+    public AudioClip explosionSound; 
 
     float countdown;
     bool hasExploded = false;
@@ -37,23 +38,38 @@ public class Grenade : MonoBehaviour
             Instantiate(explosionEffect, transform.position, transform.rotation);
         }
 
-        // 2. Play Sound (The "Ghost Speaker" Trick)
-        // This creates a temporary object at the explosion spot just to play the sound
+        // 2. Play Sound
         if (explosionSound != null)
         {
             AudioSource.PlayClipAtPoint(explosionSound, transform.position);
         }
 
-        // 3. Physics & Damage Logic
+        // 3. Find nearby objects
         Collider[] colliders = Physics.OverlapSphere(transform.position, radius);
+        
         foreach (Collider nearbyObject in colliders)
         {
+            // --- A. PHYSICS LOGIC (Push things) ---
             Rigidbody rb = nearbyObject.GetComponent<Rigidbody>();
             if (rb != null)
             {
                 rb.AddExplosionForce(force, transform.position, radius);
             }
-            // Add damage logic here if needed
+
+            // --- B. DAMAGE LOGIC (Kill things) ---
+            // Check if the object we hit has the "Target" script (Enemy Health)
+            Target enemy = nearbyObject.GetComponent<Target>();
+            
+            // If it DOES have the script, deal damage!
+            if (enemy != null)
+            {
+                // Optional: Deal less damage if they are far away from the center
+                // For now, we just kill them instantly if they are in range
+                enemy.TakeDamage(damage);
+            }
+            
+            // (Note: If your player has a "PlayerHealth" script, 
+            // add a check here if you want the grenade to hurt YOU too!)
         }
 
         // 4. Destroy the grenade
