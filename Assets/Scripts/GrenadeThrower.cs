@@ -58,4 +58,12 @@ public class GrenadeThrower : MonoBehaviour
         if(grenadeText != null)
             grenadeText.text = "G: " + currentGrenades;
     }
+
+    // --- NEW REFILL FUNCTION ---
+    public void RefillGrenades()
+    {
+        currentGrenades = maxGrenades; // Reset to 3 (or whatever max is)
+        UpdateUI(); // Update the text on screen immediately
+        Debug.Log("Grenades Refilled!");
+    }
 }
