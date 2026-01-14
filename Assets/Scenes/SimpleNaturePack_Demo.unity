@@ -33802,7 +33802,7 @@ PrefabInstance:
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 0}
+    m_TransformParent: {fileID: 1230487956}
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: ed607f5c9b4982e4da9743f52480c7c9, type: 3}
       propertyPath: m_LocalPosition.x
@@ -33899,6 +33899,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GrenadePickup
   rotateSpeed: 50
   respawnTime: 15
+  pickupSound: {fileID: 8300000, guid: 604ec7632e16a414a85e352dad47de14, type: 3}
+--- !u!4 &546826313 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: ed607f5c9b4982e4da9743f52480c7c9, type: 3}
+  m_PrefabInstance: {fileID: 546826307}
+  m_PrefabAsset: {fileID: 0}
 --- !u!43 &551503013
 Mesh:
   m_ObjectHideFlags: 0
@@ -48834,7 +48840,7 @@ PrefabInstance:
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 0}
+    m_TransformParent: {fileID: 1230487956}
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: ed607f5c9b4982e4da9743f52480c7c9, type: 3}
       propertyPath: m_LocalPosition.x
@@ -48931,6 +48937,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GrenadePickup
   rotateSpeed: 50
   respawnTime: 15
+  pickupSound: {fileID: 8300000, guid: 604ec7632e16a414a85e352dad47de14, type: 3}
+--- !u!4 &823987060 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: ed607f5c9b4982e4da9743f52480c7c9, type: 3}
+  m_PrefabInstance: {fileID: 823987056}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &826010688
 GameObject:
   m_ObjectHideFlags: 0
@@ -53533,6 +53545,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AmmoPickup
   rotateSpeed: 50
   respawnTime: 10
+  pickupSound: {fileID: 8300000, guid: 2b401956f2477ee4ca8e20a498d35dae, type: 3}
 --- !u!43 &897987779
 Mesh:
   m_ObjectHideFlags: 0
@@ -60079,6 +60092,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AmmoPickup
   rotateSpeed: 50
   respawnTime: 10
+  pickupSound: {fileID: 8300000, guid: 2b401956f2477ee4ca8e20a498d35dae, type: 3}
 --- !u!1 &1046162914
 GameObject:
   m_ObjectHideFlags: 0
@@ -61033,6 +61047,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AmmoPickup
   rotateSpeed: 50
   respawnTime: 10
+  pickupSound: {fileID: 8300000, guid: 2b401956f2477ee4ca8e20a498d35dae, type: 3}
 --- !u!1 &1097089059
 GameObject:
   m_ObjectHideFlags: 0
@@ -68035,6 +68050,39 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 8903058273634951509, guid: f1fc5bb90ac285e4486771552d63bcb8, type: 3}
   m_PrefabInstance: {fileID: 1223250803}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1230487955
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1230487956}
+  m_Layer: 0
+  m_Name: GrenadeCrates
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1230487956
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1230487955}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 546826313}
+  - {fileID: 823987060}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1231360612
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -108038,6 +108086,5 @@ SceneRoots:
   - {fileID: 27208130}
   - {fileID: 909345941}
   - {fileID: 383123627}
-  - {fileID: 546826307}
-  - {fileID: 823987056}
   - {fileID: 146709141}
+  - {fileID: 1230487956}
