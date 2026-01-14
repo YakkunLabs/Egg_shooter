@@ -37,8 +37,8 @@ MonoBehaviour:
   hasScope: 1
   scopedFOV: 15
   scopeZoomSpeed: 10
-  shootSound: {fileID: 0}
-  reloadSound: {fileID: 0}
+  shootSound: {fileID: 8300000, guid: 77c64ca3eae449c4db979d9b7fc850a5, type: 3}
+  reloadSound: {fileID: 8300000, guid: 4e35aaecdb45b144dbba3efa097126f5, type: 3}
   emptySound: {fileID: 0}
   explosionRadius: 0
   muzzleFlashPrefab: {fileID: 0}

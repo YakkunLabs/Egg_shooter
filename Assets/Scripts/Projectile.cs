@@ -2,95 +2,103 @@ using UnityEngine;
 
 public class Projectile : MonoBehaviour
 {
-    public float speed = 50f;
+    [Header("Stats")]
+    public float speed = 100f;
     public float damage = 10f;
-    public float explosionRadius = 0f; // Set this for rockets
-    public float lifetime = 3f;
+    public float explosionRadius = 0f; // 0 = Bullet, >0 = Rocket
+    public float lifetime = 5f;
 
     [Header("Visuals")]
-    public GameObject enemyHitEffect;
-    public TrailRenderer trail;
+    public GameObject impactEffect; // Assign an explosion particle here for rockets
+    public GameObject explosionSoundPrefab; // Optional: Prefab with AudioSource that plays on death
 
-    private Vector3 lastPosition;
-    private bool initialized = false;
+    private Rigidbody rb;
 
     void Start()
     {
-        // 1. Setup visuals
-        if (trail == null) trail = GetComponent<TrailRenderer>();
-        if (trail != null)
-        {
-            trail.Clear();
-            trail.emitting = true;
-        }
+        rb = GetComponent<Rigidbody>();
+        Destroy(gameObject, lifetime); 
 
-        // 2. Initialize state
-        lastPosition = transform.position;
-        initialized = true;
-
-        Destroy(gameObject, lifetime);
-    }
-
-    void Update()
-    {
-        if (!initialized) return;
-
-        // Calculate distance to move this frame
-        float moveDistance = speed * Time.deltaTime;
+        // --- NEW: IGNORE PLAYER & GUN COLLISIONS ---
+        Collider myCollider = GetComponent<Collider>();
         
-        // Raycast ahead to detect hits (Prevents tunneling / missing targets at high speed)
-        RaycastHit hit;
-        if (Physics.Raycast(transform.position, transform.forward, out hit, moveDistance))
+        // 1. Find the Player
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null && myCollider != null)
         {
-            HandleHit(hit);
+            // Ignore the main Character Controller/Collider
+            Collider playerCollider = player.GetComponent<Collider>();
+            if (playerCollider != null) Physics.IgnoreCollision(myCollider, playerCollider);
+            
+            // 2. Ignore all children colliders (like the Gun itself)
+            Collider[] allPlayerColliders = player.GetComponentsInChildren<Collider>();
+            foreach (Collider c in allPlayerColliders)
+            {
+                Physics.IgnoreCollision(myCollider, c);
+            }
         }
-
-        // Move the bullet
-        transform.position += transform.forward * moveDistance;
-        lastPosition = transform.position;
+    }
+    void FixedUpdate()
+    {
+        // Move the bullet/rocket forward
+        if (rb != null)
+        {
+            rb.linearVelocity = transform.forward * speed;
+        }
     }
 
-    void HandleHit(RaycastHit hit)
+    void OnCollisionEnter(Collision collision)
     {
-        // Ignore Player
-        if (hit.collider.CompareTag("Player")) return;
-
-        // Visual Effect (Explosion or Impact)
-        if (enemyHitEffect != null)
+        // 1. Play Impact Effect
+        if (impactEffect != null)
         {
-            Instantiate(enemyHitEffect, hit.point, Quaternion.LookRotation(hit.normal));
+            Instantiate(impactEffect, transform.position, Quaternion.identity);
         }
 
-        // EXPLOSION LOGIC
+        // 2. Handle Damage
         if (explosionRadius > 0)
         {
-            Collider[] colliders = Physics.OverlapSphere(hit.point, explosionRadius);
-            foreach (Collider col in colliders)
-            {
-                Target target = col.GetComponent<Target>();
-                if (target != null)
-                {
-                    target.TakeDamage(damage); // Could apply falloff based on distance if desired
-                }
-            }
+            Explode(); // It's a Rocket!
         }
-        else 
+        else
         {
-            // SINGLE TARGET logic
-            Target enemy = hit.collider.GetComponent<Target>();
+            DirectHit(collision.gameObject); // It's a Bullet!
+        }
+
+        // 3. Destroy Projectile
+        Destroy(gameObject);
+    }
+
+    void DirectHit(GameObject target)
+    {
+        // Find enemy script (Target, EnemyHealth, etc.)
+        Target enemy = target.GetComponent<Target>();
+        if (enemy != null)
+        {
+            enemy.TakeDamage(damage);
+        }
+    }
+
+    void Explode()
+    {
+        // Find all colliders in the radius
+        Collider[] colliders = Physics.OverlapSphere(transform.position, explosionRadius);
+        
+        foreach (Collider nearbyObject in colliders)
+        {
+            // Damage Enemy
+            Target enemy = nearbyObject.GetComponent<Target>();
             if (enemy != null)
             {
-                enemy.TakeDamage(damage);
+                enemy.TakeDamage(damage); 
+            }
+
+            // Physics Push
+            Rigidbody rb = nearbyObject.GetComponent<Rigidbody>();
+            if (rb != null)
+            {
+                rb.AddExplosionForce(700f, transform.position, explosionRadius);
             }
         }
-
-        // Stop trail properly
-        if (trail != null)
-        {
-            trail.transform.parent = null; // Detach trail so it fades out naturally
-            trail.autodestruct = true;
-        }
-
-        Destroy(gameObject);
     }
 }

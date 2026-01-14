@@ -21,7 +21,7 @@ MonoBehaviour:
   headshotMultiplier: 2.5
   roundsPerMinute: 60
   bulletSpeed: 40
-  burstCount: 3
+  burstCount: 0
   burstDelay: 0.1
   magazineSize: 1
   reserveAmmo: 10
@@ -34,11 +34,11 @@ MonoBehaviour:
   recoilAmount: 5
   effectiveRange: 100
   maxRange: 200
-  hasScope: 1
+  hasScope: 0
   scopedFOV: 40
   scopeZoomSpeed: 10
-  shootSound: {fileID: 0}
-  reloadSound: {fileID: 0}
+  shootSound: {fileID: 8300000, guid: 40e71b0f7bd610849b40f150553f4702, type: 3}
+  reloadSound: {fileID: 8300000, guid: c3430338b7987524d96ce1f63db280cd, type: 3}
   emptySound: {fileID: 0}
   explosionRadius: 6
   muzzleFlashPrefab: {fileID: 0}
