@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b88183b623460e74ea67b76679b9d805, type: 3}
+  m_Name: AssaultRifle
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponData
+  weaponName: AssaultRifle
+  weaponType: 1
+  fireMode: 1
+  canToggleFireMode: 1
+  availableFireModes: 010000000200000000000000
+  damage: 25
+  headshotMultiplier: 2.5
+  roundsPerMinute: 700
+  bulletSpeed: 400
+  burstCount: 3
+  burstDelay: 0.1
+  magazineSize: 30
+  reserveAmmo: 150
+  infiniteAmmo: 0
+  reloadTime: 2.5
+  reloadFullMagazine: 1
+  reloadPerBulletTime: 0.5
+  spread: 0.05
+  aimSpreadMultiplier: 0.3
+  recoilAmount: 1.2
+  effectiveRange: 100
+  maxRange: 300
+  hasScope: 0
+  scopedFOV: 15
+  scopeZoomSpeed: 10
+  shootSound: {fileID: 0}
+  reloadSound: {fileID: 0}
+  emptySound: {fileID: 0}
+  explosionRadius: 0
+  muzzleFlashPrefab: {fileID: 0}
+  bulletTracerPrefab: {fileID: 0}
+  impactEffectPrefab: {fileID: 0}
