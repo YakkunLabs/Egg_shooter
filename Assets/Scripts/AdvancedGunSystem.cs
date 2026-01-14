@@ -14,6 +14,7 @@ public class AdvancedGunSystem : MonoBehaviour
     [Header("Runtime Stats")]
     private int currentAmmo;
     private int reserveAmmo;
+    private int maxReserveAmmo;
     private FireMode currentFireMode;
     private bool isReloading = false;
     private bool readyToShoot = true;
@@ -62,6 +63,7 @@ public class AdvancedGunSystem : MonoBehaviour
         // Initialize ammo
         currentAmmo = weaponData.magazineSize;
         reserveAmmo = weaponData.reserveAmmo;
+        maxReserveAmmo = weaponData.reserveAmmo;
         currentFireMode = weaponData.fireMode;
 
         // Initialize camera settings
@@ -418,5 +420,21 @@ public class AdvancedGunSystem : MonoBehaviour
         {
             text_fireMode.SetText(currentFireMode.ToString());
         }
+    }
+
+    // --- NEW REFILL FUNCTION ---
+    public void RefillAmmo()
+    {
+        // Simply reset the reserve to the maximum allowed
+        reserveAmmo = maxReserveAmmo;
+
+        // Optional: Play pickup sound
+        if (audioSource != null && weaponData.reloadSound != null)
+        {
+            audioSource.PlayOneShot(weaponData.reloadSound);
+        }
+
+        UpdateUI(); 
+        Debug.Log("Ammo Refilled to Max: " + reserveAmmo);
     }
 }
