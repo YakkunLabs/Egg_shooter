@@ -61,6 +61,11 @@ public class WeaponData : ScriptableObject
     public float scopedFOV = 15f;
     public float scopeZoomSpeed = 10f;
 
+    [Header("Aiming / Iron Sights")]
+    public Vector3 aimPosition; // Where the gun moves when aiming
+    public float aimZoom = 40f; // FOV when aiming (Default is 60)
+    public float aimSpeed = 10f; // How fast it snaps to the eye
+
     [Header("Audio")]
     public AudioClip shootSound;
     public AudioClip reloadSound;

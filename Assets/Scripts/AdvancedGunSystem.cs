@@ -19,6 +19,7 @@ public class AdvancedGunSystem : MonoBehaviour
     private bool isReloading = false;
     private bool readyToShoot = true;
     private int burstShotsRemaining = 0;
+    private Vector3 initialPosition;
 
     [Header("Scope & Zoom")]
     private bool isScoped = false;
@@ -65,6 +66,7 @@ public class AdvancedGunSystem : MonoBehaviour
         reserveAmmo = weaponData.reserveAmmo;
         maxReserveAmmo = weaponData.reserveAmmo;
         currentFireMode = weaponData.fireMode;
+        initialPosition = transform.localPosition;
 
         // Initialize camera settings
         if (fpsCamera != null)
@@ -136,15 +138,39 @@ public class AdvancedGunSystem : MonoBehaviour
         }
 
         // Sniper Scope
-        if (weaponData.hasScope)
+        // --- NEW AIMING LOGIC (Inside HandleInput or Update) ---
+    // Uses "Fire2" (Right Click) or Left Shift
+    bool isAiming = Input.GetButton("Fire2") || Input.GetKey(KeyCode.LeftShift);
+
+        if (isAiming)
         {
-            if (Input.GetButton("Fire2") && !isScoped)
+            // A. SNIPER LOGIC (Scope Overlay)
+            if (weaponData.hasScope)
             {
-                StartCoroutine(OnScoped());
+                if (!isScoped) StartCoroutine(OnScoped());
             }
-            else if (!Input.GetButton("Fire2") && isScoped)
+            // B. STANDARD GUN LOGIC (Iron Sights)
+            else
+            {
+                // Move Gun to Center
+                transform.localPosition = Vector3.Lerp(transform.localPosition, weaponData.aimPosition, Time.deltaTime * weaponData.aimSpeed);
+                // Zoom Camera
+                fpsCamera.fieldOfView = Mathf.Lerp(fpsCamera.fieldOfView, weaponData.aimZoom, Time.deltaTime * weaponData.aimSpeed);
+            }
+        }
+        else
+        {
+            // STOP AIMING
+            if (weaponData.hasScope && isScoped)
             {
                 OnUnscoped();
+            }
+            else
+            {
+                // Return Gun to Hip
+                transform.localPosition = Vector3.Lerp(transform.localPosition, initialPosition, Time.deltaTime * weaponData.aimSpeed);
+                // Reset Camera
+                fpsCamera.fieldOfView = Mathf.Lerp(fpsCamera.fieldOfView, normalFOV, Time.deltaTime * weaponData.aimSpeed);
             }
         }
     }

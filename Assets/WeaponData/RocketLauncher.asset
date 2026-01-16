@@ -37,6 +37,9 @@ MonoBehaviour:
   hasScope: 0
   scopedFOV: 40
   scopeZoomSpeed: 10
+  aimPosition: {x: -0.4, y: -0.69, z: 0.02}
+  aimZoom: 40
+  aimSpeed: 10
   shootSound: {fileID: 8300000, guid: 40e71b0f7bd610849b40f150553f4702, type: 3}
   reloadSound: {fileID: 8300000, guid: c3430338b7987524d96ce1f63db280cd, type: 3}
   emptySound: {fileID: 0}
