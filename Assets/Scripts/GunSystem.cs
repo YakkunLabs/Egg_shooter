@@ -107,14 +107,19 @@ public class GunSystem : MonoBehaviour
 
     private void MyInput()
     {
-        // Shooting
-        if (Input.GetButton("Fire1") && readyToShoot && !reloading && bulletsLeft > 0)
+        // Shooting Logic: 
+        // 1. PC: "Fire1" (Mouse) allowed ONLY if NOT in Mobile Mode (to prevent touches firing)
+        // 2. Mobile: "shootPressed" (Button) allowed ALWAYS
+        bool pcFire = !MobileInputManager.Instance.IsMobileMode && Input.GetButton("Fire1");
+        bool mobileFire = MobileInputManager.Instance.shootPressed;
+
+        if ((pcFire || mobileFire) && readyToShoot && !reloading && bulletsLeft > 0)
         {
             Shoot();
         }
 
         // Reloading
-        if (Input.GetKeyDown(KeyCode.R) && bulletsLeft < magazineSize && !reloading)
+        if ((Input.GetKeyDown(KeyCode.R) || MobileInputManager.Instance.reloadPressed) && bulletsLeft < magazineSize && !reloading)
         {
             Reload();
         }
@@ -122,13 +127,18 @@ public class GunSystem : MonoBehaviour
         // --- NEW HOLD-TO-AIM SNIPER LOGIC ---
         if (isSniper)
         {
-            // If holding Right Click -> Scope ON
-            if (Input.GetButton("Fire2") && !isScoped)
+            // PC: Fire2 (Right Click) - Blocked on Mobile
+            // Mobile: Scope Button
+            bool pcAim = !MobileInputManager.Instance.IsMobileMode && Input.GetButton("Fire2");
+            bool mobileAim = MobileInputManager.Instance.scopePressed;
+            bool isAiming = pcAim || mobileAim;
+
+            // Simple Logic: If aiming and not scoped -> Scope. If not aiming and scoped -> Unscope.
+            if (isAiming && !isScoped)
             {
                 StartCoroutine(OnScoped());
             }
-            // If released Right Click -> Scope OFF
-            else if (!Input.GetButton("Fire2") && isScoped)
+            else if (!isAiming && isScoped)
             {
                 OnUnscoped();
             }

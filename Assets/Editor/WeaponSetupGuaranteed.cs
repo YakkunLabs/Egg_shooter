@@ -19,7 +19,6 @@ public class WeaponSetupGuaranteed : EditorWindow
         Debug.Log("<color=cyan>═══════════════════════════════════════════════════════</color>");
 
         string currentScenePath = SceneManager.GetActiveScene().path;
-        bool setupSuccess = true;
 
         try
         {

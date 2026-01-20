@@ -39,9 +39,19 @@ public class EggController : MonoBehaviour
             return;
         }
 
-        // Lock cursor to center of screen and hide it
-        Cursor.lockState = CursorLockMode.Locked;
-        Cursor.visible = false;
+        // Lock cursor logic
+        if (MobileInputManager.Instance != null && MobileInputManager.Instance.IsMobileMode)
+        {
+            // Mobile: Must be UNLOCKED to use Touch UI
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+        else
+        {
+            // PC: Locked for FPS mouse look
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
+        }
     }
 
     void Update()
@@ -54,14 +64,14 @@ public class EggController : MonoBehaviour
         Vector3 right = transform.TransformDirection(Vector3.right);
 
         // Check if shift is held for running (optional)
-        float curSpeedX = canMove ? walkSpeed * Input.GetAxis("Vertical") : 0;
-        float curSpeedY = canMove ? walkSpeed * Input.GetAxis("Horizontal") : 0;
+        float curSpeedX = canMove ? walkSpeed * MobileInputManager.Instance.GetVertical() : 0;
+        float curSpeedY = canMove ? walkSpeed * MobileInputManager.Instance.GetHorizontal() : 0;
 
         float movementDirectionY = moveDirection.y; // Preserve vertical velocity (gravity)
         moveDirection = (forward * curSpeedX) + (right * curSpeedY);
 
         // 2. Jumping Logic
-        if (Input.GetButton("Jump") && canMove && characterController.isGrounded)
+        if ((Input.GetButton("Jump") || MobileInputManager.Instance.jumpPressed) && canMove && characterController.isGrounded)
         {
             moveDirection.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
             // PLAY JUMP SOUND
@@ -107,14 +117,21 @@ public class EggController : MonoBehaviour
         // 5. Camera Rotation (Looking Around)
         if (canMove)
         {
-            rotationX += -Input.GetAxis("Mouse Y") * mouseSensitivity * Time.deltaTime;
+            rotationX += -MobileInputManager.Instance.GetLookY() * mouseSensitivity * Time.deltaTime;
             rotationX = Mathf.Clamp(rotationX, -lookXLimit, lookXLimit);
 
             // Rotate Camera up/down
             playerCamera.localRotation = Quaternion.Euler(rotationX, 0, 0);
             
             // Rotate Player Body left/right
-            transform.rotation *= Quaternion.Euler(0, Input.GetAxis("Mouse X") * mouseSensitivity * Time.deltaTime, 0);
+            transform.rotation *= Quaternion.Euler(0, MobileInputManager.Instance.GetLookX() * mouseSensitivity * Time.deltaTime, 0);
+        }
+
+        // Force Unlock on Mobile (Just in case something else locks it)
+        if (MobileInputManager.Instance.IsMobileMode && Cursor.lockState != CursorLockMode.None)
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
         }
     }
 
