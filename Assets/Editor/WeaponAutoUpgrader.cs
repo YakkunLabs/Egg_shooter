@@ -115,7 +115,7 @@ public class WeaponAutoUpgrader : EditorWindow
         foundWeapons.Clear();
 
         // Find all GunSystem components in the scene
-        GunSystem[] gunSystems = FindObjectsOfType<GunSystem>();
+        GunSystem[] gunSystems = FindObjectsByType<GunSystem>(FindObjectsSortMode.None);
         
         foreach (var gunSystem in gunSystems)
         {

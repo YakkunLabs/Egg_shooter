@@ -114,10 +114,14 @@ public class AdvancedGunSystem : MonoBehaviour
         }
 
         // Shooting
-        bool shootInput = currentFireMode == FireMode.Automatic ? 
-            Input.GetButton("Fire1") : Input.GetButtonDown("Fire1");
+        // PC uses Mouse ONLY (checks !IsMobileMode to avoid touch-fire)
+        // Mobile uses Button ONLY
+        bool pcFire = !MobileInputManager.Instance.IsMobileMode && 
+                     (currentFireMode == FireMode.Automatic ? Input.GetButton("Fire1") : Input.GetButtonDown("Fire1"));
+        
+        bool mobileFire = MobileInputManager.Instance.shootPressed;
 
-        if (shootInput && readyToShoot && !isReloading && currentAmmo > 0)
+        if ((pcFire || mobileFire) && readyToShoot && !isReloading && currentAmmo > 0)
         {
             Shoot();
         }
@@ -129,7 +133,7 @@ public class AdvancedGunSystem : MonoBehaviour
         }
 
         // Reloading
-        if (Input.GetKeyDown(KeyCode.R) && currentAmmo < weaponData.magazineSize && !isReloading)
+        if ((Input.GetKeyDown(KeyCode.R) || MobileInputManager.Instance.reloadPressed) && currentAmmo < weaponData.magazineSize && !isReloading)
         {
             if (reserveAmmo > 0 || weaponData.infiniteAmmo)
             {
@@ -137,10 +141,13 @@ public class AdvancedGunSystem : MonoBehaviour
             }
         }
 
-        // Sniper Scope
-        // --- NEW AIMING LOGIC (Inside HandleInput or Update) ---
-    // Uses "Fire2" (Right Click) or Left Shift
-    bool isAiming = Input.GetButton("Fire2") || Input.GetKey(KeyCode.LeftShift);
+        // Sniper Scope Logic
+        // PC: Right Click ("Fire2") - Only if !IsMobileMode
+        // Mobile: Scope Button Only
+        bool pcAim = !MobileInputManager.Instance.IsMobileMode && (Input.GetButton("Fire2") || Input.GetKey(KeyCode.LeftShift));
+        bool mobileAim = MobileInputManager.Instance.scopePressed;
+
+        bool isAiming = pcAim || mobileAim;
 
         if (isAiming)
         {
