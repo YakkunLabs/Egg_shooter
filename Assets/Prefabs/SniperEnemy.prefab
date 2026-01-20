@@ -227,10 +227,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5a2e58087793be54592d44a4bde8f0f1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Target
-  maxHealth: 50
+  maxHealth: 100
   currentHealth: 0
   crackShellRenderer: {fileID: 8175564033620411318}
   deathEffect: {fileID: 4870575604213302691, guid: 14e88c156f2f94345949f56ddf0e3bff, type: 3}
+  healthBarPrefab: {fileID: 1308544808928267673, guid: e4af116ae514e6143bc515726b30d770, type: 3}
 --- !u!195 &5333835119083842096
 NavMeshAgent:
   m_ObjectHideFlags: 0
