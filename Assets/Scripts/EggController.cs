@@ -5,14 +5,15 @@ public class EggController : MonoBehaviour
 {
     [Header("Movement Settings")]
     public float walkSpeed = 12f;
+    // Removed runSpeed
     public float jumpHeight = 2.5f;
-    public float gravity = -19.62f; // Higher gravity feels snappier for FPS
+    public float gravity = -19.62f;
     public AudioSource audioSource;
 
     [Header("Look Settings")]
-    public Transform playerCamera; // Drag your Main Camera here
+    public Transform playerCamera;
     public float mouseSensitivity = 100f;
-    public float lookXLimit = 85f; // Prevents breaking your neck looking up/down
+    public float lookXLimit = 85f;
 
     private CharacterController characterController;
     private Vector3 moveDirection = Vector3.zero;
@@ -24,114 +25,104 @@ public class EggController : MonoBehaviour
     [Header("Ladder Settings")]
     public bool isClimbing = false;
     public float climbSpeed = 6f;
+    public GameObject climbMessageUI; 
+    private bool canClimb = false;    
 
     void Start()
     {
         characterController = GetComponent<CharacterController>();
         audioSource = GetComponent<AudioSource>();
 
-        // CHECK IF MAIN MENU - Disable logic
+        if (climbMessageUI != null) climbMessageUI.SetActive(false);
+
         if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "MainMenu")
         {
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
+            UnlockCursor();
             canMove = false;
             return;
         }
 
-        // Lock cursor logic
         if (MobileInputManager.Instance != null && MobileInputManager.Instance.IsMobileMode)
-        {
-            // Mobile: Must be UNLOCKED to use Touch UI
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
-        }
+            UnlockCursor();
         else
-        {
-            // PC: Locked for FPS mouse look
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
-        }
+            LockCursor();
     }
 
     void Update()
     {
-        // DISABLE IN MAIN MENU
         if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "MainMenu") return;
 
-        // 1. Calculate Movement (WASD)
-        Vector3 forward = transform.TransformDirection(Vector3.forward);
-        Vector3 right = transform.TransformDirection(Vector3.right);
-
-        // Check if shift is held for running (optional)
-        float curSpeedX = canMove ? walkSpeed * MobileInputManager.Instance.GetVertical() : 0;
-        float curSpeedY = canMove ? walkSpeed * MobileInputManager.Instance.GetHorizontal() : 0;
-
-        float movementDirectionY = moveDirection.y; // Preserve vertical velocity (gravity)
-        moveDirection = (forward * curSpeedX) + (right * curSpeedY);
-
-        // 2. Jumping Logic
-        if ((Input.GetButton("Jump") || MobileInputManager.Instance.jumpPressed) && canMove && characterController.isGrounded)
+        // --- 1. LADDER INTERACTION ---
+        // Toggle climbing when pressing Shift near a ladder
+        if (canClimb && Input.GetKeyDown(KeyCode.LeftShift))
         {
-            moveDirection.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
-            // PLAY JUMP SOUND
-            if (audioSource != null)
+            isClimbing = !isClimbing;
+            
+            // Hide text if climbing, Show if waiting
+            if (climbMessageUI != null) 
             {
-                audioSource.Play();
+                climbMessageUI.SetActive(!isClimbing);
+            }
+        }
+
+        // --- 2. CALCULATE MOVEMENT ---
+        
+        if (isClimbing)
+        {
+            // === CLIMBING LOGIC ===
+            float verticalInput = MobileInputManager.Instance.GetVertical(); 
+            moveDirection = new Vector3(0, verticalInput * climbSpeed, 0);
+
+            if (Input.GetButtonDown("Jump"))
+            {
+                moveDirection.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+                moveDirection += transform.forward * 2f; 
+                isClimbing = false;
+                
+                if (climbMessageUI != null && canClimb) climbMessageUI.SetActive(true);
             }
         }
         else
         {
-            moveDirection.y = movementDirectionY;
-        }
+            // === NORMAL WALKING LOGIC (No Sprint) ===
+            Vector3 forward = transform.TransformDirection(Vector3.forward);
+            Vector3 right = transform.TransformDirection(Vector3.right);
 
-        // 3. Apply Gravity
-        if (!characterController.isGrounded)
-        {
-            moveDirection.y += gravity * Time.deltaTime;
-        }
+            // Always use walkSpeed (No Shift check here)
+            float curSpeedX = canMove ? walkSpeed * MobileInputManager.Instance.GetVertical() : 0;
+            float curSpeedY = canMove ? walkSpeed * MobileInputManager.Instance.GetHorizontal() : 0;
 
-            // LADDER LOGIC
-        if (isClimbing)
-        {
-            // If climbing, pressing "W" moves us UP, "S" moves DOWN
-            float verticalInput = Input.GetAxis("Vertical"); 
-            moveDirection.y = verticalInput * climbSpeed;
-            
-            // Optional: Jump off ladder
-            if (Input.GetButtonDown("Jump"))
+            float movementDirectionY = moveDirection.y; 
+            moveDirection = (forward * curSpeedX) + (right * curSpeedY);
+
+            // Jumping
+            if ((Input.GetButton("Jump") || MobileInputManager.Instance.jumpPressed) && canMove && characterController.isGrounded)
             {
                 moveDirection.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
-                isClimbing = false; // Detach
+                if (audioSource != null) audioSource.Play();
+            }
+            else
+            {
+                moveDirection.y = movementDirectionY;
+            }
+
+            // Gravity
+            if (!characterController.isGrounded)
+            {
+                moveDirection.y += gravity * Time.deltaTime;
             }
         }
-        else 
-        {
-            // STANDARD GRAVITY (Your existing code usually looks like this)
-            moveDirection.y += gravity * Time.deltaTime; 
-        }
 
-        // 4. Move the Controller
+        // --- 3. APPLY MOVEMENT ---
         characterController.Move(moveDirection * Time.deltaTime);
 
-        // 5. Camera Rotation (Looking Around)
+        // --- 4. LOOK AROUND ---
         if (canMove)
         {
             rotationX += -MobileInputManager.Instance.GetLookY() * mouseSensitivity * Time.deltaTime;
             rotationX = Mathf.Clamp(rotationX, -lookXLimit, lookXLimit);
-
-            // Rotate Camera up/down
             playerCamera.localRotation = Quaternion.Euler(rotationX, 0, 0);
-            
-            // Rotate Player Body left/right
             transform.rotation *= Quaternion.Euler(0, MobileInputManager.Instance.GetLookX() * mouseSensitivity * Time.deltaTime, 0);
-        }
-
-        // Force Unlock on Mobile (Just in case something else locks it)
-        if (MobileInputManager.Instance.IsMobileMode && Cursor.lockState != CursorLockMode.None)
-        {
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
         }
     }
 
@@ -139,7 +130,8 @@ public class EggController : MonoBehaviour
     {
         if (other.CompareTag("Ladder"))
         {
-            isClimbing = true;
+            canClimb = true;
+            if (climbMessageUI != null && !isClimbing) climbMessageUI.SetActive(true); 
         }
     }
 
@@ -147,7 +139,20 @@ public class EggController : MonoBehaviour
     {
         if (other.CompareTag("Ladder"))
         {
-            isClimbing = false;
+            canClimb = false;
+            isClimbing = false; 
+            if (climbMessageUI != null) climbMessageUI.SetActive(false);
         }
+    }
+
+    void LockCursor()
+    {
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+    }
+    void UnlockCursor()
+    {
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
     }
 }

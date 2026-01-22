@@ -12,12 +12,15 @@ public class MapExporter : MonoBehaviour
     public string fileName = "map_data.json";
     public bool exportTags = true;
     public bool exportLayers = true;
+    
+    [Tooltip("Check this to export Ladders, Zones, and other invisible Triggers.")]
+    public bool exportTriggers = true; // <-- NEW: Toggle for Triggers
 
     [Header("ProBuilder / Land Fix")]
     [Tooltip("If true, it treats complex MeshColliders as simple Boxes based on their size. Great for floors/walls.")]
     public bool convertMeshesToBoxes = true;
 
-    // --- DATA ---
+    // --- DATA STRUCTURES ---
     [System.Serializable]
     public class MapData
     {
@@ -33,6 +36,7 @@ public class MapExporter : MonoBehaviour
         public Vector3 scale;     
         public string tag;        
         public string layer;      
+        public bool isTrigger;    // <-- NEW: Stores if it is a trigger
     }
 
     // --- LOGIC ---
@@ -43,16 +47,18 @@ public class MapExporter : MonoBehaviour
 
         foreach (Collider col in allColliders)
         {
-            // Skip Triggers if you only want solid walls
-            if (col.isTrigger) continue;
+            // 1. CHECK TRIGGERS
+            // If it's a trigger AND we don't want triggers, skip it.
+            if (col.isTrigger && !exportTriggers) continue;
 
             ColliderEntry entry = new ColliderEntry();
-            entry.tag = exportTags ? col.gameObject.tag : "";
-            entry.layer = exportLayers ? LayerMask.LayerToName(col.gameObject.layer) : "";
-            
+            entry.tag = exportTags ? col.gameObject.tag : "Untagged";
+            entry.layer = exportLayers ? LayerMask.LayerToName(col.gameObject.layer) : "Default";
+            entry.isTrigger = col.isTrigger; // Save the status
+
             Transform t = col.transform;
 
-            // 1. HANDLE BOXES
+            // 2. HANDLE BOXES
             if (col is BoxCollider box)
             {
                 entry.type = "Box";
@@ -61,7 +67,7 @@ public class MapExporter : MonoBehaviour
                 entry.scale = Vector3.Scale(box.size, t.lossyScale);
                 data.colliders.Add(entry);
             }
-            // 2. HANDLE SPHERES
+            // 3. HANDLE SPHERES
             else if (col is SphereCollider sphere)
             {
                 entry.type = "Sphere";
@@ -72,7 +78,7 @@ public class MapExporter : MonoBehaviour
                 entry.scale = new Vector3(worldRadius, worldRadius, worldRadius);
                 data.colliders.Add(entry);
             }
-            // 3. HANDLE CAPSULES
+            // 4. HANDLE CAPSULES
             else if (col is CapsuleCollider cap)
             {
                 entry.type = "Capsule";
@@ -83,27 +89,21 @@ public class MapExporter : MonoBehaviour
                 entry.scale = new Vector3(cap.radius * radiusScale, cap.height * heightScale, 0); 
                 data.colliders.Add(entry);
             }
-            // 4. HANDLE MESH COLLIDERS (ProBuilder / Land)
+            // 5. HANDLE MESH COLLIDERS (ProBuilder / Land)
             else if (col is MeshCollider meshCol)
             {
                 if (convertMeshesToBoxes)
                 {
-                    // THE FIX: Measure the bounds and pretend it's a Box
+                    // Convert Mesh Bounds to a Box
                     entry.type = "Box";
-                    entry.position = meshCol.bounds.center; // World Center
-                    entry.rotation = Quaternion.identity;   // AABB (Axis Aligned) - Cannot rotate "Bounds" easily
-                    entry.scale = meshCol.bounds.size;      // World Size
-                    
-                    // Note: This creates an "Axis Aligned" box. 
-                    // If your wall is rotated 45 degrees, this might look weird (large box).
-                    // Ideally, for rotated ProBuilder objects, you should use real BoxColliders.
+                    entry.position = meshCol.bounds.center; 
+                    entry.rotation = Quaternion.identity; // Bounds are always Axis-Aligned
+                    entry.scale = meshCol.bounds.size;      
                     
                     data.colliders.Add(entry);
                 }
                 else if (meshCol.convex)
                 {
-                    // Only export if strict Convex is enabled
-                    // (Writing Convex export logic is complex, usually implies generic mesh data)
                     Debug.LogWarning($"Skipping Convex Mesh: {col.name}. (Complex mesh export not implemented yet)");
                 }
             }
