@@ -13,7 +13,11 @@ public class MapExporter : MonoBehaviour
     public bool exportTags = true;
     public bool exportLayers = true;
 
-    // --- DATA STRUCTURES (The Schema) ---
+    [Header("ProBuilder / Land Fix")]
+    [Tooltip("If true, it treats complex MeshColliders as simple Boxes based on their size. Great for floors/walls.")]
+    public bool convertMeshesToBoxes = true;
+
+    // --- DATA ---
     [System.Serializable]
     public class MapData
     {
@@ -23,84 +27,89 @@ public class MapExporter : MonoBehaviour
     [System.Serializable]
     public class ColliderEntry
     {
-        public string type;       // "Box", "Sphere", "Capsule"
-        public Vector3 position;  // World Space
-        public Quaternion rotation; // World Space
-        public Vector3 scale;     // World Dimensions (Total Size)
-        public string tag;        // Optional
-        public string layer;      // Optional
+        public string type;       
+        public Vector3 position;  
+        public Quaternion rotation; 
+        public Vector3 scale;     
+        public string tag;        
+        public string layer;      
     }
 
-    // --- EXPORT LOGIC ---
+    // --- LOGIC ---
     public void ExportMap()
     {
         MapData data = new MapData();
-
-        // 1. Find all colliders attached to this object or its children
         Collider[] allColliders = GetComponentsInChildren<Collider>();
 
         foreach (Collider col in allColliders)
         {
-            // Skip triggers if you only want physical walls (optional)
-            // if (col.isTrigger) continue; 
+            // Skip Triggers if you only want solid walls
+            if (col.isTrigger) continue;
 
             ColliderEntry entry = new ColliderEntry();
-            
-            // Common Data
             entry.tag = exportTags ? col.gameObject.tag : "";
             entry.layer = exportLayers ? LayerMask.LayerToName(col.gameObject.layer) : "";
-
-            // Calculate World Position/Rotation correcting for offsets
-            // Note: We use the Transform's rotation, but Position must include the collider's center offset.
+            
             Transform t = col.transform;
 
+            // 1. HANDLE BOXES
             if (col is BoxCollider box)
             {
                 entry.type = "Box";
-                // World Position = Transform Position + (Rotated Offset)
-                entry.position = t.TransformPoint(box.center); 
+                entry.position = t.TransformPoint(box.center);
                 entry.rotation = t.rotation;
-                // World Scale = Local Size * Global Scale
-                entry.scale = Vector3.Scale(box.size, t.lossyScale); 
+                entry.scale = Vector3.Scale(box.size, t.lossyScale);
+                data.colliders.Add(entry);
             }
+            // 2. HANDLE SPHERES
             else if (col is SphereCollider sphere)
             {
                 entry.type = "Sphere";
                 entry.position = t.TransformPoint(sphere.center);
                 entry.rotation = t.rotation;
-                // Sphere radius scales by the largest axis of the transform
                 float maxScale = Mathf.Max(t.lossyScale.x, Mathf.Max(t.lossyScale.y, t.lossyScale.z));
                 float worldRadius = sphere.radius * maxScale;
                 entry.scale = new Vector3(worldRadius, worldRadius, worldRadius);
+                data.colliders.Add(entry);
             }
+            // 3. HANDLE CAPSULES
             else if (col is CapsuleCollider cap)
             {
                 entry.type = "Capsule";
                 entry.position = t.TransformPoint(cap.center);
                 entry.rotation = t.rotation;
-                
-                // Capsules are tricky because Unity handles scaling weirdly. 
-                // We will export the raw dimensions for the target engine to calculate.
-                // Assuming Y-axis height (Unity default)
                 float heightScale = t.lossyScale.y;
                 float radiusScale = Mathf.Max(t.lossyScale.x, t.lossyScale.z);
-                
                 entry.scale = new Vector3(cap.radius * radiusScale, cap.height * heightScale, 0); 
-                // X = World Radius, Y = World Height
+                data.colliders.Add(entry);
             }
-            else
+            // 4. HANDLE MESH COLLIDERS (ProBuilder / Land)
+            else if (col is MeshCollider meshCol)
             {
-                // Skip MeshColliders (Too heavy/complex for simple export)
-                continue;
+                if (convertMeshesToBoxes)
+                {
+                    // THE FIX: Measure the bounds and pretend it's a Box
+                    entry.type = "Box";
+                    entry.position = meshCol.bounds.center; // World Center
+                    entry.rotation = Quaternion.identity;   // AABB (Axis Aligned) - Cannot rotate "Bounds" easily
+                    entry.scale = meshCol.bounds.size;      // World Size
+                    
+                    // Note: This creates an "Axis Aligned" box. 
+                    // If your wall is rotated 45 degrees, this might look weird (large box).
+                    // Ideally, for rotated ProBuilder objects, you should use real BoxColliders.
+                    
+                    data.colliders.Add(entry);
+                }
+                else if (meshCol.convex)
+                {
+                    // Only export if strict Convex is enabled
+                    // (Writing Convex export logic is complex, usually implies generic mesh data)
+                    Debug.LogWarning($"Skipping Convex Mesh: {col.name}. (Complex mesh export not implemented yet)");
+                }
             }
-
-            data.colliders.Add(entry);
         }
 
-        // 2. Convert to JSON
         string json = JsonUtility.ToJson(data, true);
-
-        // 3. Save to File
         string path = Path.Combine(Application.dataPath, fileName);
         File.WriteAllText(path, json);
 
@@ -108,7 +117,6 @@ public class MapExporter : MonoBehaviour
     }
 }
 
-// --- EDITOR BUTTON ---
 #if UNITY_EDITOR
 [CustomEditor(typeof(MapExporter))]
 public class MapExporterEditor : Editor
@@ -116,12 +124,8 @@ public class MapExporterEditor : Editor
     public override void OnInspectorGUI()
     {
         DrawDefaultInspector();
-
         MapExporter script = (MapExporter)target;
-        if (GUILayout.Button("Export Map JSON"))
-        {
-            script.ExportMap();
-        }
+        if (GUILayout.Button("Export Map JSON")) script.ExportMap();
     }
 }
 #endif
