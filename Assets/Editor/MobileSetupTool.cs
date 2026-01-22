@@ -107,26 +107,16 @@ public class MobileSetupTool : EditorWindow
         // --- BUTTONS ---
         
         // SHOOT (Big button right)
-        CreateButton(canvasObj.transform, "Btn_Shoot", new Vector2(-250, 300), new Vector2(250, 250), "SHOOT", Color.red, (trigger) => {
-            AddEvent(trigger, EventTriggerType.PointerDown, (data) => manager.OnShootDown());
-            AddEvent(trigger, EventTriggerType.PointerUp, (data) => manager.OnShootUp());
-        });
+        CreateButton(canvasObj.transform, "Btn_Shoot", new Vector2(-250, 300), new Vector2(250, 250), "SHOOT", Color.red, MobileButton.ButtonType.Shoot);
 
         // JUMP (Smaller button)
-        CreateButton(canvasObj.transform, "Btn_Jump", new Vector2(-550, 200), new Vector2(180, 180), "JUMP", Color.green, (trigger) => {
-            AddEvent(trigger, EventTriggerType.PointerDown, (data) => manager.OnJumpDown());
-            AddEvent(trigger, EventTriggerType.PointerUp, (data) => manager.OnJumpUp());
-        });
+        CreateButton(canvasObj.transform, "Btn_Jump", new Vector2(-550, 200), new Vector2(180, 180), "JUMP", Color.green, MobileButton.ButtonType.Jump);
 
         // RELOAD (Smaller top)
-        CreateButton(canvasObj.transform, "Btn_Reload", new Vector2(-450, 500), new Vector2(150, 150), "RELOAD", Color.yellow, (trigger) => {
-            AddEvent(trigger, EventTriggerType.PointerDown, (data) => manager.OnReloadPress());
-        });
+        CreateButton(canvasObj.transform, "Btn_Reload", new Vector2(-450, 500), new Vector2(150, 150), "RELOAD", Color.yellow, MobileButton.ButtonType.Reload);
 
         // SCOPE (Side)
-        CreateButton(canvasObj.transform, "Btn_Scope", new Vector2(-200, 600), new Vector2(150, 150), "SCOPE", Color.cyan, (trigger) => {
-            AddEvent(trigger, EventTriggerType.PointerDown, (data) => manager.OnScopeToggle());
-        });
+        CreateButton(canvasObj.transform, "Btn_Scope", new Vector2(-200, 600), new Vector2(150, 150), "SCOPE", Color.cyan, MobileButton.ButtonType.Scope);
 
         Debug.Log("<color=green>MOBILE CONTROLS GENERATED SUCCESSFULLY!</color>");
         
@@ -155,7 +145,7 @@ public class MobileSetupTool : EditorWindow
         return obj;
     }
 
-    private void CreateButton(Transform parent, string name, Vector2 pos, Vector2 size, string label, Color color, System.Action<EventTrigger> setupEvents)
+    private void CreateButton(Transform parent, string name, Vector2 pos, Vector2 size, string label, Color color, MobileButton.ButtonType buttonType)
     {
         GameObject btnObj = CreateImage(parent, name, AnchorPresets.BottomRight);
         btnObj.GetComponent<Image>().color = new Color(color.r, color.g, color.b, 0.5f);
@@ -176,18 +166,12 @@ public class MobileSetupTool : EditorWindow
         tmp.rectTransform.offsetMin = Vector2.zero;
         tmp.rectTransform.offsetMax = Vector2.zero;
 
-        // Add Event Trigger for custom events
-        EventTrigger trigger = btnObj.AddComponent<EventTrigger>();
-        setupEvents(trigger);
+        // Add MobileButton component (this properly serializes!)
+        MobileButton mobileBtn = btnObj.AddComponent<MobileButton>();
+        mobileBtn.buttonType = buttonType;
     }
 
-    private void AddEvent(EventTrigger trigger, EventTriggerType type, UnityEngine.Events.UnityAction<BaseEventData> action)
-    {
-        EventTrigger.Entry entry = new EventTrigger.Entry();
-        entry.eventID = type;
-        entry.callback.AddListener(action);
-        trigger.triggers.Add(entry);
-    }
+    // Remove the old AddEvent method - no longer needed
 
     private void SetAnchor(RectTransform rect, AnchorPresets preset)
     {
