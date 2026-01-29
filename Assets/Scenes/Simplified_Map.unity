@@ -9747,7 +9747,7 @@ MonoBehaviour:
   capsuleRadius: 0.5
   log: 1
   playerPrefab: {fileID: 5233133963924558583, guid: d977b72ba3708d847ac42f58c5b31fda, type: 3}
-  enemyPrefab: {fileID: 4739600679745528363, guid: eb4da149037af9845933b1af5d3e80c6, type: 3}
+  enemyPrefab: {fileID: 2790933322898261159, guid: 7bf64b0e8e76fa64e934fdf98c7d8de6, type: 3}
 --- !u!4 &1238997264
 Transform:
   m_ObjectHideFlags: 0

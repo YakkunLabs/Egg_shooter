@@ -131,6 +131,49 @@ public class NetClient : MonoBehaviour
         ApplyEvents(snap);
     }
 
+    // void ApplyPlayers(Snapshot.READER snap)
+    // {
+    //     var alive = new HashSet<ulong>();
+
+    //     foreach (var p in snap.Players)
+    //     {
+    //         var id = p.PlayerId;
+    //         alive.Add(id);
+
+    //         if (!_players.TryGetValue(id, out var go) || go == null)
+    //         {
+    //             bool isLocal = (id == myPlayerId);
+
+    //             if (isLocal)
+    //                 go = Instantiate(playerPrefab);
+    //             else
+    //                 go = Instantiate(enemyPrefab);
+
+    //             go.name = $"Player_{id}";
+    //             go.transform.localScale = new Vector3(capsuleRadius * 2f, capsuleHeight / 2f, capsuleRadius * 2f);
+    //             _players[id] = go;
+    //         }
+
+    //         go.transform.position = new Vector3(p.X, p.Y, p.Z);
+    //         if (id != myPlayerId)
+    //         {
+    //             go.transform.rotation = Quaternion.Euler(0f, p.Yaw * Mathf.Rad2Deg, 0f);
+    //         }
+    //     }
+
+    //     // Remove players not present anymore
+    //     var toRemove = new List<ulong>();
+    //     foreach (var kv in _players)
+    //     {
+    //         if (!alive.Contains(kv.Key))
+    //         {
+    //             if (kv.Value != null) Destroy(kv.Value);
+    //             toRemove.Add(kv.Key);
+    //         }
+    //     }
+    //     foreach (var id in toRemove) _players.Remove(id);
+    // }
+
     void ApplyPlayers(Snapshot.READER snap)
     {
         var alive = new HashSet<ulong>();
@@ -140,6 +183,7 @@ public class NetClient : MonoBehaviour
             var id = p.PlayerId;
             alive.Add(id);
 
+            // 1. Spawn if missing
             if (!_players.TryGetValue(id, out var go) || go == null)
             {
                 bool isLocal = (id == myPlayerId);
@@ -150,18 +194,41 @@ public class NetClient : MonoBehaviour
                     go = Instantiate(enemyPrefab);
 
                 go.name = $"Player_{id}";
+                // Adjust scale as defined in your variables
                 go.transform.localScale = new Vector3(capsuleRadius * 2f, capsuleHeight / 2f, capsuleRadius * 2f);
+                
                 _players[id] = go;
             }
 
+            // 2. Update Position
             go.transform.position = new Vector3(p.X, p.Y, p.Z);
             if (id != myPlayerId)
             {
                 go.transform.rotation = Quaternion.Euler(0f, p.Yaw * Mathf.Rad2Deg, 0f);
             }
+
+            // ---------------------------------------------------------
+            // 3. FORCE VISUALS (The Fix)
+            // ---------------------------------------------------------
+            if (id != myPlayerId) // Only update visuals for enemies
+            {
+                NetworkPlayerSetup visualSetup = go.GetComponent<NetworkPlayerSetup>();
+                
+                if (visualSetup != null)
+                {
+                    // Since server doesn't send Skin/Gun yet, we use the ID to pick one.
+                    // ID 1 gets Skin 1, ID 2 gets Skin 2, etc.
+                    
+                    int fakeSkinID = (int)(id % (ulong)visualSetup.availableSkins.Length);
+                    int fakeGunID = (int)(id % (ulong)visualSetup.availableGuns.Length);
+
+                    visualSetup.UpdateVisuals(fakeSkinID, fakeGunID);
+                }
+            }
+            // ---------------------------------------------------------
         }
 
-        // Remove players not present anymore
+        // 4. Cleanup
         var toRemove = new List<ulong>();
         foreach (var kv in _players)
         {
