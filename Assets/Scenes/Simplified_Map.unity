@@ -9741,7 +9741,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: caafa6d3dce39b941814c8a3b9ce8cea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NetClient
-  bulletPrefab: {fileID: 3072637891946463446, guid: 87d40ffac85356045b58ffea08ddd79d, type: 3}
+  bulletPrefab: {fileID: 5115898143798426263, guid: ccafbc6ee6d10e7489f939b9b89ecf64, type: 3}
   host: 127.0.0.1
   port: 9000
   capsuleHeight: 2
