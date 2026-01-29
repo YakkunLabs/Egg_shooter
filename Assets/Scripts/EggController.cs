@@ -26,7 +26,9 @@ public class EggController : MonoBehaviour
     public bool isClimbing = false;
     public float climbSpeed = 6f;
     public GameObject climbMessageUI; 
-    private bool canClimb = false;    
+    private bool canClimb = false;
+
+    public bool serverAuthoritative = true;
 
     void Start()
     {
@@ -114,7 +116,10 @@ public class EggController : MonoBehaviour
         }
 
         // --- 3. APPLY MOVEMENT ---
-        characterController.Move(moveDirection * Time.deltaTime);
+        if (!serverAuthoritative)
+        {
+            characterController.Move(moveDirection * Time.deltaTime);
+        }
 
         // --- 4. LOOK AROUND ---
         if (canMove)
