@@ -14790,6 +14790,8 @@ GameObject:
   - component: {fileID: 2316055842739686693}
   - component: {fileID: 3405381400207341800}
   - component: {fileID: 3678337380998826719}
+  - component: {fileID: 3995315437095263673}
+  - component: {fileID: -1237270977078415955}
   m_Layer: 0
   m_Name: Enemy
   m_TagString: Player
@@ -14918,6 +14920,42 @@ MonoBehaviour:
   - {fileID: 8619458846942608719}
   - {fileID: 8417942038695085080}
   - {fileID: 1560832232908290702}
+--- !u!114 &3995315437095263673
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2790933322898261159}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a8cf6ca3bdcff5844803ed688f9689ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NetworkPuppet
+  smoothSpeed: 10
+  animator: {fileID: 0}
+--- !u!95 &-1237270977078415955
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2790933322898261159}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 0}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &3133602222667258307
 GameObject:
   m_ObjectHideFlags: 0
