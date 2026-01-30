@@ -12,12 +12,12 @@ public class AdvancedGunSystem : MonoBehaviour
     public WeaponData weaponData;
 
     [Header("Runtime Stats")]
-    private int currentAmmo;
+    public int currentAmmo;
     private int reserveAmmo;
     private int maxReserveAmmo;
     private FireMode currentFireMode;
-    private bool isReloading = false;
-    private bool readyToShoot = true;
+    public bool isReloading = false;
+    public bool readyToShoot = true;
     private int burstShotsRemaining = 0;
     private Vector3 initialPosition;
 

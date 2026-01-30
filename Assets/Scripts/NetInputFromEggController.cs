@@ -5,12 +5,12 @@ public class NetInputFromEggController : MonoBehaviour
     public NetClient netClient;
     public EggController egg;
 
-    // For �every click counts�, increase send rate too (30 can still feel lossy for fast clicks)
+    // For "every click counts", increase send rate too (30 can still feel lossy for fast clicks)
     public float sendHz = 30f;
 
     float _accum;
 
-    // NEW: queue clicks so they can�t be missed between send ticks
+    // NEW: queue clicks so they can't be missed between send ticks
     int _pendingShots = 0;
 
     // NEW: latch jump too (same one-frame issue as mouse down)
@@ -28,16 +28,33 @@ public class NetInputFromEggController : MonoBehaviour
         if (netClient.myPlayerId == 0) return;
         if (!egg.canMove) return;
 
-        // ---- CAPTURE INPUT EVERY FRAME (IMPORTANT) ----
-        // Queue clicks: every mouse down increments, none are lost.
-        if (Input.GetMouseButtonDown(0))
+        // ---- 1. CHECK GUN STATUS (Client-Side Gatekeeping) ----
+        bool gunReady = true;
+
+        // Find the active gun script on this player
+        AdvancedGunSystem myGun = GetComponentInChildren<AdvancedGunSystem>();
+
+        if (myGun != null)
+        {
+            // If we are Reloading, Out of Ammo, or waiting for Fire Rate (readyToShoot is false)
+            // Then we effectively CANNOT shoot.
+            if (myGun.isReloading || myGun.currentAmmo <= 0 || !myGun.readyToShoot)
+            {
+                gunReady = false;
+            }
+        }
+
+        // ---- 2. CAPTURE INPUT (Only if Gun is Ready) ----
+        
+        // Only queue the click if the gun logic actually allows firing
+        if (gunReady && Input.GetMouseButtonDown(0))
             _pendingShots++;
 
         // Latch jump: stays true until we send it once.
         if (Input.GetButtonDown("Jump") || (MobileInputManager.Instance != null && MobileInputManager.Instance.jumpPressed))
             _pendingJump = true;
 
-        // ---- SEND AT FIXED RATE ----
+        // ---- 3. SEND AT FIXED RATE ----
         _accum += Time.deltaTime;
         float interval = 1f / Mathf.Max(1f, sendHz);
         if (_accum < interval) return;
@@ -52,9 +69,7 @@ public class NetInputFromEggController : MonoBehaviour
         bool d = h > 0.1f;
         bool a = h < -0.1f;
 
-        // Fix A you used earlier (W/S swap). Keep it.
-        // You said Fix A made it perfect: press W moves forward.
-        // That means we should send W as "S" and S as "W".
+        // Keep your W/S Swap fix
         bool sendW = w;
         bool sendS = s;
 
@@ -78,7 +93,7 @@ public class NetInputFromEggController : MonoBehaviour
             dtMs
         );
 
-        // ---- CLEAR AFTER SENDING ----
+        // ---- 4. CLEAR AFTER SENDING ----
         if (shootPressed) _pendingShots--; // consume exactly one click per sent packet
         _pendingJump = false;
     }
