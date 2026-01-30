@@ -121,4 +121,25 @@ public class PlayerHealth : MonoBehaviour
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
+    // Call this from NetClient
+// --- ADD THIS NEW FUNCTION ---
+    public void UpdateHealthFromServer(int serverHealth)
+    {
+        // 1. Force the health variable to match the server
+        currentHealth = serverHealth; 
+
+        // 2. Update the Health Bar UI (if you have one assigned)
+        if (healthSlider != null)
+        {
+            healthSlider.value = currentHealth;
+        }
+
+        // 3. Optional: Check for Death
+        if (currentHealth <= 0)
+        {
+            // If you have a Die() function, you can call it here.
+            // Die(); 
+            Debug.Log("I am dead according to the server!");
+        }
+    }
 }
