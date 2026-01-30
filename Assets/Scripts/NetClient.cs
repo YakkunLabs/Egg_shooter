@@ -13,6 +13,9 @@ public class NetClient : MonoBehaviour
 {
     [Header("Visuals")]
     public GameObject bulletPrefab; // Drag your NetBullet here!
+    [Header("Effects")]
+    public GameObject muzzleFlashPrefab; // Drag a particle effect here
+    public AudioClip shootSound;         // Drag a "Bang.wav" here
 
     [Header("TCP")]
     public string host = "127.0.0.1";
@@ -274,25 +277,29 @@ void ApplyEvents(Snapshot.READER snap)
                 var s = e.ShotFired;
                 ulong shooterId = s.ShooterId;
 
+                // Ignore me (I already played my own sound/flash)
+                if (shooterId == myPlayerId) continue;
+
                 if (_players.TryGetValue(shooterId, out GameObject shooterObj))
                 {
-                    if (shooterObj != null && bulletPrefab != null)
+                    Transform muzzle = FindGunMuzzle(shooterObj);
+                    Vector3 spawnPos = (muzzle != null) ? muzzle.position : shooterObj.transform.position;
+                    Quaternion spawnRot = (muzzle != null) ? muzzle.rotation : shooterObj.transform.rotation;
+
+                    // 1. PLAY SOUND (Create a temp AudioSource at the gun location)
+                    if (shootSound != null)
+                        AudioSource.PlayClipAtPoint(shootSound, spawnPos);
+
+                    // 2. SPAWN MUZZLE FLASH
+                    if (muzzleFlashPrefab != null)
                     {
-                        // 1. Calculate Rotation (Direction)
-                        Quaternion shootRot = Quaternion.Euler(0, s.Yaw * Mathf.Rad2Deg, 0);
-
-                        // 2. Find Start Position (Try to find the Gun Muzzle)
-                        Vector3 startPos = shooterObj.transform.position + Vector3.up * 1.5f; // Default (Eye level)
-                        
-                        Transform muzzle = FindGunMuzzle(shooterObj);
-                        if (muzzle != null)
-                        {
-                            startPos = muzzle.position;
-                        }
-
-                        // 3. SPAWN THE BULLET
-                        Instantiate(bulletPrefab, startPos, shootRot);
+                        GameObject flash = Instantiate(muzzleFlashPrefab, spawnPos, spawnRot);
+                        Destroy(flash, 0.5f); // Auto clean up
                     }
+
+                    // 3. SPAWN BULLET (Your existing code)
+                    if (bulletPrefab != null)
+                        Instantiate(bulletPrefab, spawnPos, Quaternion.Euler(0, s.Yaw * Mathf.Rad2Deg, 0));
                 }
             }
         }
