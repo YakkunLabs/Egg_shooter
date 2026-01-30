@@ -180,7 +180,7 @@ public class NetClient : MonoBehaviour
     //     foreach (var id in toRemove) _players.Remove(id);
     // }
 
-    void ApplyPlayers(Snapshot.READER snap)
+void ApplyPlayers(Snapshot.READER snap)
     {
         var alive = new HashSet<ulong>();
 
@@ -189,50 +189,48 @@ public class NetClient : MonoBehaviour
             var id = p.PlayerId;
             alive.Add(id);
 
-            // 1. SPAWN (Same as before)
+            // 1. SPAWN (Existing code)
             if (!_players.TryGetValue(id, out var go) || go == null)
             {
                 bool isLocal = (id == myPlayerId);
-
-                if (isLocal)
-                    go = Instantiate(playerPrefab);
-                else
-                    go = Instantiate(enemyPrefab);
-
+                go = isLocal ? Instantiate(playerPrefab) : Instantiate(enemyPrefab);
                 go.name = $"Player_{id}";
                 go.transform.localScale = new Vector3(capsuleRadius * 2f, capsuleHeight / 2f, capsuleRadius * 2f);
-                
                 _players[id] = go;
             }
 
-            // 2. MOVEMENT - REVERTED TO SUPERVISOR'S LOGIC
-            // We removed the "NetworkPuppet" smooth code. 
-            // We just set position directly (Snap).
+            // 2. MOVEMENT (Existing code - Snap to position)
             go.transform.position = new Vector3(p.X, p.Y, p.Z);
-            
             if (id != myPlayerId)
             {
                 go.transform.rotation = Quaternion.Euler(0f, p.Yaw * Mathf.Rad2Deg, 0f);
             }
 
-            // 3. VISUALS - YOUR PART
-            // We KEEP this part to show the correct Gun/Skin
+            // 3. VISUALS (Existing code - Defaults)
             if (id != myPlayerId) 
             {
                 NetworkPlayerSetup visualSetup = go.GetComponent<NetworkPlayerSetup>();
-                
-                if (visualSetup != null)
-                {
-                    // Using ID-based selection since server doesn't send Skin/Gun yet.
-                    int fakeSkinID = (int)(id % (ulong)visualSetup.availableSkins.Length);
-                    int fakeGunID = (int)(id % (ulong)visualSetup.availableGuns.Length);
-
-                    visualSetup.UpdateVisuals(fakeSkinID, fakeGunID);
-                }
+                if (visualSetup != null) visualSetup.UpdateVisuals(0, 0);
             }
+
+            // ---------------------------------------------------------
+            // 4. HEALTH SYNC (NEW!)
+            // ---------------------------------------------------------
+            int serverHealth = (int)p.Health; // Read from CapnpGen.cs
+
+            // Try to find the health script on this object
+            // (Note: We removed this from Enemy Prefabs earlier, 
+            // so this will mostly update YOUR Local Player)
+            PlayerHealth hpScript = go.GetComponent<PlayerHealth>();
+            
+            if (hpScript != null)
+            {
+                hpScript.UpdateHealthFromServer(serverHealth);
+            }
+            // ---------------------------------------------------------
         }
 
-        // 4. CLEANUP (Same as before)
+        // 5. CLEANUP (Existing code)
         var toRemove = new List<ulong>();
         foreach (var kv in _players)
         {
