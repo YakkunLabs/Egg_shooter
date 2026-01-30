@@ -11,6 +11,9 @@ using UnityEngine;
 
 public class NetClient : MonoBehaviour
 {
+    [Header("Visuals")]
+    public GameObject bulletPrefab; // Drag your NetBullet here!
+
     [Header("TCP")]
     public string host = "127.0.0.1";
     public int port = 9001;
@@ -131,6 +134,49 @@ public class NetClient : MonoBehaviour
         ApplyEvents(snap);
     }
 
+    // void ApplyPlayers(Snapshot.READER snap)
+    // {
+    //     var alive = new HashSet<ulong>();
+
+    //     foreach (var p in snap.Players)
+    //     {
+    //         var id = p.PlayerId;
+    //         alive.Add(id);
+
+    //         if (!_players.TryGetValue(id, out var go) || go == null)
+    //         {
+    //             bool isLocal = (id == myPlayerId);
+
+    //             if (isLocal)
+    //                 go = Instantiate(playerPrefab);
+    //             else
+    //                 go = Instantiate(enemyPrefab);
+
+    //             go.name = $"Player_{id}";
+    //             go.transform.localScale = new Vector3(capsuleRadius * 2f, capsuleHeight / 2f, capsuleRadius * 2f);
+    //             _players[id] = go;
+    //         }
+
+    //         go.transform.position = new Vector3(p.X, p.Y, p.Z);
+    //         if (id != myPlayerId)
+    //         {
+    //             go.transform.rotation = Quaternion.Euler(0f, p.Yaw * Mathf.Rad2Deg, 0f);
+    //         }
+    //     }
+
+    //     // Remove players not present anymore
+    //     var toRemove = new List<ulong>();
+    //     foreach (var kv in _players)
+    //     {
+    //         if (!alive.Contains(kv.Key))
+    //         {
+    //             if (kv.Value != null) Destroy(kv.Value);
+    //             toRemove.Add(kv.Key);
+    //         }
+    //     }
+    //     foreach (var id in toRemove) _players.Remove(id);
+    // }
+
     void ApplyPlayers(Snapshot.READER snap)
     {
         var alive = new HashSet<ulong>();
@@ -140,6 +186,7 @@ public class NetClient : MonoBehaviour
             var id = p.PlayerId;
             alive.Add(id);
 
+            // 1. SPAWN (Same as before)
             if (!_players.TryGetValue(id, out var go) || go == null)
             {
                 bool isLocal = (id == myPlayerId);
@@ -151,17 +198,38 @@ public class NetClient : MonoBehaviour
 
                 go.name = $"Player_{id}";
                 go.transform.localScale = new Vector3(capsuleRadius * 2f, capsuleHeight / 2f, capsuleRadius * 2f);
+                
                 _players[id] = go;
             }
 
+            // 2. MOVEMENT - REVERTED TO SUPERVISOR'S LOGIC
+            // We removed the "NetworkPuppet" smooth code. 
+            // We just set position directly (Snap).
             go.transform.position = new Vector3(p.X, p.Y, p.Z);
+            
             if (id != myPlayerId)
             {
                 go.transform.rotation = Quaternion.Euler(0f, p.Yaw * Mathf.Rad2Deg, 0f);
             }
+
+            // 3. VISUALS - YOUR PART
+            // We KEEP this part to show the correct Gun/Skin
+            if (id != myPlayerId) 
+            {
+                NetworkPlayerSetup visualSetup = go.GetComponent<NetworkPlayerSetup>();
+                
+                if (visualSetup != null)
+                {
+                    // Using ID-based selection since server doesn't send Skin/Gun yet.
+                    int fakeSkinID = (int)(id % (ulong)visualSetup.availableSkins.Length);
+                    int fakeGunID = (int)(id % (ulong)visualSetup.availableGuns.Length);
+
+                    visualSetup.UpdateVisuals(fakeSkinID, fakeGunID);
+                }
+            }
         }
 
-        // Remove players not present anymore
+        // 4. CLEANUP (Same as before)
         var toRemove = new List<ulong>();
         foreach (var kv in _players)
         {
@@ -175,27 +243,60 @@ public class NetClient : MonoBehaviour
     }
 
 
-    void ApplyEvents(Snapshot.READER snap)
+    // void ApplyEvents(Snapshot.READER snap)
+    // {
+    //     if (snap.Events == null) return;
+
+    //     foreach (var e in snap.Events)
+    //     {
+    //         // Your generated ServerEvent has enum WHICH { ShotFired=0, Noop=1 }
+    //         if (e.which == ServerEvent.WHICH.ShotFired)
+    //         {
+    //             var s = e.ShotFired;
+
+    //             // Example: just log for now
+    //             Debug.Log($"[EVENT] ShotFired shooter={s.ShooterId} pos=({s.X},{s.Y},{s.Z}) yaw={s.Yaw}");
+
+    //             // Later: spawn muzzle flash / tracer / sound
+    //             // You can also find shooter object by name "Player_<id>"
+    //         }
+    //     }
+    // }
+
+void ApplyEvents(Snapshot.READER snap)
     {
         if (snap.Events == null) return;
 
         foreach (var e in snap.Events)
         {
-            // Your generated ServerEvent has enum WHICH { ShotFired=0, Noop=1 }
             if (e.which == ServerEvent.WHICH.ShotFired)
             {
                 var s = e.ShotFired;
+                ulong shooterId = s.ShooterId;
 
-                // Example: just log for now
-                Debug.Log($"[EVENT] ShotFired shooter={s.ShooterId} pos=({s.X},{s.Y},{s.Z}) yaw={s.Yaw}");
+                if (_players.TryGetValue(shooterId, out GameObject shooterObj))
+                {
+                    if (shooterObj != null && bulletPrefab != null)
+                    {
+                        // 1. Calculate Rotation (Direction)
+                        Quaternion shootRot = Quaternion.Euler(0, s.Yaw * Mathf.Rad2Deg, 0);
 
-                // Later: spawn muzzle flash / tracer / sound
-                // You can also find shooter object by name "Player_<id>"
+                        // 2. Find Start Position (Try to find the Gun Muzzle)
+                        Vector3 startPos = shooterObj.transform.position + Vector3.up * 1.5f; // Default (Eye level)
+                        
+                        Transform muzzle = FindGunMuzzle(shooterObj);
+                        if (muzzle != null)
+                        {
+                            startPos = muzzle.position;
+                        }
+
+                        // 3. SPAWN THE BULLET
+                        Instantiate(bulletPrefab, startPos, shootRot);
+                    }
+                }
             }
         }
     }
-
-
     // ---------------- TX (optional later) ----------------
     // Here’s the correct writer matching your Rust write_frame (BIG-ENDIAN length).
     // Call this when you start sending ClientMsg.
@@ -342,6 +443,23 @@ public class NetClient : MonoBehaviour
 
         // BIG-ENDIAN length prefix (matches Rust)
         WriteFrameBigEndian(_stream, payload);
+    }
+
+    Transform FindGunMuzzle(GameObject player)
+    {
+        // Search all children for an object named "Attack point"
+        // This is the standard name in your WeaponHolder hierarchy
+        Transform[] allChildren = player.GetComponentsInChildren<Transform>();
+        foreach (Transform t in allChildren)
+        {
+            if (t.name == "Attack point" && t.gameObject.activeInHierarchy)
+            {
+                return t;
+            }
+        }
+        
+        // Fallback: If not found, use player center + up
+        return null;
     }
 
 

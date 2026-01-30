@@ -9741,13 +9741,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: caafa6d3dce39b941814c8a3b9ce8cea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::NetClient
+  bulletPrefab: {fileID: 5115898143798426263, guid: ccafbc6ee6d10e7489f939b9b89ecf64, type: 3}
   host: 127.0.0.1
   port: 9000
   capsuleHeight: 2
   capsuleRadius: 0.5
   log: 1
   playerPrefab: {fileID: 5233133963924558583, guid: d977b72ba3708d847ac42f58c5b31fda, type: 3}
-  enemyPrefab: {fileID: 4739600679745528363, guid: eb4da149037af9845933b1af5d3e80c6, type: 3}
+  enemyPrefab: {fileID: 2790933322898261159, guid: 7bf64b0e8e76fa64e934fdf98c7d8de6, type: 3}
 --- !u!4 &1238997264
 Transform:
   m_ObjectHideFlags: 0
