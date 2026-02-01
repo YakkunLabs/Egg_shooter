@@ -737,6 +737,7 @@ namespace CapnpGen
             Z = reader.Z;
             Yaw = reader.Yaw;
             Weapon = reader.Weapon;
+            Pitch = reader.Pitch;
             applyDefaults();
         }
 
@@ -748,6 +749,7 @@ namespace CapnpGen
             writer.Z = Z;
             writer.Yaw = Yaw;
             writer.Weapon = Weapon;
+            writer.Pitch = Pitch;
         }
 
         void ICapnpSerializable.Serialize(SerializerState arg_)
@@ -795,6 +797,12 @@ namespace CapnpGen
             set;
         }
 
+        public float Pitch
+        {
+            get;
+            set;
+        }
+
         public struct READER
         {
             readonly DeserializerState ctx;
@@ -812,6 +820,7 @@ namespace CapnpGen
             public float Z => ctx.ReadDataFloat(128UL, 0F);
             public float Yaw => ctx.ReadDataFloat(160UL, 0F);
             public CapnpGen.WeaponType Weapon => (CapnpGen.WeaponType)ctx.ReadDataUShort(192UL, (ushort)0);
+            public float Pitch => ctx.ReadDataFloat(224UL, 0F);
         }
 
         public class WRITER : SerializerState
@@ -855,6 +864,12 @@ namespace CapnpGen
             {
                 get => (CapnpGen.WeaponType)this.ReadDataUShort(192UL, (ushort)0);
                 set => this.WriteData(192UL, (ushort)value, (ushort)0);
+            }
+
+            public float Pitch
+            {
+                get => this.ReadDataFloat(224UL, 0F);
+                set => this.WriteData(224UL, value, 0F);
             }
         }
     }

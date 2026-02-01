@@ -240,8 +240,12 @@ public class NetClient : MonoBehaviour
                         Destroy(flash, 0.5f);
                     }
 
+                    float yawDeg = s.Yaw * Mathf.Rad2Deg;
+                    float pitchDeg = s.Pitch * Mathf.Rad2Deg;
+                    Quaternion shotRot = Quaternion.Euler(pitchDeg, yawDeg, 0f);
+
                     if (bulletPrefab != null)
-                        Instantiate(bulletPrefab, spawnPos, Quaternion.Euler(0, s.Yaw * Mathf.Rad2Deg, 0));
+                        Instantiate(bulletPrefab, spawnPos, shotRot);
                 }
             }
         }
