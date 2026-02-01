@@ -46,6 +46,9 @@ public class AdvancedGunSystem : MonoBehaviour
     public float minZoom = 10f;
     public float zoomSpeed = 30f;
 
+    public float CurrentYaw { get; private set; }
+    public float CurrentPitch { get; private set; }
+
     void Start()
     {
         if (weaponData == null)
@@ -219,6 +222,8 @@ public class AdvancedGunSystem : MonoBehaviour
 
         // Calculate target point
         Ray ray = fpsCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
+        UpdateAim(ray);
+
         RaycastHit hit;
         Vector3 targetPoint;
 
@@ -469,5 +474,23 @@ public class AdvancedGunSystem : MonoBehaviour
 
         UpdateUI(); 
         Debug.Log("Ammo Refilled to Max: " + reserveAmmo);
+    }
+
+
+
+    void UpdateAim(Ray camera_ray)
+    {
+        Ray ray = camera_ray;
+        Vector3 targetPoint;
+
+        if (Physics.Raycast(ray, out var hit, weaponData.maxRange))
+            targetPoint = hit.point;
+        else
+            targetPoint = ray.GetPoint(weaponData.maxRange);
+
+        Vector3 dir = (targetPoint - attackPoint.position).normalized;
+
+        CurrentYaw = Mathf.Atan2(dir.x, dir.z);
+        CurrentPitch = Mathf.Asin(dir.y);
     }
 }

@@ -112,6 +112,8 @@ namespace CapnpGen
             JumpPressed = reader.JumpPressed;
             ShootPressed = reader.ShootPressed;
             ReloadPressed = reader.ReloadPressed;
+            AimPitch = reader.AimPitch;
+            FaceYaw = reader.FaceYaw;
             applyDefaults();
         }
 
@@ -128,6 +130,8 @@ namespace CapnpGen
             writer.JumpPressed = JumpPressed;
             writer.ShootPressed = ShootPressed;
             writer.ReloadPressed = ReloadPressed;
+            writer.AimPitch = AimPitch;
+            writer.FaceYaw = FaceYaw;
         }
 
         void ICapnpSerializable.Serialize(SerializerState arg_)
@@ -205,6 +209,18 @@ namespace CapnpGen
             set;
         }
 
+        public float AimPitch
+        {
+            get;
+            set;
+        }
+
+        public float FaceYaw
+        {
+            get;
+            set;
+        }
+
         public struct READER
         {
             readonly DeserializerState ctx;
@@ -227,13 +243,15 @@ namespace CapnpGen
             public bool JumpPressed => ctx.ReadDataBool(53UL, false);
             public bool ShootPressed => ctx.ReadDataBool(54UL, false);
             public bool ReloadPressed => ctx.ReadDataBool(55UL, false);
+            public float AimPitch => ctx.ReadDataFloat(96UL, 0F);
+            public float FaceYaw => ctx.ReadDataFloat(128UL, 0F);
         }
 
         public class WRITER : SerializerState
         {
             public WRITER()
             {
-                this.SetStruct(2, 0);
+                this.SetStruct(3, 0);
             }
 
             public uint Sequence
@@ -300,6 +318,18 @@ namespace CapnpGen
             {
                 get => this.ReadDataBool(55UL, false);
                 set => this.WriteData(55UL, value, false);
+            }
+
+            public float AimPitch
+            {
+                get => this.ReadDataFloat(96UL, 0F);
+                set => this.WriteData(96UL, value, 0F);
+            }
+
+            public float FaceYaw
+            {
+                get => this.ReadDataFloat(128UL, 0F);
+                set => this.WriteData(128UL, value, 0F);
             }
         }
     }

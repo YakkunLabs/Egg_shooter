@@ -339,8 +339,8 @@ public class NetClient : MonoBehaviour
 
     public void SendInput(
         bool w, bool a, bool s, bool d,
-        bool run, bool jumpPressed,
-        float aimYaw, bool shootPressed, bool reloadPressed,
+        bool run, bool jumpPressed, float faceYaw,
+        float aimYaw, float aimPitch, bool shootPressed, bool reloadPressed,
         ushort dtMs
     )
     {
@@ -361,7 +361,9 @@ public class NetClient : MonoBehaviour
 
         root.Input.Run = run;
         root.Input.JumpPressed = jumpPressed;
+        root.Input.FaceYaw = faceYaw;
         root.Input.AimYaw = aimYaw;
+        root.Input.AimPitch = aimPitch;
         root.Input.ShootPressed = shootPressed;
         root.Input.ReloadPressed = reloadPressed;
 
