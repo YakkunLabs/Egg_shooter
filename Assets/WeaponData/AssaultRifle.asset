@@ -25,7 +25,7 @@ MonoBehaviour:
   burstDelay: 0.1
   magazineSize: 30
   reserveAmmo: 150
-  infiniteAmmo: 1
+  infiniteAmmo: 0
   reloadTime: 2.5
   reloadFullMagazine: 1
   reloadPerBulletTime: 0.5

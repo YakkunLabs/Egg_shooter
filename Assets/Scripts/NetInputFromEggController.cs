@@ -11,7 +11,7 @@ public class NetInputFromEggController : MonoBehaviour
     // --- QUEUED INPUTS (Latch these so they aren't missed) ---
     int _pendingShots = 0;
     bool _pendingJump = false;
-    bool _pendingReload = false; // NEW: Latch reload so 'R' is never ignored
+    bool _pendingReload = false; 
 
     void Start()
     {
@@ -32,6 +32,7 @@ public class NetInputFromEggController : MonoBehaviour
         // A. Gun Status Check (Client-Side Gatekeeping)
         bool gunReady = true;
         AdvancedGunSystem myGun = GetComponentInChildren<AdvancedGunSystem>();
+        
         if (myGun != null)
         {
             if (myGun.isReloading || myGun.currentAmmo <= 0 || !myGun.readyToShoot)
@@ -40,16 +41,25 @@ public class NetInputFromEggController : MonoBehaviour
             }
         }
 
-        // B. Queue Inputs
-        if (gunReady && Input.GetMouseButtonDown(0))
-            _pendingShots++;
+        // B. Queue Inputs & TRIGGER LOCAL GUN (Instant Feedback)
 
+        // --- SHOOTING ---
+        if (gunReady && Input.GetMouseButtonDown(0))
+        {
+            _pendingShots++;        // 1. Queue for Network
+            myGun.AttemptToShoot(); // 2. FIRE LOCALLY (Sound/Ammo/Flash)
+        }
+
+        // --- JUMPING ---
         if (Input.GetButtonDown("Jump") || (MobileInputManager.Instance != null && MobileInputManager.Instance.jumpPressed))
             _pendingJump = true;
 
-        // FIX: Queue Reload here!
+        // --- RELOADING ---
         if (Input.GetKeyDown(KeyCode.R))
-            _pendingReload = true;
+        {
+            _pendingReload = true;  // 1. Queue for Network
+            if (myGun != null) myGun.AttemptToReload(); // 2. RELOAD LOCALLY
+        }
 
         // ---------------------------------------------------------------------
         // 2. NETWORK SEND (Fixed Rate)
@@ -75,7 +85,7 @@ public class NetInputFromEggController : MonoBehaviour
         // --- RETRIEVE QUEUED INPUTS ---
         bool shootPressed = _pendingShots > 0;
         bool jumpPressed = _pendingJump;
-        bool reloadPressed = _pendingReload; // Use the queued value
+        bool reloadPressed = _pendingReload; 
 
         // --- CALCULATE ANGLES (Use Camera for accuracy) ---
         
@@ -123,6 +133,6 @@ public class NetInputFromEggController : MonoBehaviour
         // --- RESET QUEUES ---
         if (shootPressed) _pendingShots--;
         _pendingJump = false;
-        _pendingReload = false; // Reset reload after sending
+        _pendingReload = false; 
     }
 }

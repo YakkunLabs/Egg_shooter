@@ -9,11 +9,11 @@ public class PlayerHealth : MonoBehaviour
     public float maxHealth = 100f;
     public float currentHealth;
 
-    [Header("Regeneration Settings (NEW)")]
-    public bool canRegenerate = true;     // Turn this off if you want "Hard Mode"
-    public float regenAmount = 20f;       // How much health to restore per second
-    public float timeBeforeRegen = 3.0f;  // Seconds to wait after getting hit
-    private float lastDamageTime;         // Tracks when we last got hit
+    [Header("Regeneration Settings")]
+    public bool canRegenerate = true;     
+    public float regenAmount = 20f;       
+    public float timeBeforeRegen = 3.0f;  
+    private float lastDamageTime;         
 
     [Header("Score Stats")]
     public int kills = 0; 
@@ -32,6 +32,21 @@ public class PlayerHealth : MonoBehaviour
     {
         currentHealth = maxHealth;
         
+        // --- NEW: AUTO-FIND UI ---
+        // Since this player is spawned by NetClient, we must find the UI automatically.
+        if (healthSlider == null)
+        {
+            GameObject sliderObj = GameObject.Find("HealthSlider"); // MAKE SURE YOUR SLIDER IS NAMED THIS!
+            if (sliderObj != null) healthSlider = sliderObj.GetComponent<Slider>();
+        }
+
+        if (gameOverScreen == null)
+        {
+            GameObject goScreen = GameObject.Find("GameOverScreen");
+            if (goScreen != null) gameOverScreen = goScreen;
+        }
+        // -------------------------
+
         if (audioSource == null)
             audioSource = GetComponent<AudioSource>();
 
@@ -43,42 +58,60 @@ public class PlayerHealth : MonoBehaviour
 
     void Update()
     {
-        // --- NEW REGENERATION LOGIC ---
-        // 1. Are we hurt?
-        if (currentHealth < maxHealth && currentHealth > 0 && canRegenerate)
+        // Only regenerate if we are NOT dead
+        if (currentHealth <= 0) return;
+
+        // --- REGENERATION LOGIC ---
+        if (currentHealth < maxHealth && canRegenerate)
         {
-            // 2. Has enough time passed since the last hit?
             if (Time.time > lastDamageTime + timeBeforeRegen)
             {
-                // 3. Add health smoothly over time
                 currentHealth += regenAmount * Time.deltaTime;
 
-                // 4. Don't go over the max
                 if (currentHealth > maxHealth)
-                {
                     currentHealth = maxHealth;
-                }
 
-                // 5. Update the green bar
                 UpdateHealthUI();
             }
         }
     }
 
+    // Called by LOCAL logic (falling, traps, etc)
     public void TakeDamage(float amount)
     {
+        // For networked games, usually we wait for server updates, 
+        // but for instant feedback/prediction we can do this:
         currentHealth -= amount;
-        
-        // --- IMPORTANT: Reset the Regeneration Timer ---
         lastDamageTime = Time.time; 
 
         if (audioSource != null && hurtSound != null)
-        {
             audioSource.PlayOneShot(hurtSound);
-        }
 
         UpdateHealthUI();
 
+        if (currentHealth <= 0) Die();
+    }
+
+    // --- CALLED BY NETCLIENT (The Server is Boss) ---
+    public void UpdateHealthFromServer(int serverHealth)
+    {
+        // 1. Check if we took damage (Server HP is lower than what we thought)
+        if (serverHealth < currentHealth)
+        {
+            lastDamageTime = Time.time; // Reset regen timer
+            
+            // Play sound if significant damage
+            if (audioSource != null && hurtSound != null)
+                audioSource.PlayOneShot(hurtSound);
+        }
+
+        // 2. Force health to match server
+        currentHealth = serverHealth; 
+
+        // 3. Update UI correctly (0.0 to 1.0)
+        UpdateHealthUI();
+
+        // 4. Check for Death
         if (currentHealth <= 0)
         {
             Die();
@@ -101,13 +134,14 @@ public class PlayerHealth : MonoBehaviour
     {
         if (healthSlider != null)
         {
+            // Fix: Slider value must be between 0 and 1
             healthSlider.value = currentHealth / maxHealth;
         }
     }
 
     void Die()
     {
-        gameOverScreen.SetActive(true);
+        if (gameOverScreen != null) gameOverScreen.SetActive(true);
         
         if (text_score_final != null)
             text_score_final.text = "TOTAL KILLS: " + kills;
@@ -120,26 +154,5 @@ public class PlayerHealth : MonoBehaviour
     public void RestartGame()
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-    }
-    // Call this from NetClient
-// --- ADD THIS NEW FUNCTION ---
-    public void UpdateHealthFromServer(int serverHealth)
-    {
-        // 1. Force the health variable to match the server
-        currentHealth = serverHealth; 
-
-        // 2. Update the Health Bar UI (if you have one assigned)
-        if (healthSlider != null)
-        {
-            healthSlider.value = currentHealth;
-        }
-
-        // 3. Optional: Check for Death
-        if (currentHealth <= 0)
-        {
-            // If you have a Die() function, you can call it here.
-            // Die(); 
-            Debug.Log("I am dead according to the server!");
-        }
     }
 }
