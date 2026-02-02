@@ -241,7 +241,7 @@ public class NetClient : MonoBehaviour
                     }
 
                     float yawDeg = s.Yaw * Mathf.Rad2Deg;
-                    float pitchDeg = s.Pitch * Mathf.Rad2Deg;
+                    float pitchDeg = -1 * s.Pitch * Mathf.Rad2Deg;
                     Quaternion shotRot = Quaternion.Euler(pitchDeg, yawDeg, 0f);
 
                     if (bulletPrefab != null)

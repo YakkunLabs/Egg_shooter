@@ -6258,7 +6258,7 @@ MonoBehaviour:
   bulletPrefab: {fileID: 5115898143798426263, guid: ccafbc6ee6d10e7489f939b9b89ecf64, type: 3}
   muzzleFlashPrefab: {fileID: 0}
   shootSound: {fileID: 0}
-  host: 127.0.0.1
+  host: 18.141.175.233
   port: 9000
   capsuleHeight: 2
   capsuleRadius: 0.5
