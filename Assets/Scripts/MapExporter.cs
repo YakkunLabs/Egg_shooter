@@ -12,18 +12,16 @@ public class MapExporter : MonoBehaviour
     public string fileName = "map_data.json";
     public bool exportTags = true;
     public bool exportLayers = true;
-    
-    [Tooltip("Check this to export Ladders, Zones, and other invisible Triggers.")]
-    public bool exportTriggers = true; // <-- NEW: Toggle for Triggers
+    public bool exportTriggers = true;
 
     [Header("ProBuilder / Land Fix")]
-    [Tooltip("If true, it treats complex MeshColliders as simple Boxes based on their size. Great for floors/walls.")]
     public bool convertMeshesToBoxes = true;
 
     // --- DATA STRUCTURES ---
     [System.Serializable]
     public class MapData
     {
+        public List<SpawnEntry> spawnPoints = new List<SpawnEntry>(); 
         public List<ColliderEntry> colliders = new List<ColliderEntry>();
     }
 
@@ -36,29 +34,56 @@ public class MapExporter : MonoBehaviour
         public Vector3 scale;     
         public string tag;        
         public string layer;      
-        public bool isTrigger;    // <-- NEW: Stores if it is a trigger
+        public bool isTrigger;    
+    }
+
+    [System.Serializable]
+    public class SpawnEntry
+    {
+        public string name;      // Will be "Spawn_1", "Spawn_2" etc.
+        public string tag;       // NEW: Will be "spawn_point"
+        public Vector3 position;
+        public float yaw; 
     }
 
     // --- LOGIC ---
     public void ExportMap()
     {
         MapData data = new MapData();
+
+        // ---------------------------------------------------------
+        // PART 1: EXPORT SPAWN POINTS
+        // ---------------------------------------------------------
+        GameObject[] spawns = GameObject.FindGameObjectsWithTag("spawn_point");
+        
+        foreach (GameObject sp in spawns)
+        {
+            SpawnEntry s = new SpawnEntry();
+            s.name = sp.name;               // Reads the object name (Rename them in Hierarchy!)
+            s.tag = sp.tag;                 // Exports "spawn_point"
+            s.position = sp.transform.position;
+            s.yaw = sp.transform.eulerAngles.y; 
+            data.spawnPoints.Add(s);
+        }
+
+        Debug.Log($"Found {data.spawnPoints.Count} Spawn Points.");
+
+        // ---------------------------------------------------------
+        // PART 2: EXPORT COLLIDERS
+        // ---------------------------------------------------------
         Collider[] allColliders = GetComponentsInChildren<Collider>();
 
         foreach (Collider col in allColliders)
         {
-            // 1. CHECK TRIGGERS
-            // If it's a trigger AND we don't want triggers, skip it.
             if (col.isTrigger && !exportTriggers) continue;
 
             ColliderEntry entry = new ColliderEntry();
             entry.tag = exportTags ? col.gameObject.tag : "Untagged";
             entry.layer = exportLayers ? LayerMask.LayerToName(col.gameObject.layer) : "Default";
-            entry.isTrigger = col.isTrigger; // Save the status
+            entry.isTrigger = col.isTrigger;
 
             Transform t = col.transform;
 
-            // 2. HANDLE BOXES
             if (col is BoxCollider box)
             {
                 entry.type = "Box";
@@ -67,7 +92,6 @@ public class MapExporter : MonoBehaviour
                 entry.scale = Vector3.Scale(box.size, t.lossyScale);
                 data.colliders.Add(entry);
             }
-            // 3. HANDLE SPHERES
             else if (col is SphereCollider sphere)
             {
                 entry.type = "Sphere";
@@ -78,7 +102,6 @@ public class MapExporter : MonoBehaviour
                 entry.scale = new Vector3(worldRadius, worldRadius, worldRadius);
                 data.colliders.Add(entry);
             }
-            // 4. HANDLE CAPSULES
             else if (col is CapsuleCollider cap)
             {
                 entry.type = "Capsule";
@@ -89,31 +112,27 @@ public class MapExporter : MonoBehaviour
                 entry.scale = new Vector3(cap.radius * radiusScale, cap.height * heightScale, 0); 
                 data.colliders.Add(entry);
             }
-            // 5. HANDLE MESH COLLIDERS (ProBuilder / Land)
             else if (col is MeshCollider meshCol)
             {
                 if (convertMeshesToBoxes)
                 {
-                    // Convert Mesh Bounds to a Box
                     entry.type = "Box";
                     entry.position = meshCol.bounds.center; 
-                    entry.rotation = Quaternion.identity; // Bounds are always Axis-Aligned
+                    entry.rotation = Quaternion.identity; 
                     entry.scale = meshCol.bounds.size;      
-                    
                     data.colliders.Add(entry);
-                }
-                else if (meshCol.convex)
-                {
-                    Debug.LogWarning($"Skipping Convex Mesh: {col.name}. (Complex mesh export not implemented yet)");
                 }
             }
         }
 
+        // ---------------------------------------------------------
+        // PART 3: SAVE FILE
+        // ---------------------------------------------------------
         string json = JsonUtility.ToJson(data, true);
         string path = Path.Combine(Application.dataPath, fileName);
         File.WriteAllText(path, json);
 
-        Debug.Log($"<b>[MapExporter]</b> Exported {data.colliders.Count} colliders to: {path}");
+        Debug.Log($"<b>[MapExporter]</b> Exported {data.colliders.Count} colliders and {data.spawnPoints.Count} spawns to: {path}");
     }
 }
 
