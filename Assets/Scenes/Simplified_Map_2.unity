@@ -5763,8 +5763,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::NetClient
   bulletPrefab: {fileID: 5115898143798426263, guid: ccafbc6ee6d10e7489f939b9b89ecf64, type: 3}
   muzzleFlashPrefab: {fileID: 0}
-  shootSound: {fileID: 0}
-  host: 18.141.175.233
+  shootSound: {fileID: 8300000, guid: 77c64ca3eae449c4db979d9b7fc850a5, type: 3}
+  host: 127.0.0.1
   port: 9000
   capsuleHeight: 2
   capsuleRadius: 0.5

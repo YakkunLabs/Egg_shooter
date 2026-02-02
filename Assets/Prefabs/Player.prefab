@@ -362,6 +362,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AdvancedGunSystem
   weaponData: {fileID: 11400000, guid: aead5629996738e46b22b18d47529e84, type: 2}
+  currentAmmo: 0
+  isReloading: 0
+  readyToShoot: 1
   fpsCamera: {fileID: 3082280462444877071}
   attackPoint: {fileID: 8540830680239493417}
   bulletPrefab: {fileID: 5115898143798426263, guid: b34ebd24c871c8647b8e1fb274878aa4, type: 3}
@@ -5548,6 +5551,7 @@ GameObject:
   - component: {fileID: 2884350563417233062}
   - component: {fileID: 6557041439200904629}
   - component: {fileID: 5994013119049114697}
+  - component: {fileID: -5241999562405095762}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -5701,6 +5705,7 @@ MonoBehaviour:
   isClimbing: 0
   climbSpeed: 6
   climbMessageUI: {fileID: 0}
+  serverAuthoritative: 1
 --- !u!114 &7485091162613615862
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5829,7 +5834,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5233133963924558583}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6d5b2340b7b822340b123fe76faee846, type: 3}
   m_Name: 
@@ -5886,7 +5891,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5233133963924558583}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 259a2d92baa3d9b4293eea9abe45e394, type: 3}
   m_Name: 
@@ -5912,6 +5917,29 @@ MonoBehaviour:
   netClient: {fileID: 0}
   egg: {fileID: 6145694623072168773}
   sendHz: 30
+--- !u!114 &-5241999562405095762
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5233133963924558583}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 833a497917bb8a346a0100c6b07f34ca, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NetworkPlayerSetup
+  bodyRenderer: {fileID: 3835965984215619664}
+  gunHolder: {fileID: 5008351824106889973}
+  availableSkins:
+  - {fileID: 2100000, guid: 52ad5d5058cdcd04b91895ee0c82d9b0, type: 2}
+  - {fileID: 2100000, guid: cccf87e80ee9f214c8367f224fb10940, type: 2}
+  availableGuns:
+  - {fileID: 3115099672575953990}
+  - {fileID: 516093960232186404}
+  - {fileID: 2721450169643973798}
+  - {fileID: 6519193018780339815}
+  - {fileID: 467368729100604288}
 --- !u!1 &5281563194633694314
 GameObject:
   m_ObjectHideFlags: 0
@@ -21358,6 +21386,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AdvancedGunSystem
   weaponData: {fileID: 11400000, guid: 1ee98c6dddbc77648a93f5c333d3127b, type: 2}
+  currentAmmo: 0
+  isReloading: 0
+  readyToShoot: 1
   fpsCamera: {fileID: 3082280462444877071}
   attackPoint: {fileID: 4331299491765560063}
   bulletPrefab: {fileID: 5115898143798426263, guid: b34ebd24c871c8647b8e1fb274878aa4, type: 3}
@@ -21827,6 +21858,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AdvancedGunSystem
   weaponData: {fileID: 11400000, guid: 3dc298ca64ff48948a9b7b9403b33d15, type: 2}
+  currentAmmo: 0
+  isReloading: 0
+  readyToShoot: 1
   fpsCamera: {fileID: 3082280462444877071}
   attackPoint: {fileID: 4928228086720168459}
   bulletPrefab: {fileID: 5115898143798426263, guid: b34ebd24c871c8647b8e1fb274878aa4, type: 3}
@@ -22214,6 +22248,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AdvancedGunSystem
   weaponData: {fileID: 11400000, guid: 4683180794c63b545ba142fcc0cd1182, type: 2}
+  currentAmmo: 0
+  isReloading: 0
+  readyToShoot: 1
   fpsCamera: {fileID: 3082280462444877071}
   attackPoint: {fileID: 8147957094084926282}
   bulletPrefab: {fileID: 5914052313107521753, guid: 39cc7f9745a1c2e4a9359ea3b0be0c65, type: 3}
@@ -22580,6 +22617,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AdvancedGunSystem
   weaponData: {fileID: 11400000, guid: 81da5d038f728f543b2f75777aac75e1, type: 2}
+  currentAmmo: 0
+  isReloading: 0
+  readyToShoot: 1
   fpsCamera: {fileID: 3082280462444877071}
   attackPoint: {fileID: 295561753502918557}
   bulletPrefab: {fileID: 5115898143798426263, guid: b34ebd24c871c8647b8e1fb274878aa4, type: 3}
