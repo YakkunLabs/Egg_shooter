@@ -5930,7 +5930,7 @@ GameObject:
   - component: {fileID: 1282414472}
   - component: {fileID: 1282414471}
   m_Layer: 5
-  m_Name: Ammo Text (TMP)
+  m_Name: AmmoText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -11318,7 +11318,7 @@ GameObject:
   - component: {fileID: 2126509960}
   - component: {fileID: 2126509959}
   m_Layer: 5
-  m_Name: Slider
+  m_Name: HealthSlider
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

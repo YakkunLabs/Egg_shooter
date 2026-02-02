@@ -3,8 +3,7 @@ using TMPro;
 using System.Collections;
 
 /// <summary>
-/// Advanced Gun System - Supports multiple fire modes and realistic weapon mechanics
-/// Compatible with WeaponData ScriptableObject for easy configuration
+/// Advanced Gun System - Updated for Network Client Architecture
 /// </summary>
 public class AdvancedGunSystem : MonoBehaviour
 {
@@ -13,7 +12,7 @@ public class AdvancedGunSystem : MonoBehaviour
 
     [Header("Runtime Stats")]
     public int currentAmmo;
-    private int reserveAmmo;
+    public int reserveAmmo;
     private int maxReserveAmmo;
     private FireMode currentFireMode;
     public bool isReloading = false;
@@ -49,29 +48,45 @@ public class AdvancedGunSystem : MonoBehaviour
     public float CurrentYaw { get; private set; }
     public float CurrentPitch { get; private set; }
 
-    void Start()
+void Start()
     {
+        // --- NEW: AUTO-FIND UI ---
+        // Since we are a Prefab, we must find the UI in the scene at runtime.
+        if (text_ammo == null)
+        {
+            GameObject uiObj = GameObject.Find("AmmoText");
+            if (uiObj != null) 
+                text_ammo = uiObj.GetComponent<TextMeshProUGUI>();
+            else
+                Debug.LogWarning("Could not find GameObject named 'AmmoText' in the scene!");
+        }
+
+        if (text_fireMode == null)
+        {
+            GameObject uiObj = GameObject.Find("FireModeText");
+            if (uiObj != null) 
+                text_fireMode = uiObj.GetComponent<TextMeshProUGUI>();
+        }
+        // -------------------------
+
         if (weaponData == null)
         {
             Debug.LogError("WeaponData is not assigned! Please assign a weapon configuration.");
             return;
         }
 
-        // Auto-recover camera if missing
         if (fpsCamera == null) 
         {
             fpsCamera = Camera.main;
             if (fpsCamera != null) Debug.Log("Auto-assigned Main Camera to weapon.");
         }
 
-        // Initialize ammo
         currentAmmo = weaponData.magazineSize;
         reserveAmmo = weaponData.reserveAmmo;
         maxReserveAmmo = weaponData.reserveAmmo;
         currentFireMode = weaponData.fireMode;
         initialPosition = transform.localPosition;
 
-        // Initialize camera settings
         if (fpsCamera != null)
         {
             normalFOV = fpsCamera.fieldOfView;
@@ -97,10 +112,7 @@ public class AdvancedGunSystem : MonoBehaviour
 
     void Update()
     {
-        // 1. DISABLE IN MAIN MENU
-        // Prevents guns from shooting when clicking UI buttons
         if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "MainMenu") return;
-
         if (PauseManager.isPaused) return;
 
         HandleInput();
@@ -108,17 +120,74 @@ public class AdvancedGunSystem : MonoBehaviour
         UpdateUI();
     }
 
+    // --- NEW: PUBLIC METHODS FOR INPUT SCRIPT ---
+    
+    // Called by NetInputFromEggController
+    public void AttemptToShoot()
+    {
+        // 1. Check conditions locally
+        if (isReloading) return;
+        
+        if (currentAmmo <= 0) 
+        {
+             PlayEmptySound();
+             return;
+        }
+        
+        if (!readyToShoot) return;
+
+        // 2. Fire!
+        Shoot(); 
+    }
+
+    // Called by NetInputFromEggController
+public void AttemptToReload()
+    {
+        Debug.Log("--- DEBUG RELOAD ATTEMPT ---");
+        
+        // 1. Check constraints
+        if (currentAmmo >= weaponData.magazineSize) 
+        {
+            Debug.Log("Fail: Mag Full");
+            return;
+        }
+
+        if (reserveAmmo <= 0 && !weaponData.infiniteAmmo) 
+        {
+            Debug.Log("Fail: No Reserve Ammo");
+            return;
+        }
+
+        // 2. FORCE INSTANT RELOAD (Bypassing Coroutine for testing)
+        Debug.Log("Forcing Instant Reload...");
+
+        int ammoNeeded = weaponData.magazineSize - currentAmmo;
+        
+        // Take what we can from reserve
+        int ammoToTake = weaponData.infiniteAmmo ? ammoNeeded : Mathf.Min(ammoNeeded, reserveAmmo);
+
+        currentAmmo += ammoToTake;
+        if (!weaponData.infiniteAmmo) reserveAmmo -= ammoToTake;
+
+        Debug.Log($"Reloaded {ammoToTake} bullets. Current: {currentAmmo}, Reserve: {reserveAmmo}");
+
+        // 3. Update UI
+        UpdateUI();
+    }
+    // --------------------------------------------
+
     private void HandleInput()
     {
-        // Fire Mode Toggle
+        // Fire Mode Toggle (Local Only)
         if (weaponData.canToggleFireMode && Input.GetKeyDown(KeyCode.B))
         {
             ToggleFireMode();
         }
 
-        // Shooting
-        // PC uses Mouse ONLY (checks !IsMobileMode to avoid touch-fire)
-        // Mobile uses Button ONLY
+        // --- DISABLED INTERNAL SHOOTING ---
+        // We commented this out because 'NetInputFromEggController' now handles 
+        // calling AttemptToShoot(). If we leave this, you will shoot twice!
+        /*
         bool pcFire = !MobileInputManager.Instance.IsMobileMode && 
                      (currentFireMode == FireMode.Automatic ? Input.GetButton("Fire1") : Input.GetButtonDown("Fire1"));
         
@@ -129,13 +198,15 @@ public class AdvancedGunSystem : MonoBehaviour
             Shoot();
         }
 
-        // Empty click sound
         if (Input.GetButtonDown("Fire1") && currentAmmo <= 0 && !isReloading)
         {
             PlayEmptySound();
         }
+        */
 
-        // Reloading
+        // --- DISABLED INTERNAL RELOADING ---
+        // Handled by NetInputFromEggController calling AttemptToReload()
+        /*
         if ((Input.GetKeyDown(KeyCode.R) || MobileInputManager.Instance.reloadPressed) && currentAmmo < weaponData.magazineSize && !isReloading)
         {
             if (reserveAmmo > 0 || weaponData.infiniteAmmo)
@@ -143,43 +214,34 @@ public class AdvancedGunSystem : MonoBehaviour
                 StartCoroutine(Reload());
             }
         }
+        */
 
-        // Sniper Scope Logic
-        // PC: Right Click ("Fire2") - Only if !IsMobileMode
-        // Mobile: Scope Button Only
+        // Sniper Scope Logic (Visuals stay local)
         bool pcAim = !MobileInputManager.Instance.IsMobileMode && (Input.GetButton("Fire2") || Input.GetKey(KeyCode.LeftShift));
         bool mobileAim = MobileInputManager.Instance.scopePressed;
-
         bool isAiming = pcAim || mobileAim;
 
         if (isAiming)
         {
-            // A. SNIPER LOGIC (Scope Overlay)
             if (weaponData.hasScope)
             {
                 if (!isScoped) StartCoroutine(OnScoped());
             }
-            // B. STANDARD GUN LOGIC (Iron Sights)
             else
             {
-                // Move Gun to Center
                 transform.localPosition = Vector3.Lerp(transform.localPosition, weaponData.aimPosition, Time.deltaTime * weaponData.aimSpeed);
-                // Zoom Camera
                 fpsCamera.fieldOfView = Mathf.Lerp(fpsCamera.fieldOfView, weaponData.aimZoom, Time.deltaTime * weaponData.aimSpeed);
             }
         }
         else
         {
-            // STOP AIMING
             if (weaponData.hasScope && isScoped)
             {
                 OnUnscoped();
             }
             else
             {
-                // Return Gun to Hip
                 transform.localPosition = Vector3.Lerp(transform.localPosition, initialPosition, Time.deltaTime * weaponData.aimSpeed);
-                // Reset Camera
                 fpsCamera.fieldOfView = Mathf.Lerp(fpsCamera.fieldOfView, normalFOV, Time.deltaTime * weaponData.aimSpeed);
             }
         }
@@ -189,7 +251,6 @@ public class AdvancedGunSystem : MonoBehaviour
     {
         readyToShoot = false;
 
-        // Fire mode logic
         switch (currentFireMode)
         {
             case FireMode.SemiAutomatic:
@@ -216,18 +277,15 @@ public class AdvancedGunSystem : MonoBehaviour
 
     private void FireBullet()
     {
-        // Safety check
         if (fpsCamera == null) fpsCamera = Camera.main;
-        if (fpsCamera == null) return; // Can't shoot without camera
+        if (fpsCamera == null) return;
 
-        // Calculate target point
         Ray ray = fpsCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
         UpdateAim(ray);
 
         RaycastHit hit;
         Vector3 targetPoint;
 
-        // Ignore Player layer (usually layer 3, 6, 7 etc) - Use a mask if needed, for now hit everything
         if (Physics.Raycast(ray, out hit, weaponData.maxRange))
         {
             targetPoint = hit.point;
@@ -237,7 +295,6 @@ public class AdvancedGunSystem : MonoBehaviour
             targetPoint = ray.GetPoint(weaponData.maxRange);
         }
 
-        // Apply spread
         float currentSpread = isScoped ? 
             weaponData.spread * weaponData.aimSpreadMultiplier : 
             weaponData.spread;
@@ -250,48 +307,40 @@ public class AdvancedGunSystem : MonoBehaviour
         );
         directionWithSpread.Normalize();
 
-        // Play sound
         if (audioSource != null && weaponData.shootSound != null)
         {
             audioSource.PlayOneShot(weaponData.shootSound);
         }
 
-        // Muzzle flash (only if not scoped)
         if (muzzleFlash != null && !isScoped)
         {
             muzzleFlash.Play();
         }
 
-        // Spawn bullet - Offset slightly to avoid clipping
         if (bulletPrefab != null)
         {
-            // Move spawn point forward by 0.5 units if not scoped (or less if scoped)
             Vector3 spawnPos = attackPoint.position + (attackPoint.forward * 0.5f);
             
             GameObject currentBullet = Instantiate(bulletPrefab, spawnPos, Quaternion.identity);
             
-            // Apply direction
             currentBullet.transform.forward = directionWithSpread;
 
-            // Set bullet properties
             Projectile projectile = currentBullet.GetComponent<Projectile>();
             if (projectile != null)
             {
                 projectile.damage = weaponData.damage;
                 projectile.speed = weaponData.bulletSpeed > 0 ? weaponData.bulletSpeed : 100f; 
-                projectile.explosionRadius = weaponData.explosionRadius; // Set explosion radius
+                projectile.explosionRadius = weaponData.explosionRadius; 
             }
             
-            // Ignore collision with Player to prevent self-damage
             Collider bulletCollider = currentBullet.GetComponent<Collider>();
-            Collider playerCollider = GameObject.FindWithTag("Player")?.GetComponent<Collider>(); // Try to find player
+            Collider playerCollider = GameObject.FindWithTag("Player")?.GetComponent<Collider>();
             if (bulletCollider != null && playerCollider != null)
             {
                 Physics.IgnoreCollision(bulletCollider, playerCollider);
             }
         }
 
-        // Consume ammo
         currentAmmo--;
         UpdateUI();
         ApplyRecoil();
@@ -323,13 +372,11 @@ public class AdvancedGunSystem : MonoBehaviour
     {
         isReloading = true;
 
-        // Exit scope if scoped
         if (weaponData.hasScope && isScoped)
         {
             OnUnscoped();
         }
 
-        // Play reload sound
         if (audioSource != null && weaponData.reloadSound != null)
         {
             audioSource.PlayOneShot(weaponData.reloadSound);
@@ -337,7 +384,6 @@ public class AdvancedGunSystem : MonoBehaviour
 
         if (weaponData.reloadFullMagazine)
         {
-            // Standard reload (full magazine at once)
             yield return new WaitForSeconds(weaponData.reloadTime);
 
             int ammoNeeded = weaponData.magazineSize - currentAmmo;
@@ -351,7 +397,6 @@ public class AdvancedGunSystem : MonoBehaviour
         }
         else
         {
-            // Reload one bullet at a time (shotgun style)
             while (currentAmmo < weaponData.magazineSize && (reserveAmmo > 0 || weaponData.infiniteAmmo))
             {
                 yield return new WaitForSeconds(weaponData.reloadPerBulletTime);
@@ -361,7 +406,6 @@ public class AdvancedGunSystem : MonoBehaviour
                     reserveAmmo--;
                 }
 
-                // Allow interrupting reload
                 if (Input.GetButtonDown("Fire1"))
                 {
                     break;
@@ -370,9 +414,11 @@ public class AdvancedGunSystem : MonoBehaviour
         }
 
         isReloading = false;
+        UpdateUI(); // Update UI after reload finishes
     }
 
-    private void ResetShot()
+    // Changed to Public for the Input Script
+    public void ResetShot()
     {
         readyToShoot = true;
     }
@@ -460,23 +506,16 @@ public class AdvancedGunSystem : MonoBehaviour
         }
     }
 
-    // --- NEW REFILL FUNCTION ---
     public void RefillAmmo()
     {
-        // Simply reset the reserve to the maximum allowed
         reserveAmmo = maxReserveAmmo;
-
-        // Optional: Play pickup sound
         if (audioSource != null && weaponData.reloadSound != null)
         {
             audioSource.PlayOneShot(weaponData.reloadSound);
         }
-
         UpdateUI(); 
         Debug.Log("Ammo Refilled to Max: " + reserveAmmo);
     }
-
-
 
     void UpdateAim(Ray camera_ray)
     {
