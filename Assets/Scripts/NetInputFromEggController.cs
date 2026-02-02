@@ -78,18 +78,27 @@ public class NetInputFromEggController : MonoBehaviour
         // Send ONE queued click per packet (reliable delivery of each click)
         bool shootPressed = _pendingShots > 0;
         bool jumpPressed = _pendingJump;
+        bool reloadPressed = Input.GetKeyDown(KeyCode.R);
 
-        // aimYaw should be body yaw in signed radians (-pi..pi)
+        // faceYaw should be body yaw in signed radians (-pi..pi)
         float yawDeg = transform.eulerAngles.y;
         if (yawDeg > 180f) yawDeg -= 360f;
-        float aimYaw = yawDeg * Mathf.Deg2Rad;
+        float faceYaw = yawDeg * Mathf.Deg2Rad;
+
+        var gun = FindFirstObjectByType<AdvancedGunSystem>();
+        float aimYaw = 0;
+        float aimPitch = 0;
+        if (gun != null) {
+            aimYaw = gun.CurrentYaw;
+            aimPitch = gun.CurrentPitch;
+        }
 
         ushort dtMs = (ushort)Mathf.Clamp(Mathf.RoundToInt(Time.deltaTime * 1000f), 0, 65535);
 
         netClient.SendInput(
             sendW, a, sendS, d,
-            run, jumpPressed,
-            aimYaw, shootPressed,
+            run, jumpPressed,faceYaw,
+            aimYaw,aimPitch,shootPressed, reloadPressed,
             dtMs
         );
 

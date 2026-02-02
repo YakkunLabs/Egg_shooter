@@ -90,11 +90,10 @@ public class NetClient : MonoBehaviour
         {
             while (_running)
             {
-                // Your Rust read_frame uses BIG-ENDIAN u32 length:
+                // Rust read_frame uses BIG-ENDIAN u32 length:
                 byte[] payload = ReadFrameBigEndian(_stream);
                 if (payload == null) break;
 
-                // Decode payload using the same approach as your working example
                 using var ms = new MemoryStream(payload, writable: false);
                 var segments = Framing.ReadSegments(ms);
                 var state = DeserializerState.CreateRoot(segments);
@@ -109,6 +108,10 @@ public class NetClient : MonoBehaviour
                         myPlayerId = a.PlayerId;
                         if (log) Debug.Log($"[NetClient] Assigned playerId={myPlayerId}");
 
+                        int selectedWeapon = PlayerPrefs.GetInt("SelectedWeapon", 0);
+
+                        // optional: send a first empty input so server sees activity
+                        SendInitialClientMessage(CapnpGen.WeaponType.rifle);
                         SendTestInput();
                     });
                 }
@@ -130,57 +133,11 @@ public class NetClient : MonoBehaviour
 
     void ApplySnapshot(Snapshot.READER snap)
     {
-        // ---- players (what you already do) ----
         ApplyPlayers(snap);
-
-        // ---- events (NEW) ----
         ApplyEvents(snap);
     }
 
-    // void ApplyPlayers(Snapshot.READER snap)
-    // {
-    //     var alive = new HashSet<ulong>();
-
-    //     foreach (var p in snap.Players)
-    //     {
-    //         var id = p.PlayerId;
-    //         alive.Add(id);
-
-    //         if (!_players.TryGetValue(id, out var go) || go == null)
-    //         {
-    //             bool isLocal = (id == myPlayerId);
-
-    //             if (isLocal)
-    //                 go = Instantiate(playerPrefab);
-    //             else
-    //                 go = Instantiate(enemyPrefab);
-
-    //             go.name = $"Player_{id}";
-    //             go.transform.localScale = new Vector3(capsuleRadius * 2f, capsuleHeight / 2f, capsuleRadius * 2f);
-    //             _players[id] = go;
-    //         }
-
-    //         go.transform.position = new Vector3(p.X, p.Y, p.Z);
-    //         if (id != myPlayerId)
-    //         {
-    //             go.transform.rotation = Quaternion.Euler(0f, p.Yaw * Mathf.Rad2Deg, 0f);
-    //         }
-    //     }
-
-    //     // Remove players not present anymore
-    //     var toRemove = new List<ulong>();
-    //     foreach (var kv in _players)
-    //     {
-    //         if (!alive.Contains(kv.Key))
-    //         {
-    //             if (kv.Value != null) Destroy(kv.Value);
-    //             toRemove.Add(kv.Key);
-    //         }
-    //     }
-    //     foreach (var id in toRemove) _players.Remove(id);
-    // }
-
-void ApplyPlayers(Snapshot.READER snap)
+    void ApplyPlayers(Snapshot.READER snap)
     {
         var alive = new HashSet<ulong>();
 
@@ -189,7 +146,7 @@ void ApplyPlayers(Snapshot.READER snap)
             var id = p.PlayerId;
             alive.Add(id);
 
-            // 1. SPAWN (Existing code)
+            // 1) Spawn
             if (!_players.TryGetValue(id, out var go) || go == null)
             {
                 bool isLocal = (id == myPlayerId);
@@ -199,38 +156,49 @@ void ApplyPlayers(Snapshot.READER snap)
                 _players[id] = go;
             }
 
-            // 2. MOVEMENT (Existing code - Snap to position)
+            // 2) Movement
             go.transform.position = new Vector3(p.X, p.Y, p.Z);
             if (id != myPlayerId)
             {
                 go.transform.rotation = Quaternion.Euler(0f, p.Yaw * Mathf.Rad2Deg, 0f);
             }
 
-            // 3. VISUALS (Existing code - Defaults)
-            if (id != myPlayerId) 
+            // 3) Visuals from schema (Weapon + Ammo)
+            NetworkPlayerSetup visualSetup = go.GetComponent<NetworkPlayerSetup>();
+            if (visualSetup != null)
             {
-                NetworkPlayerSetup visualSetup = go.GetComponent<NetworkPlayerSetup>();
-                if (visualSetup != null) visualSetup.UpdateVisuals(0, 0);
+                int weaponIndex = (int)p.Weapon; // WeaponType: none/pistol/rifle/...
+                int ammoInMag = (int)p.AmmoInMag;
+                int reserveAmmo = (int)p.ReserveAmmo;
+                bool isReloading = p.IsReloading;
+
+                // Use reflection so you can have either:
+                // UpdateVisuals(int weapon, int ammo)
+                // OR UpdateVisuals(int weapon, int ammo, int reserveAmmo, bool isReloading)
+                var t = visualSetup.GetType();
+                var m4 = t.GetMethod("UpdateVisuals", new[] { typeof(int), typeof(int), typeof(int), typeof(bool) });
+                if (m4 != null)
+                {
+                    m4.Invoke(visualSetup, new object[] { weaponIndex, ammoInMag, reserveAmmo, isReloading });
+                }
+                else
+                {
+                    var m2 = t.GetMethod("UpdateVisuals", new[] { typeof(int), typeof(int) });
+                    if (m2 != null)
+                        m2.Invoke(visualSetup, new object[] { weaponIndex, ammoInMag });
+                }
             }
 
-            // ---------------------------------------------------------
-            // 4. HEALTH SYNC (NEW!)
-            // ---------------------------------------------------------
-            int serverHealth = (int)p.Health; // Read from CapnpGen.cs
-
-            // Try to find the health script on this object
-            // (Note: We removed this from Enemy Prefabs earlier, 
-            // so this will mostly update YOUR Local Player)
+            // 4) Health sync
+            int serverHealth = (int)p.Health;
             PlayerHealth hpScript = go.GetComponent<PlayerHealth>();
-            
             if (hpScript != null)
             {
                 hpScript.UpdateHealthFromServer(serverHealth);
             }
-            // ---------------------------------------------------------
         }
 
-        // 5. CLEANUP (Existing code)
+        // 5) Cleanup disconnected players
         var toRemove = new List<ulong>();
         foreach (var kv in _players)
         {
@@ -243,28 +211,7 @@ void ApplyPlayers(Snapshot.READER snap)
         foreach (var id in toRemove) _players.Remove(id);
     }
 
-
-    // void ApplyEvents(Snapshot.READER snap)
-    // {
-    //     if (snap.Events == null) return;
-
-    //     foreach (var e in snap.Events)
-    //     {
-    //         // Your generated ServerEvent has enum WHICH { ShotFired=0, Noop=1 }
-    //         if (e.which == ServerEvent.WHICH.ShotFired)
-    //         {
-    //             var s = e.ShotFired;
-
-    //             // Example: just log for now
-    //             Debug.Log($"[EVENT] ShotFired shooter={s.ShooterId} pos=({s.X},{s.Y},{s.Z}) yaw={s.Yaw}");
-
-    //             // Later: spawn muzzle flash / tracer / sound
-    //             // You can also find shooter object by name "Player_<id>"
-    //         }
-    //     }
-    // }
-
-void ApplyEvents(Snapshot.READER snap)
+    void ApplyEvents(Snapshot.READER snap)
     {
         if (snap.Events == null) return;
 
@@ -275,7 +222,7 @@ void ApplyEvents(Snapshot.READER snap)
                 var s = e.ShotFired;
                 ulong shooterId = s.ShooterId;
 
-                // Ignore me (I already played my own sound/flash)
+                // Ignore me (local client already played effects instantly)
                 if (shooterId == myPlayerId) continue;
 
                 if (_players.TryGetValue(shooterId, out GameObject shooterObj))
@@ -284,30 +231,169 @@ void ApplyEvents(Snapshot.READER snap)
                     Vector3 spawnPos = (muzzle != null) ? muzzle.position : shooterObj.transform.position;
                     Quaternion spawnRot = (muzzle != null) ? muzzle.rotation : shooterObj.transform.rotation;
 
-                    // 1. PLAY SOUND (Create a temp AudioSource at the gun location)
                     if (shootSound != null)
                         AudioSource.PlayClipAtPoint(shootSound, spawnPos);
 
-                    // 2. SPAWN MUZZLE FLASH
                     if (muzzleFlashPrefab != null)
                     {
                         GameObject flash = Instantiate(muzzleFlashPrefab, spawnPos, spawnRot);
-                        Destroy(flash, 0.5f); // Auto clean up
+                        Destroy(flash, 0.5f);
                     }
 
-                    // 3. SPAWN BULLET (Your existing code)
+                    float yawDeg = s.Yaw * Mathf.Rad2Deg;
+                    float pitchDeg = -1 * s.Pitch * Mathf.Rad2Deg;
+                    Quaternion shotRot = Quaternion.Euler(pitchDeg, yawDeg, 0f);
+
                     if (bulletPrefab != null)
-                        Instantiate(bulletPrefab, spawnPos, Quaternion.Euler(0, s.Yaw * Mathf.Rad2Deg, 0));
+                        Instantiate(bulletPrefab, spawnPos, shotRot);
                 }
             }
         }
     }
-    // ---------------- TX (optional later) ----------------
-    // Here’s the correct writer matching your Rust write_frame (BIG-ENDIAN length).
-    // Call this when you start sending ClientMsg.
+
+    // ---------------- TX ----------------
+
+    // Generic sender (frame pump + big-endian length prefix)
     public void SendClientMsg(MessageBuilder mb)
     {
         if (_stream == null || !_stream.CanWrite) return;
+
+        byte[] payload;
+        using (var ms = new MemoryStream())
+        {
+            var pump = new FramePump(ms);
+            pump.Send(mb.Frame);
+            payload = ms.ToArray();
+        }
+
+        WriteFrameBigEndian(_stream, payload);
+    }
+
+    void SendTestInput()
+    {
+        if (_stream == null || !_stream.CanWrite)
+        {
+            Debug.LogWarning("[NetClient] SendTestInput: stream not writable");
+            return;
+        }
+        if (myPlayerId == 0)
+        {
+            Debug.LogWarning("[NetClient] SendTestInput: myPlayerId is 0");
+            return;
+        }
+
+        // Build ClientMsg { input: ClientInput }
+        var mb = MessageBuilder.Create();
+        var root = mb.BuildRoot<ClientMsg.WRITER>();
+
+        // NOTE: New schema -> ClientInput has NO PlayerId.
+        // Server uses your TCP connection to identify you.
+        root.which = ClientMsg.WHICH.Input;
+        root.Input.Sequence = 1;
+        root.Input.DtMs = 16;
+
+        root.Input.W = false;
+        root.Input.A = false;
+        root.Input.S = false;
+        root.Input.D = false;
+        root.Input.Run = false;
+        root.Input.JumpPressed = false;
+        root.Input.AimYaw = 0.0f;
+        root.Input.ShootPressed = false;
+        root.Input.ReloadPressed = false;
+
+        byte[] payload;
+        using (var ms = new MemoryStream())
+        {
+            var pump = new FramePump(ms);
+            pump.Send(mb.Frame);
+            payload = ms.ToArray();
+        }
+
+        Debug.Log($"[NetClient] Sending TEST input frame: payloadBytes={payload.Length}");
+        WriteFrameBigEndian(_stream, payload);
+    }
+
+    void SendInitialClientMessage(CapnpGen.WeaponType pickedWeapon)
+    {
+        if (_stream == null || !_stream.CanWrite) return;
+        if (myPlayerId == 0) return;
+
+        var mb = MessageBuilder.Create();
+        var root = mb.BuildRoot<ClientMsg.WRITER>();
+
+        // Use the NEW union variant instead of input
+        root.which = ClientMsg.WHICH.SelectWeapon;
+        root.SelectWeapon.PlayerId = myPlayerId;      // keep ONLY if your schema has PlayerId here
+        root.SelectWeapon.Weapon = pickedWeapon;
+
+        // frame pump + big endian length prefix (same as your SendClientMsg)
+        byte[] payload;
+        using (var ms = new MemoryStream())
+        {
+            var pump = new FramePump(ms);
+            pump.Send(mb.Frame);
+            payload = ms.ToArray();
+        }
+
+        WriteFrameBigEndian(_stream, payload);
+
+        if (log) Debug.Log($"[NetClient] Sent initial SelectWeapon: {pickedWeapon}");
+    }
+
+    public void SendInput(
+        bool w, bool a, bool s, bool d,
+        bool run, bool jumpPressed, float faceYaw,
+        float aimYaw, float aimPitch, bool shootPressed, bool reloadPressed,
+        ushort dtMs
+    )
+    {
+        if (_stream == null || !_stream.CanWrite) return;
+        if (myPlayerId == 0) return;
+
+        var mb = MessageBuilder.Create();
+        var root = mb.BuildRoot<ClientMsg.WRITER>();
+
+        root.which = ClientMsg.WHICH.Input;
+        root.Input.Sequence = ++_sequence;
+        root.Input.DtMs = dtMs;
+
+        root.Input.W = w;
+        root.Input.A = a;
+        root.Input.S = s;
+        root.Input.D = d;
+
+        root.Input.Run = run;
+        root.Input.JumpPressed = jumpPressed;
+        root.Input.FaceYaw = faceYaw;
+        root.Input.AimYaw = aimYaw;
+        root.Input.AimPitch = aimPitch;
+        root.Input.ShootPressed = shootPressed;
+        root.Input.ReloadPressed = reloadPressed;
+
+        byte[] payload;
+        using (var ms = new MemoryStream())
+        {
+            var pump = new FramePump(ms);
+            pump.Send(mb.Frame);
+            payload = ms.ToArray();
+        }
+
+        WriteFrameBigEndian(_stream, payload);
+    }
+
+    // Weapon selection is now a union variant: ClientMsg.selectWeapon
+    public void SendSelectWeapon(CapnpGen.WeaponType weapon)
+    {
+        if (_stream == null || !_stream.CanWrite) return;
+        if (myPlayerId == 0) return;
+
+        var mb = MessageBuilder.Create();
+        var root = mb.BuildRoot<ClientMsg.WRITER>();
+
+        root.which = ClientMsg.WHICH.SelectWeapon;
+        root.SelectWeapon.PlayerId = myPlayerId;
+        root.SelectWeapon.Weapon = weapon;
 
         byte[] payload;
         using (var ms = new MemoryStream())
@@ -327,7 +413,6 @@ void ApplyEvents(Snapshot.READER snap)
         byte[] lenBytes = ReadExact(s, 4);
         if (lenBytes == null) return null;
 
-        // BIG-ENDIAN length
         int len = (lenBytes[0] << 24) | (lenBytes[1] << 16) | (lenBytes[2] << 8) | (lenBytes[3]);
         if (len <= 0 || len > 20_000_000) throw new Exception($"Invalid frame len={len}");
 
@@ -338,7 +423,6 @@ void ApplyEvents(Snapshot.READER snap)
     {
         int len = payload.Length;
 
-        // BIG-ENDIAN length (matches Rust to_be_bytes)
         byte[] lenBytes = new byte[4];
         lenBytes[0] = (byte)((len >> 24) & 0xFF);
         lenBytes[1] = (byte)((len >> 16) & 0xFF);
@@ -363,97 +447,8 @@ void ApplyEvents(Snapshot.READER snap)
         return buf;
     }
 
-    void SendTestInput()
-    {
-        if (_stream == null || !_stream.CanWrite)
-        {
-            Debug.LogWarning("[NetClient] SendTestInput: stream not writable");
-            return;
-        }
-        if (myPlayerId == 0)
-        {
-            Debug.LogWarning("[NetClient] SendTestInput: myPlayerId is 0");
-            return;
-        }
-
-        // Build ClientMsg { input: ClientInput }
-        var mb = MessageBuilder.Create();
-        var root = mb.BuildRoot<ClientMsg.WRITER>();
-
-        root.Input.PlayerId = myPlayerId;
-        root.Input.Sequence = 1;          // first input
-        root.Input.DtMs = 16;             // 16ms
-
-        // All keys false; yaw 0; shoot false
-        root.Input.W = false;
-        root.Input.A = false;
-        root.Input.S = false;
-        root.Input.D = false;
-        root.Input.Run = false;
-        root.Input.JumpPressed = false;
-        root.Input.AimYaw = 0.0f;
-        root.Input.ShootPressed = false;
-
-        // Serialize capnp to payload bytes (same as your Tileman example)
-        byte[] payload;
-        using (var ms = new MemoryStream())
-        {
-            var pump = new FramePump(ms);
-            pump.Send(mb.Frame);
-            payload = ms.ToArray();
-        }
-
-        Debug.Log($"[NetClient] Sending TEST input frame: payloadBytes={payload.Length}");
-
-        // Send as BIG-ENDIAN framed payload to match Rust write_frame
-        WriteFrameBigEndian(_stream, payload);
-    }
-
-
-    public void SendInput(
-    bool w, bool a, bool s, bool d,
-    bool run, bool jumpPressed,
-    float aimYaw, bool shootPressed,
-    ushort dtMs
-)
-    {
-        if (_stream == null || !_stream.CanWrite) return;
-        if (myPlayerId == 0) return;
-
-        var mb = MessageBuilder.Create();
-        var root = mb.BuildRoot<ClientMsg.WRITER>();
-
-        root.Input.PlayerId = myPlayerId;
-        root.Input.Sequence = ++_sequence;
-        root.Input.DtMs = dtMs;
-
-        root.Input.W = w;
-        root.Input.A = a;
-        root.Input.S = s;
-        root.Input.D = d;
-
-        root.Input.Run = run;
-        root.Input.JumpPressed = jumpPressed;
-        root.Input.AimYaw = aimYaw;
-        root.Input.ShootPressed = shootPressed;
-
-        // Serialize capnp → bytes
-        byte[] payload;
-        using (var ms = new MemoryStream())
-        {
-            var pump = new FramePump(ms);
-            pump.Send(mb.Frame);
-            payload = ms.ToArray();
-        }
-
-        // BIG-ENDIAN length prefix (matches Rust)
-        WriteFrameBigEndian(_stream, payload);
-    }
-
     Transform FindGunMuzzle(GameObject player)
     {
-        // Search all children for an object named "Attack point"
-        // This is the standard name in your WeaponHolder hierarchy
         Transform[] allChildren = player.GetComponentsInChildren<Transform>();
         foreach (Transform t in allChildren)
         {
@@ -462,12 +457,6 @@ void ApplyEvents(Snapshot.READER snap)
                 return t;
             }
         }
-        
-        // Fallback: If not found, use player center + up
         return null;
     }
-
-
 }
-
-
