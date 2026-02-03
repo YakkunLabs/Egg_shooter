@@ -89,7 +89,7 @@ public class PlayerHealth : MonoBehaviour
 
         UpdateHealthUI();
 
-        if (currentHealth <= 0) Die();
+        // if (currentHealth <= 0) Die();
     }
 
     // --- CALLED BY NETCLIENT (The Server is Boss) ---
@@ -112,10 +112,10 @@ public class PlayerHealth : MonoBehaviour
         UpdateHealthUI();
 
         // 4. Check for Death
-        if (currentHealth <= 0)
-        {
-            Die();
-        }
+        // if (currentHealth <= 0)
+        // {
+        //     Die();
+        // }
     }
 
     public void AddKill()
