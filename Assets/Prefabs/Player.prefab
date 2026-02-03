@@ -25,7 +25,7 @@ Transform:
   m_GameObject: {fileID: 1100728423022684850}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
-  m_LocalPosition: {x: 0.019, y: 0.021999996, z: -0.439}
+  m_LocalPosition: {x: 0.01, y: 0.021999996, z: -0.349}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -375,6 +375,7 @@ MonoBehaviour:
   weaponModel: {fileID: 8147467516647279290}
   text_ammo: {fileID: 0}
   text_fireMode: {fileID: 0}
+  reloadIndicator: {fileID: 0}
   maxZoom: 60
   minZoom: 10
   zoomSpeed: 30
@@ -20935,7 +20936,7 @@ Transform:
   m_GameObject: {fileID: 8401775452167639808}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0.0014834106, z: -0, w: -0.9999989}
-  m_LocalPosition: {x: 0.043453902, y: 0.082999974, z: 2.1585817}
+  m_LocalPosition: {x: 0.08, y: 0.082999974, z: 1.7}
   m_LocalScale: {x: 1.5, y: 1.5, z: 1.5}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -21400,6 +21401,7 @@ MonoBehaviour:
   weaponModel: {fileID: 516093960232186404}
   text_ammo: {fileID: 0}
   text_fireMode: {fileID: 0}
+  reloadIndicator: {fileID: 0}
   maxZoom: 60
   minZoom: 10
   zoomSpeed: 30
@@ -21837,6 +21839,7 @@ MonoBehaviour:
   weaponModel: {fileID: 3115099672575953990}
   text_ammo: {fileID: 0}
   text_fireMode: {fileID: 0}
+  reloadIndicator: {fileID: 0}
   maxZoom: 60
   minZoom: 10
   zoomSpeed: 30
@@ -22228,6 +22231,7 @@ MonoBehaviour:
   weaponModel: {fileID: 467368729100604288}
   text_ammo: {fileID: 0}
   text_fireMode: {fileID: 0}
+  reloadIndicator: {fileID: 0}
   maxZoom: 60
   minZoom: 10
   zoomSpeed: 30
@@ -22598,6 +22602,7 @@ MonoBehaviour:
   weaponModel: {fileID: 6519193018780339815}
   text_ammo: {fileID: 0}
   text_fireMode: {fileID: 0}
+  reloadIndicator: {fileID: 0}
   maxZoom: 60
   minZoom: 10
   zoomSpeed: 30

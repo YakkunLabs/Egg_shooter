@@ -1,6 +1,7 @@
 using UnityEngine;
 using TMPro;
 using System.Collections;
+using UnityEngine.UI;
 
 /// <summary>
 /// Advanced Gun System - Updated for Network Client Architecture
@@ -39,6 +40,7 @@ public class AdvancedGunSystem : MonoBehaviour
     [Header("UI")]
     public TextMeshProUGUI text_ammo;
     public TextMeshProUGUI text_fireMode;
+    public Image reloadIndicator;
 
     [Header("Scroll Zoom Settings")]
     public float maxZoom = 60f;
@@ -48,38 +50,72 @@ public class AdvancedGunSystem : MonoBehaviour
     public float CurrentYaw { get; private set; }
     public float CurrentPitch { get; private set; }
 
-void Start()
+    void Start()
     {
-        // --- NEW: AUTO-FIND UI ---
-        // Since we are a Prefab, we must find the UI in the scene at runtime.
+        // 1. AUTO-FIND TEXT
         if (text_ammo == null)
         {
             GameObject uiObj = GameObject.Find("AmmoText");
-            if (uiObj != null) 
-                text_ammo = uiObj.GetComponent<TextMeshProUGUI>();
-            else
-                Debug.LogWarning("Could not find GameObject named 'AmmoText' in the scene!");
+            if (uiObj != null) text_ammo = uiObj.GetComponent<TextMeshProUGUI>();
         }
 
         if (text_fireMode == null)
         {
             GameObject uiObj = GameObject.Find("FireModeText");
-            if (uiObj != null) 
-                text_fireMode = uiObj.GetComponent<TextMeshProUGUI>();
+            if (uiObj != null) text_fireMode = uiObj.GetComponent<TextMeshProUGUI>();
         }
-        // -------------------------
 
+        // 2. AUTO-FIND RELOAD INDICATOR (Robust Deep Search)
+        if (reloadIndicator == null)
+        {
+            // Try standard search first
+            GameObject directObj = GameObject.Find("ReloadIndicator");
+            if (directObj != null)
+            {
+                reloadIndicator = directObj.GetComponent<Image>();
+            }
+            else
+            {
+                // Fallback: Search deeply inside the Canvas (includes disabled objects)
+                Canvas canvas = FindFirstObjectByType<Canvas>();
+                if (canvas != null)
+                {
+                    // "true" means include inactive (hidden) objects
+                    Image[] allImages = canvas.GetComponentsInChildren<Image>(true);
+                    foreach (Image img in allImages)
+                    {
+                        if (img.name == "ReloadIndicator")
+                        {
+                            reloadIndicator = img;
+                            break; // Found it!
+                        }
+                    }
+                }
+            }
+        }
+
+        // 3. FORCE SETTINGS & HIDE
+        if (reloadIndicator != null)
+        {
+            // Ensure the image settings are correct via code
+            reloadIndicator.type = Image.Type.Filled; 
+            reloadIndicator.fillMethod = Image.FillMethod.Radial360;
+            reloadIndicator.gameObject.SetActive(false); 
+        }
+        else
+        {
+            Debug.LogError("❌ UI ERROR: Could not find 'ReloadIndicator'. Ensure it is named exactly that and is a child of the Canvas.");
+        }
+
+        // 4. SETUP WEAPON
         if (weaponData == null)
         {
-            Debug.LogError("WeaponData is not assigned! Please assign a weapon configuration.");
+            Debug.LogError("⛔ WeaponData is missing!");
             return;
         }
 
-        if (fpsCamera == null) 
-        {
-            fpsCamera = Camera.main;
-            if (fpsCamera != null) Debug.Log("Auto-assigned Main Camera to weapon.");
-        }
+        if (fpsCamera == null) fpsCamera = Camera.main;
+        if (audioSource == null) audioSource = GetComponent<AudioSource>();
 
         currentAmmo = weaponData.magazineSize;
         reserveAmmo = weaponData.reserveAmmo;
@@ -91,15 +127,14 @@ void Start()
         {
             normalFOV = fpsCamera.fieldOfView;
             currentFOV = normalFOV;
-            fpsCamera.fieldOfView = currentFOV;
         }
-
-        if (audioSource == null)
-            audioSource = GetComponent<AudioSource>();
+        
+        // Force Time to run (Fixes stuck timers)
+        Time.timeScale = 1f;
 
         UpdateUI();
     }
-
+    
     void OnEnable()
     {
         isReloading = false;
@@ -107,6 +142,7 @@ void Start()
         isScoped = false;
         if (weaponModel != null) weaponModel.SetActive(true);
         if (scopeOverlay != null) scopeOverlay.SetActive(false);
+        if (reloadIndicator != null) reloadIndicator.gameObject.SetActive(false);
         UpdateUI();
     }
 
@@ -143,8 +179,8 @@ void Start()
     // Called by NetInputFromEggController
 public void AttemptToReload()
     {
-        Debug.Log("--- DEBUG RELOAD ATTEMPT ---");
-        
+        if (isReloading) return;
+
         // 1. Check constraints
         if (currentAmmo >= weaponData.magazineSize) 
         {
@@ -161,18 +197,20 @@ public void AttemptToReload()
         // 2. FORCE INSTANT RELOAD (Bypassing Coroutine for testing)
         Debug.Log("Forcing Instant Reload...");
 
-        int ammoNeeded = weaponData.magazineSize - currentAmmo;
+        // int ammoNeeded = weaponData.magazineSize - currentAmmo;
         
-        // Take what we can from reserve
-        int ammoToTake = weaponData.infiniteAmmo ? ammoNeeded : Mathf.Min(ammoNeeded, reserveAmmo);
+        // // Take what we can from reserve
+        // int ammoToTake = weaponData.infiniteAmmo ? ammoNeeded : Mathf.Min(ammoNeeded, reserveAmmo);
 
-        currentAmmo += ammoToTake;
-        if (!weaponData.infiniteAmmo) reserveAmmo -= ammoToTake;
+        // currentAmmo += ammoToTake;
+        // if (!weaponData.infiniteAmmo) reserveAmmo -= ammoToTake;
 
-        Debug.Log($"Reloaded {ammoToTake} bullets. Current: {currentAmmo}, Reserve: {reserveAmmo}");
+        // Debug.Log($"Reloaded {ammoToTake} bullets. Current: {currentAmmo}, Reserve: {reserveAmmo}");
 
         // 3. Update UI
-        UpdateUI();
+        // UpdateUI();
+
+        StartCoroutine(Reload());
     }
     // --------------------------------------------
 
@@ -372,51 +410,88 @@ public void AttemptToReload()
     {
         isReloading = true;
 
+        // 1. SHOW LOADING UI
+        if (reloadIndicator != null)
+        {
+            reloadIndicator.gameObject.SetActive(true);
+            reloadIndicator.fillAmount = 0f;
+        }
+
         if (weaponData.hasScope && isScoped)
         {
             OnUnscoped();
         }
 
+        // 2. PLAY SOUND
         if (audioSource != null && weaponData.reloadSound != null)
         {
+            audioSource.pitch = 1f; // Reset pitch
             audioSource.PlayOneShot(weaponData.reloadSound);
         }
 
         if (weaponData.reloadFullMagazine)
         {
-            yield return new WaitForSeconds(weaponData.reloadTime);
+            // --- STANDARD RELOAD ---
+            float elapsedTime = 3.5f;
+            float duration = weaponData.reloadTime;
+
+            // SAFETY CHECK: If duration is 0, force it to 2 seconds so UI works
+            if (duration <= 0.1f) duration = 2.0f; 
+
+            while (elapsedTime < duration)
+            {
+                elapsedTime += Time.deltaTime;
+                
+                if (reloadIndicator != null)
+                    reloadIndicator.fillAmount = elapsedTime / duration;
+
+                yield return null; 
+            }
+            // -----------------------------
+            
 
             int ammoNeeded = weaponData.magazineSize - currentAmmo;
             int ammoToReload = weaponData.infiniteAmmo ? ammoNeeded : Mathf.Min(ammoNeeded, reserveAmmo);
 
             currentAmmo += ammoToReload;
-            if (!weaponData.infiniteAmmo)
-            {
-                reserveAmmo -= ammoToReload;
-            }
+            if (!weaponData.infiniteAmmo) reserveAmmo -= ammoToReload;
         }
         else
         {
+            // --- SHOTGUN RELOAD ---
             while (currentAmmo < weaponData.magazineSize && (reserveAmmo > 0 || weaponData.infiniteAmmo))
             {
-                yield return new WaitForSeconds(weaponData.reloadPerBulletTime);
-                currentAmmo++;
-                if (!weaponData.infiniteAmmo)
+                float elapsedTime = 0f;
+                float duration = weaponData.reloadPerBulletTime;
+
+                // SAFETY CHECK
+                if (duration <= 0.05f) duration = 0.5f;
+
+                while (elapsedTime < duration)
                 {
-                    reserveAmmo--;
+                    elapsedTime += Time.deltaTime;
+                    if (reloadIndicator != null) reloadIndicator.fillAmount = elapsedTime / duration;
+                    yield return null;
                 }
 
-                if (Input.GetButtonDown("Fire1"))
-                {
-                    break;
-                }
+                currentAmmo++;
+                if (!weaponData.infiniteAmmo) reserveAmmo--;
+
+                UpdateUI(); 
+
+                if (Input.GetButtonDown("Fire1")) break;
             }
         }
 
-        isReloading = false;
-        UpdateUI(); // Update UI after reload finishes
-    }
+        // 3. HIDE LOADING UI
+        if (reloadIndicator != null)
+        {
+            reloadIndicator.gameObject.SetActive(false);
+        }
 
+        isReloading = false;
+        UpdateUI(); 
+    }
     // Changed to Public for the Input Script
     public void ResetShot()
     {
