@@ -21,6 +21,8 @@ public class NetInputFromEggController : MonoBehaviour
 
     void Update()
     {
+        if (PauseManager.isPaused) return;
+        
         if (netClient == null || egg == null) return;
         if (netClient.myPlayerId == 0) return;
         if (!egg.canMove) return;
