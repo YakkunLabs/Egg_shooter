@@ -116,7 +116,7 @@ public class NetClient : MonoBehaviour
                         // int selectedWeapon = PlayerPrefs.GetInt("SelectedWeapon", 0);
 
                         // optional: send a first empty input so server sees activity
-                        SendInitialClientMessage(CapnpGen.WeaponType.none);
+                        // SendInitialClientMessage(CapnpGen.WeaponType.none);
                         SendTestInput();
                     });
                 }
