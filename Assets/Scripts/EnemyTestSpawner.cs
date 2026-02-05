@@ -40,7 +40,7 @@ public class EnemyTestSpawner : MonoBehaviour
                 int randomGun = Random.Range(0, setupScript.availableGuns.Length);
 
                 // 5. COMMAND THE PUPPET
-                setupScript.UpdateVisuals(randomSkin, randomGun);
+                setupScript.UpdateVisuals(randomSkin, randomGun, 0);
 
                 // Add a text label above them (Optional, for debugging)
                 Debug.Log($"Spawned Enemy {i}: Skin {randomSkin}, Gun {randomGun}");

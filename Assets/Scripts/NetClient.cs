@@ -108,10 +108,8 @@ public class NetClient : MonoBehaviour
                         myPlayerId = a.PlayerId;
                         if (log) Debug.Log($"[NetClient] Assigned playerId={myPlayerId}");
 
-                        int selectedWeapon = PlayerPrefs.GetInt("SelectedWeapon", 0);
-
-                        // optional: send a first empty input so server sees activity
-                        SendInitialClientMessage(CapnpGen.WeaponType.rifle);
+                        int selectedSkin = PlayerPrefs.GetInt("SelectedSkin", 0);
+                        SendSelectSkin(selectedSkin);
                         SendTestInput();
                     });
                 }
@@ -171,21 +169,22 @@ public class NetClient : MonoBehaviour
                 int ammoInMag = (int)p.AmmoInMag;
                 int reserveAmmo = (int)p.ReserveAmmo;
                 bool isReloading = p.IsReloading;
+                int skinIndex = (int)p.SkinId;
 
                 // Use reflection so you can have either:
                 // UpdateVisuals(int weapon, int ammo)
                 // OR UpdateVisuals(int weapon, int ammo, int reserveAmmo, bool isReloading)
                 var t = visualSetup.GetType();
-                var m4 = t.GetMethod("UpdateVisuals", new[] { typeof(int), typeof(int), typeof(int), typeof(bool) });
+                var m4 = t.GetMethod("UpdateVisuals", new[] { typeof(int), typeof(int), typeof(int), typeof(bool), typeof(int) });
                 if (m4 != null)
                 {
-                    m4.Invoke(visualSetup, new object[] { weaponIndex, ammoInMag, reserveAmmo, isReloading });
+                    m4.Invoke(visualSetup, new object[] { weaponIndex, ammoInMag, reserveAmmo, isReloading, skinIndex });
                 }
                 else
                 {
-                    var m2 = t.GetMethod("UpdateVisuals", new[] { typeof(int), typeof(int) });
+                    var m2 = t.GetMethod("UpdateVisuals", new[] { typeof(int), typeof(int), typeof(int) });
                     if (m2 != null)
-                        m2.Invoke(visualSetup, new object[] { weaponIndex, ammoInMag });
+                        m2.Invoke(visualSetup, new object[] { weaponIndex, ammoInMag, skinIndex });
                 }
             }
 
@@ -323,9 +322,9 @@ public class NetClient : MonoBehaviour
         var root = mb.BuildRoot<ClientMsg.WRITER>();
 
         // Use the NEW union variant instead of input
-        root.which = ClientMsg.WHICH.SelectWeapon;
-        root.SelectWeapon.PlayerId = myPlayerId;      // keep ONLY if your schema has PlayerId here
-        root.SelectWeapon.Weapon = pickedWeapon;
+        root.which = ClientMsg.WHICH.SelectSkin;
+        root.SelectSkin.PlayerId = myPlayerId;      // keep ONLY if your schema has PlayerId here
+        //root.SelectSkin.Weapon = pickedWeapon;
 
         // frame pump + big endian length prefix (same as your SendClientMsg)
         byte[] payload;
@@ -383,17 +382,18 @@ public class NetClient : MonoBehaviour
     }
 
     // Weapon selection is now a union variant: ClientMsg.selectWeapon
-    public void SendSelectWeapon(CapnpGen.WeaponType weapon)
+    public void SendSelectSkin(int skinid)
     {
+        //skinid = 1;
         if (_stream == null || !_stream.CanWrite) return;
         if (myPlayerId == 0) return;
 
         var mb = MessageBuilder.Create();
         var root = mb.BuildRoot<ClientMsg.WRITER>();
 
-        root.which = ClientMsg.WHICH.SelectWeapon;
-        root.SelectWeapon.PlayerId = myPlayerId;
-        root.SelectWeapon.Weapon = weapon;
+        root.which = ClientMsg.WHICH.SelectSkin;
+        root.SelectSkin.PlayerId = myPlayerId;
+        root.SelectSkin.SkinId = (ushort)skinid;
 
         byte[] payload;
         using (var ms = new MemoryStream())

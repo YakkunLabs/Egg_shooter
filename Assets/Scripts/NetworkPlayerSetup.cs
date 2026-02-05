@@ -13,19 +13,19 @@ public class NetworkPlayerSetup : MonoBehaviour
     // ------------------------------------------------------------------------
     // METHOD 1: The one NetClient looks for first (Priority 1)
     // ------------------------------------------------------------------------
-    public void UpdateVisuals(int weaponIndex, int ammo, int reserve, bool isReloading)
+    public void UpdateVisuals(int weaponIndex, int ammo, int reserve, bool isReloading, int skin)
     {
         ApplyGun(weaponIndex);
-        ApplySkin(0);
+        ApplySkin(skin);
     }
 
     // ------------------------------------------------------------------------
     // METHOD 2: Fallback
     // ------------------------------------------------------------------------
-    public void UpdateVisuals(int weaponIndex, int ammo)
+    public void UpdateVisuals(int weaponIndex, int ammo, int skin)
     {
         ApplyGun(weaponIndex);
-        ApplySkin(0);
+        ApplySkin(skin);
     }
 
     // ------------------------------------------------------------------------
