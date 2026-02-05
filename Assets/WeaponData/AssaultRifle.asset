@@ -28,7 +28,7 @@ MonoBehaviour:
   infiniteAmmo: 0
   reloadTime: 2.5
   reloadFullMagazine: 1
-  reloadPerBulletTime: 0.5
+  reloadPerBulletTime: 10
   spread: 0.05
   aimSpreadMultiplier: 0.3
   recoilAmount: 1.2
