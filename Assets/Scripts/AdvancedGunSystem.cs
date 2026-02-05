@@ -38,6 +38,7 @@ public class AdvancedGunSystem : MonoBehaviour
     public TextMeshProUGUI text_ammo;
     public TextMeshProUGUI text_fireMode;
     public Image reloadIndicator;
+    public TextMeshProUGUI text_reloading;
 
     [Header("Scroll Zoom Settings")]
     public float maxZoom = 60f;
@@ -91,6 +92,10 @@ public class AdvancedGunSystem : MonoBehaviour
         else
         {
             Debug.LogError("❌ UI ERROR: Could not find 'ReloadIndicator'. Ensure it is named exactly that.");
+        }
+        if (text_reloading != null)
+        {
+            text_reloading.gameObject.SetActive(false);
         }
 
         // 4. SETUP WEAPON
@@ -181,6 +186,10 @@ public class AdvancedGunSystem : MonoBehaviour
             reloadIndicator.gameObject.SetActive(true);
             reloadIndicator.fillAmount = 0f;
         }
+        if (text_reloading != null)
+        {
+            text_reloading.gameObject.SetActive(true);
+        }
 
         if (weaponData.hasScope && isScoped) OnUnscoped();
 
@@ -249,6 +258,7 @@ public class AdvancedGunSystem : MonoBehaviour
         {
             reloadIndicator.gameObject.SetActive(false);
         }
+        if (text_reloading != null) text_reloading.gameObject.SetActive(false);
 
         isReloading = false;
         UpdateUI();

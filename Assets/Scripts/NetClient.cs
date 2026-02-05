@@ -17,6 +17,8 @@ public class NetClient : MonoBehaviour
     public GameObject muzzleFlashPrefab; // Drag a particle effect here
     public AudioClip shootSound;         // Drag a "Bang.wav" here
 
+    public bool isGameStarted = false;
+
     [Header("TCP")]
     public string host = "127.0.0.1";
     public int port = 9001;
@@ -114,12 +116,12 @@ public class NetClient : MonoBehaviour
                         Debug.Log($"[NetClient] Sending Config -> Skin: {savedSkin}, Weapon: {savedWeapon}");
                         
                         SendSelectSkin(savedSkin);
-                        SendSelectWeapon(savedWeapon);
+                        // SendSelectWeapon(savedWeapon);
 
                         // int selectedWeapon = PlayerPrefs.GetInt("SelectedWeapon", 0);
 
                         // optional: send a first empty input so server sees activity
-                        // SendInitialClientMessage(CapnpGen.WeaponType.none);
+                        
                         SendTestInput();
 });
                 }
@@ -173,8 +175,8 @@ public class NetClient : MonoBehaviour
                 if (isLocal)
                 {
                     // Find the temporary camera we made and turn it off
-                    GameObject lobbyCam = GameObject.Find("LobbyCamera");
-                    if (lobbyCam != null) lobbyCam.SetActive(false);
+                    // GameObject lobbyCam = GameObject.Find("LobbyCamera");
+                    // if (lobbyCam != null) lobbyCam.SetActive(false);
 
                     // Also try to find any camera tagged "MainCamera" that isn't ours
                     if (Camera.main != null && Camera.main.transform.root != go.transform)
@@ -383,6 +385,13 @@ public class NetClient : MonoBehaviour
         ushort dtMs
     )
     {
+        if (!isGameStarted) 
+        {
+            // Send zeros/false so the server sees you standing still
+            w = a = s = d = false;
+            run = jumpPressed = shootPressed = reloadPressed = false;
+        }
+
         if (_stream == null || !_stream.CanWrite) return;
         if (myPlayerId == 0) return;
 
@@ -443,33 +452,33 @@ public class NetClient : MonoBehaviour
     }
 
     // Call this to tell the server which gun we want
-    public void SendSelectWeapon(int weaponId)
-    {
-        if (_stream == null || !_stream.CanWrite) return;
-        if (myPlayerId == 0) return;
+    // public void SendSelectWeapon(int weaponId)
+    // {
+    //     if (_stream == null || !_stream.CanWrite) return;
+    //     if (myPlayerId == 0) return;
 
-        var mb = MessageBuilder.Create();
-        var root = mb.BuildRoot<ClientMsg.WRITER>();
+    //     var mb = MessageBuilder.Create();
+    //     var root = mb.BuildRoot<ClientMsg.WRITER>();
 
-        // IMPORTANT: You need a "SelectWeapon" message in your Schema!
-        // If you don't have one, you might need to reuse an existing field or add it.
-        // Assuming you added: SelectWeapon @(some_id) :group { playerId @0 :UInt64; weaponId @1 :UInt16; }
+    //     // IMPORTANT: You need a "SelectWeapon" message in your Schema!
+    //     // If you don't have one, you might need to reuse an existing field or add it.
+    //     // Assuming you added: SelectWeapon @(some_id) :group { playerId @0 :UInt64; weaponId @1 :UInt16; }
         
-        // root.which = ClientMsg.WHICH.SelectWeapon; 
-        // root.SelectWeapon.PlayerId = myPlayerId;
-        // root.SelectWeapon.WeaponId = (ushort)weaponId;
+    //     root.which = ClientMsg.WHICH.SelectWeapon; 
+    //     root.SelectWeapon.PlayerId = myPlayerId;
+    //     root.SelectWeapon.WeaponId = (ushort)weaponId;
 
-        byte[] payload;
-        using (var ms = new MemoryStream())
-        {
-            var pump = new FramePump(ms);
-            pump.Send(mb.Frame);
-            payload = ms.ToArray();
-        }
+    //     byte[] payload;
+    //     using (var ms = new MemoryStream())
+    //     {
+    //         var pump = new FramePump(ms);
+    //         pump.Send(mb.Frame);
+    //         payload = ms.ToArray();
+    //     }
 
-        WriteFrameBigEndian(_stream, payload);
-        if (log) Debug.Log($"[NetClient] Sent Weapon Request: {weaponId}");
-    }
+    //     WriteFrameBigEndian(_stream, payload);
+    //     if (log) Debug.Log($"[NetClient] Sent Weapon Request: {weaponId}");
+    // }
 
     // ---------------- FRAMING (BIG-ENDIAN u32) ----------------
 

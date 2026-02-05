@@ -44,14 +44,14 @@ public class PlayerWeaponController : MonoBehaviour
         {
             // Switch to Pistol
             Debug.Log("[WeaponController] Switching to Secondary (Pistol)");
-            netClient.SendSelectWeapon(pistolId);
+            // netClient.SendSelectWeapon(pistolId);
             isHoldingPrimary = false;
         }
         else
         {
             // Switch back to Primary (Rifle/etc)
             Debug.Log($"[WeaponController] Switching to Primary (ID: {primaryWeaponId})");
-            netClient.SendSelectWeapon(primaryWeaponId);
+            // netClient.SendSelectWeapon(primaryWeaponId);
             isHoldingPrimary = true;
         }
     }
