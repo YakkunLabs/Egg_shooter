@@ -34,7 +34,7 @@ public class PauseMenuWeapons : MonoBehaviour
             // Convert the int (1, 2, 3) to the Network Enum
             CapnpGen.WeaponType networkWeapon = (CapnpGen.WeaponType)weaponIndex;
 
-            netClient.SendSelectWeapon(networkWeapon);
+            //netClient.SendSelectWeapon(networkWeapon);
             Debug.Log($"[Network] Sent weapon change to server: {networkWeapon}");
         }
     }
