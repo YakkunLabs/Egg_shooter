@@ -1,30 +1,21 @@
 using UnityEngine;
-using UnityEngine.SceneManagement; // Required for loading levels
+using UnityEngine.SceneManagement; 
 
 public class MainMenu : MonoBehaviour
 {
-    [Header("The Guns in the Menu Player's Hands")]
-    // Drag the gun OBJECTS from the Scene (inside the Menu Player)
-    public GameObject[] menuGuns; 
-
-    private int selectedWeaponIndex = 0;
-    private int selectedSkinIndex = 0;
-
     [Header("Skin Selection")]
-    // 1. Drag the MeshRenderer of your visible menu player here
+    // Drag the MeshRenderer of your visible menu player here
     public MeshRenderer menuPlayerMesh; 
-    // 2. Drag all your skin Materials here (Element 0 = Default)
+    // Drag all your skin Materials here (Element 0 = Default)
     public Material[] allSkins;
+
+    private int selectedSkinIndex = 0;
 
     void Start()
     {
         // Unlock the cursor so the player can click buttons
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
-
-        // 1. Load the last saved choice (Optional, remembers what you picked last time)
-        selectedWeaponIndex = PlayerPrefs.GetInt("SelectedWeapon", 0);
-        UpdateMenuVisuals();
 
         // Load saved skin (Default to 0 if none saved)
         selectedSkinIndex = PlayerPrefs.GetInt("SelectedSkin", 0);
@@ -33,47 +24,17 @@ public class MainMenu : MonoBehaviour
     
     public void PlayGame()
     {
-        // Loads the next scene in the queue (The Game)
+        // Loads the next scene (The World)
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
     }
 
     public void QuitGame()
     {
-        Debug.Log("QUIT GAME!"); // Shows in Unity Editor to prove it works
-        Application.Quit();      // Closes the window in the real game
+        Debug.Log("QUIT GAME!");
+        Application.Quit();
     }
 
-    // Call this function from your Buttons
-    // 0 = Pistol, 1 = Rifle (or whatever order you like)
-// Connect this to your WEAPON Buttons
-    public void SelectWeapon(int index)
-    {
-        selectedWeaponIndex = index;
-        
-        // Save choice for the Game Scene
-        PlayerPrefs.SetInt("SelectedWeapon", selectedWeaponIndex);
-        PlayerPrefs.Save();
-
-        // Update the visual character immediately
-        UpdateMenuVisuals();
-    }
-
-    void UpdateMenuVisuals()
-    {
-        // Turn off all guns, then turn on only the selected one
-        for (int i = 0; i < menuGuns.Length; i++)
-        {
-            if (i == selectedWeaponIndex)
-            {
-                menuGuns[i].SetActive(true);
-            }
-            else
-            {
-                menuGuns[i].SetActive(false);
-            }
-        }
-    }
-
+    // Connect this to your SKIN Buttons (0, 1, 2, etc.)
     public void SelectSkin(int index)
     {
         selectedSkinIndex = index;
@@ -81,14 +42,14 @@ public class MainMenu : MonoBehaviour
         // 1. Change the material immediately in the menu
         UpdateSkinVisuals();
 
-        // 2. Save the choice for the game scene
+        // 2. Save the choice for the Game Scene (NetClient will read this)
         PlayerPrefs.SetInt("SelectedSkin", selectedSkinIndex);
         PlayerPrefs.Save();
     }
 
     void UpdateSkinVisuals()
     {
-        if (menuPlayerMesh != null && allSkins.Length > selectedSkinIndex)
+        if (menuPlayerMesh != null && allSkins != null && selectedSkinIndex < allSkins.Length)
         {
              menuPlayerMesh.material = allSkins[selectedSkinIndex];
         }

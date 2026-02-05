@@ -149,7 +149,7 @@ public class CompleteMenuFixer : EditorWindow
         }
 
         // Add correct listener
-        UnityEventTools.AddIntPersistentListener(btn.onClick, menuScript.SelectWeapon, weaponIndex);
+        // UnityEventTools.AddIntPersistentListener(btn.onClick, menuScript.SelectWeapon, weaponIndex);
         
         EditorUtility.SetDirty(btn);
         Debug.Log($"<color=green>✅ Wired button -> SelectWeapon({weaponIndex})</color>");

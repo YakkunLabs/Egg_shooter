@@ -60,7 +60,7 @@ public class MenuButtonRepairer : EditorWindow
         }
 
         // Add the correct listener
-        UnityEventTools.AddIntPersistentListener(btn.onClick, menuScript.SelectWeapon, weaponIndex);
+        // UnityEventTools.AddIntPersistentListener(btn.onClick, menuScript.SelectWeapon, weaponIndex);
         
         EditorUtility.SetDirty(btn);
         

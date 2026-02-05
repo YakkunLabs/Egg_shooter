@@ -108,8 +108,15 @@ public class NetClient : MonoBehaviour
                         myPlayerId = a.PlayerId;
                         if (log) Debug.Log($"[NetClient] Assigned playerId={myPlayerId}");
 
-                        int selectedSkin = PlayerPrefs.GetInt("SelectedSkin", 0);
-                        SendSelectSkin(selectedSkin);
+                        int savedSkin = PlayerPrefs.GetInt("SelectedSkin", 0);
+
+                        Debug.Log($"[NetClient] Loading Skin ID: {savedSkin}");
+                        SendSelectSkin(savedSkin);
+
+                        // int selectedWeapon = PlayerPrefs.GetInt("SelectedWeapon", 0);
+
+                        // optional: send a first empty input so server sees activity
+                        SendInitialClientMessage(CapnpGen.WeaponType.none);
                         SendTestInput();
                     });
                 }
@@ -152,7 +159,21 @@ public class NetClient : MonoBehaviour
                 go.name = $"Player_{id}";
                 go.transform.localScale = new Vector3(capsuleRadius * 2f, capsuleHeight / 2f, capsuleRadius * 2f);
                 _players[id] = go;
+
+                if (isLocal)
+                {
+                    // Find the temporary camera we made and turn it off
+                    GameObject lobbyCam = GameObject.Find("LobbyCamera");
+                    if (lobbyCam != null) lobbyCam.SetActive(false);
+
+                    // Also try to find any camera tagged "MainCamera" that isn't ours
+                    if (Camera.main != null && Camera.main.transform.root != go.transform)
+                    {
+                        Camera.main.gameObject.SetActive(false);
+                    }
+                }
             }
+
 
             // 2) Movement
             go.transform.position = new Vector3(p.X, p.Y, p.Z);
@@ -174,18 +195,23 @@ public class NetClient : MonoBehaviour
                 // Use reflection so you can have either:
                 // UpdateVisuals(int weapon, int ammo)
                 // OR UpdateVisuals(int weapon, int ammo, int reserveAmmo, bool isReloading)
-                var t = visualSetup.GetType();
-                var m4 = t.GetMethod("UpdateVisuals", new[] { typeof(int), typeof(int), typeof(int), typeof(bool), typeof(int) });
-                if (m4 != null)
-                {
-                    m4.Invoke(visualSetup, new object[] { weaponIndex, ammoInMag, reserveAmmo, isReloading, skinIndex });
-                }
-                else
-                {
-                    var m2 = t.GetMethod("UpdateVisuals", new[] { typeof(int), typeof(int), typeof(int) });
-                    if (m2 != null)
-                        m2.Invoke(visualSetup, new object[] { weaponIndex, ammoInMag, skinIndex });
-                }
+                // var t = visualSetup.GetType();
+                // var m4 = t.GetMethod("UpdateVisuals", new[] { typeof(int), typeof(int), typeof(int), typeof(bool), typeof(int) });
+                // if (m4 != null)
+                // {
+                //     m4.Invoke(visualSetup, new object[] { weaponIndex, ammoInMag, reserveAmmo, isReloading, skinIndex });
+                // }
+                // else
+                // {
+                //     var m2 = t.GetMethod("UpdateVisuals", new[] { typeof(int), typeof(int), typeof(int) });
+                //     if (m2 != null)
+                //         m2.Invoke(visualSetup, new object[] { weaponIndex, ammoInMag, skinIndex });
+                // }
+                if (id == myPlayerId) Debug.Log($"[NetClient] Server sent Snapshot with weapon: {weaponIndex}, ammo: {ammoInMag}, reserve: {reserveAmmo}, reloading: {isReloading}, skin: {skinIndex}");
+
+                // if (id == myPlayerId) Debug.Log($"[NetClient] Server sent Snapshot with Skin: {skinIndex}");
+
+                visualSetup.UpdateVisuals(weaponIndex, ammoInMag, reserveAmmo, isReloading, skinIndex);
             }
 
             // 4) Health sync
