@@ -115,14 +115,10 @@ public class NetClient : MonoBehaviour
 
                         // int selectedWeapon = PlayerPrefs.GetInt("SelectedWeapon", 0);
 
-                        // optional: send a first empty input so server sees activity
-                        // SendInitialClientMessage(CapnpGen.WeaponType.none);
-<<<<<<< Updated upstream
-                        SendTestInput();
-=======
-                        // SendTestInput();
->>>>>>> Stashed changes
-                    });
+    // optional: send a first empty input so server sees activity
+    // SendInitialClientMessage(CapnpGen.WeaponType.none);
+    SendTestInput();
+});
                 }
                 else if (msg.which == ServerMsg.WHICH.Snapshot)
                 {
