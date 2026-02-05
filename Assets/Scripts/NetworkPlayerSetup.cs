@@ -12,28 +12,18 @@ public class NetworkPlayerSetup : MonoBehaviour
 
     // ------------------------------------------------------------------------
     // METHOD 1: The one NetClient looks for first (Priority 1)
-    // NetClient sends: (WeaponID, Ammo, Reserve, Reloading)
     // ------------------------------------------------------------------------
     public void UpdateVisuals(int weaponIndex, int ammo, int reserve, bool isReloading)
     {
-        // 1. Map the First Argument (WeaponID) to our Gun Logic
         ApplyGun(weaponIndex);
-
-        // 2. Server doesn't send SkinID yet, so default to 0
         ApplySkin(0);
-
-        // 3. (Optional) You can use 'isReloading' here later for animations
-        // if (isReloading) animator.SetTrigger("Reload");
     }
 
     // ------------------------------------------------------------------------
-    // METHOD 2: The fallback if NetClient tries the 2-argument version
-    // NetClient sends: (WeaponID, Ammo)
+    // METHOD 2: Fallback
     // ------------------------------------------------------------------------
     public void UpdateVisuals(int weaponIndex, int ammo)
     {
-        // NetClient passes WeaponID as the first number.
-        // We use that for the Gun. We ignore Ammo for visuals.
         ApplyGun(weaponIndex);
         ApplySkin(0);
     }
@@ -57,6 +47,20 @@ public class NetworkPlayerSetup : MonoBehaviour
     {
         if (availableGuns == null) return;
 
+        // --- THE CRITICAL FIX ---
+        // Check if the requested gun is ALREADY active.
+        // If it is, we MUST return immediately.
+        // If we continue, we would disable the object and kill the Reload Coroutine.
+        if (gunIndex >= 0 && gunIndex < availableGuns.Length)
+        {
+            GameObject targetGun = availableGuns[gunIndex];
+            if (targetGun != null && targetGun.activeSelf)
+            {
+                return; // 🛑 STOP! The gun is already correct. Don't reset it.
+            }
+        }
+        // -------------------------
+
         // 1. Hide all guns first
         foreach (GameObject gun in availableGuns)
         {
@@ -64,11 +68,6 @@ public class NetworkPlayerSetup : MonoBehaviour
         }
 
         // 2. Show the requested one
-        // IMPORTANT: Ensure your availableGuns array matches the Server IDs:
-        // 0 = None (Hands)
-        // 1 = Pistol
-        // 2 = Rifle
-        // etc.
         if (gunIndex >= 0 && gunIndex < availableGuns.Length)
         {
             if (availableGuns[gunIndex] != null)
@@ -76,7 +75,7 @@ public class NetworkPlayerSetup : MonoBehaviour
         }
         else
         {
-            // Debug.LogWarning($"Gun Index {gunIndex} is out of range (Max: {availableGuns.Length-1})");
+            // Debug.LogWarning($"Gun Index {gunIndex} is out of range");
         }
     }
 }
