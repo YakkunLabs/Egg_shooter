@@ -370,9 +370,9 @@ MonoBehaviour:
   attackPoint: {fileID: 8540830680239493417}
   bulletPrefab: {fileID: 5115898143798426263, guid: b34ebd24c871c8647b8e1fb274878aa4, type: 3}
   audioSource: {fileID: 2987595537985695928}
+  weaponModel: {fileID: 8147467516647279290}
   muzzleFlash: {fileID: 0}
   scopeOverlay: {fileID: 0}
-  weaponModel: {fileID: 8147467516647279290}
   text_ammo: {fileID: 0}
   text_fireMode: {fileID: 0}
   reloadIndicator: {fileID: 0}
@@ -5893,7 +5893,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5233133963924558583}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 259a2d92baa3d9b4293eea9abe45e394, type: 3}
   m_Name: 
@@ -5936,6 +5936,7 @@ MonoBehaviour:
   availableSkins:
   - {fileID: 2100000, guid: 52ad5d5058cdcd04b91895ee0c82d9b0, type: 2}
   - {fileID: 2100000, guid: cccf87e80ee9f214c8367f224fb10940, type: 2}
+  - {fileID: 2100000, guid: 8a9b496c89514e84aab004beddc6d21d, type: 2}
   availableGuns:
   - {fileID: 3115099672575953990}
   - {fileID: 516093960232186404}
@@ -10934,7 +10935,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5309673815442992385}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d81b509c4c097fd419ad95e5bc6e9079, type: 3}
   m_Name: 
@@ -21396,9 +21397,9 @@ MonoBehaviour:
   attackPoint: {fileID: 4331299491765560063}
   bulletPrefab: {fileID: 5115898143798426263, guid: b34ebd24c871c8647b8e1fb274878aa4, type: 3}
   audioSource: {fileID: 2987595537985695928}
+  weaponModel: {fileID: 516093960232186404}
   muzzleFlash: {fileID: 0}
   scopeOverlay: {fileID: 0}
-  weaponModel: {fileID: 516093960232186404}
   text_ammo: {fileID: 0}
   text_fireMode: {fileID: 0}
   reloadIndicator: {fileID: 0}
@@ -21834,9 +21835,9 @@ MonoBehaviour:
   attackPoint: {fileID: 4928228086720168459}
   bulletPrefab: {fileID: 5115898143798426263, guid: b34ebd24c871c8647b8e1fb274878aa4, type: 3}
   audioSource: {fileID: 2987595537985695928}
+  weaponModel: {fileID: 3115099672575953990}
   muzzleFlash: {fileID: 0}
   scopeOverlay: {fileID: 0}
-  weaponModel: {fileID: 3115099672575953990}
   text_ammo: {fileID: 0}
   text_fireMode: {fileID: 0}
   reloadIndicator: {fileID: 0}
@@ -22226,9 +22227,9 @@ MonoBehaviour:
   attackPoint: {fileID: 8147957094084926282}
   bulletPrefab: {fileID: 5914052313107521753, guid: 39cc7f9745a1c2e4a9359ea3b0be0c65, type: 3}
   audioSource: {fileID: 2987595537985695928}
+  weaponModel: {fileID: 467368729100604288}
   muzzleFlash: {fileID: 326237923105789054, guid: 93a162fc463d2d842a8c25e141618684, type: 3}
   scopeOverlay: {fileID: 0}
-  weaponModel: {fileID: 467368729100604288}
   text_ammo: {fileID: 0}
   text_fireMode: {fileID: 0}
   reloadIndicator: {fileID: 0}
@@ -22597,9 +22598,9 @@ MonoBehaviour:
   attackPoint: {fileID: 295561753502918557}
   bulletPrefab: {fileID: 5115898143798426263, guid: b34ebd24c871c8647b8e1fb274878aa4, type: 3}
   audioSource: {fileID: 2987595537985695928}
+  weaponModel: {fileID: 6519193018780339815}
   muzzleFlash: {fileID: 0}
   scopeOverlay: {fileID: 0}
-  weaponModel: {fileID: 6519193018780339815}
   text_ammo: {fileID: 0}
   text_fireMode: {fileID: 0}
   reloadIndicator: {fileID: 0}
