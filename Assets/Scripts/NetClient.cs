@@ -117,7 +117,11 @@ public class NetClient : MonoBehaviour
 
                         // optional: send a first empty input so server sees activity
                         // SendInitialClientMessage(CapnpGen.WeaponType.none);
+<<<<<<< Updated upstream
                         SendTestInput();
+=======
+                        // SendTestInput();
+>>>>>>> Stashed changes
                     });
                 }
                 else if (msg.which == ServerMsg.WHICH.Snapshot)
