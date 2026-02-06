@@ -63,6 +63,22 @@ public class NetInputFromEggController : MonoBehaviour
             if (myGun != null) myGun.AttemptToReload(); // 2. RELOAD LOCALLY
         }
 
+        bool weapon_switch = false;
+        // --- Weapon switch ---
+        if (Input.GetKeyDown(KeyCode.Q))
+        {
+            weapon_switch = true;  // 1. Queue for Network
+            //if (myGun != null) myGun.AttemptToReload(); // 2. RELOAD LOCALLY
+        }
+
+        bool interact_pressed = false;
+        // --- Weapon switch ---
+        if (Input.GetKeyDown(KeyCode.F))
+        {
+            interact_pressed = true;  // 1. Queue for Network
+            //if (myGun != null) myGun.AttemptToReload(); // 2. RELOAD LOCALLY
+        }
+
         // ---------------------------------------------------------------------
         // 2. NETWORK SEND (Fixed Rate)
         // ---------------------------------------------------------------------
@@ -128,7 +144,7 @@ public class NetInputFromEggController : MonoBehaviour
         netClient.SendInput(
             sendW, a, sendS, d,
             run, jumpPressed, faceYaw,
-            aimYaw, aimPitch, shootPressed, reloadPressed,
+            aimYaw, aimPitch, shootPressed, reloadPressed,interact_pressed, weapon_switch,
             dtMs
         );
 

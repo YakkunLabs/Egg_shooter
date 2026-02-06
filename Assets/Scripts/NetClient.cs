@@ -6,16 +6,20 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
 using System.Threading;
-using Unity.VisualScripting;
 using UnityEngine;
+
+// ✅ Avoid WeaponType name collisions
+using WeaponTypeCp = CapnpGen.WeaponType;
+using WeaponSlotCp = CapnpGen.WeaponSlot;
 
 public class NetClient : MonoBehaviour
 {
     [Header("Visuals")]
-    public GameObject bulletPrefab; // Drag your NetBullet here!
+    public GameObject bulletPrefab;
+
     [Header("Effects")]
-    public GameObject muzzleFlashPrefab; // Drag a particle effect here
-    public AudioClip shootSound;         // Drag a "Bang.wav" here
+    public GameObject muzzleFlashPrefab;
+    public AudioClip shootSound;
 
     public bool isGameStarted = false;
 
@@ -39,6 +43,9 @@ public class NetClient : MonoBehaviour
 
     readonly ConcurrentQueue<Action> _mainThread = new();
     readonly Dictionary<ulong, GameObject> _players = new();
+
+    // NEW: cache spawns from snapshot (spawnId -> available/weapon)
+    readonly Dictionary<ushort, WeaponSpawnState.READER> _spawns = new();
 
     public ulong myPlayerId { get; private set; } = 0;
 
@@ -92,7 +99,6 @@ public class NetClient : MonoBehaviour
         {
             while (_running)
             {
-                // Rust read_frame uses BIG-ENDIAN u32 length:
                 byte[] payload = ReadFrameBigEndian(_stream);
                 if (payload == null) break;
 
@@ -111,19 +117,19 @@ public class NetClient : MonoBehaviour
                         if (log) Debug.Log($"[NetClient] Assigned playerId={myPlayerId}");
 
                         int savedSkin = PlayerPrefs.GetInt("SelectedSkin", 0);
-                        int savedWeapon = PlayerPrefs.GetInt("SelectedWeapon", 0);
 
-                        Debug.Log($"[NetClient] Sending Config -> Skin: {savedSkin}, Weapon: {savedWeapon}");
-                        
-                        SendSelectSkin(savedSkin);
-                        // SendSelectWeapon(savedWeapon);
+                        // IMPORTANT:
+                        // Secondary weapon selection should map to CapnpGen.WeaponType values:
+                        // 0=none, 1=pistol, 2=rifle, 3=smg, 4=shotgun, 5=sniper (based on your schema)
+                        int savedSecondaryWeapon = PlayerPrefs.GetInt("SelectedWeapon", 0);
 
-                        // int selectedWeapon = PlayerPrefs.GetInt("SelectedWeapon", 0);
+                        if (log) Debug.Log($"[NetClient] Sending SelectLoadout -> Skin: {savedSkin}, SecondaryWeapon: {savedSecondaryWeapon}");
+
+                        SendSelectLoadout(savedSkin, (WeaponTypeCp)savedSecondaryWeapon);
 
                         // optional: send a first empty input so server sees activity
-                        
                         SendTestInput();
-});
+                    });
                 }
                 else if (msg.which == ServerMsg.WHICH.Snapshot)
                 {
@@ -144,8 +150,11 @@ public class NetClient : MonoBehaviour
     void ApplySnapshot(Snapshot.READER snap)
     {
         ApplyPlayers(snap);
+        ApplySpawns(snap);   // NEW
         ApplyEvents(snap);
     }
+
+    // ---------------- SNAPSHOT: PLAYERS ----------------
 
     void ApplyPlayers(Snapshot.READER snap)
     {
@@ -162,11 +171,10 @@ public class NetClient : MonoBehaviour
                 bool isLocal = (id == myPlayerId);
                 go = isLocal ? Instantiate(playerPrefab) : Instantiate(enemyPrefab);
 
+                // Enable weapon controller only for local player
                 PlayerWeaponController wc = go.GetComponent<PlayerWeaponController>();
-                    if (wc != null)
-                    {
-                        wc.enabled = isLocal; // Enable for me, disable for enemies
-                    }
+                if (wc != null)
+                    wc.enabled = isLocal;
 
                 go.name = $"Player_{id}";
                 go.transform.localScale = new Vector3(capsuleRadius * 2f, capsuleHeight / 2f, capsuleRadius * 2f);
@@ -174,18 +182,11 @@ public class NetClient : MonoBehaviour
 
                 if (isLocal)
                 {
-                    // Find the temporary camera we made and turn it off
-                    // GameObject lobbyCam = GameObject.Find("LobbyCamera");
-                    // if (lobbyCam != null) lobbyCam.SetActive(false);
-
-                    // Also try to find any camera tagged "MainCamera" that isn't ours
+                    // Disable any other main camera that isn't our player camera
                     if (Camera.main != null && Camera.main.transform.root != go.transform)
-                    {
                         Camera.main.gameObject.SetActive(false);
-                    }
                 }
             }
-
 
             // 2) Movement
             go.transform.position = new Vector3(p.X, p.Y, p.Z);
@@ -194,36 +195,60 @@ public class NetClient : MonoBehaviour
                 go.transform.rotation = Quaternion.Euler(0f, p.Yaw * Mathf.Rad2Deg, 0f);
             }
 
-            // 3) Visuals from schema (Weapon + Ammo)
+            // 3) Visuals from NEW schema (primary+secondary+equipped)
             NetworkPlayerSetup visualSetup = go.GetComponent<NetworkPlayerSetup>();
             if (visualSetup != null)
             {
-                int weaponIndex = (int)p.Weapon; // WeaponType: none/pistol/rifle/...
-                int ammoInMag = (int)p.AmmoInMag;
-                int reserveAmmo = (int)p.ReserveAmmo;
+                // NEW fields:
+                // p.Primary (WeaponSlotState)
+                // p.Secondary (WeaponSlotState)
+                // p.EquippedSlot (WeaponSlot)
+                // p.IsReloading
+                // p.SkinId
+                int primWeapon = (int)p.Primary.Weapon;
+                int primAmmo = (int)p.Primary.AmmoInMag;
+                int primReserve = (int)p.Primary.ReserveAmmo;
+
+                int secWeapon = (int)p.Secondary.Weapon;
+                int secAmmo = (int)p.Secondary.AmmoInMag;
+                int secReserve = (int)p.Secondary.ReserveAmmo;
+
+                int equippedSlot = (int)p.EquippedSlot;
                 bool isReloading = p.IsReloading;
                 int skinIndex = (int)p.SkinId;
 
-                // Use reflection so you can have either:
-                // UpdateVisuals(int weapon, int ammo)
-                // OR UpdateVisuals(int weapon, int ammo, int reserveAmmo, bool isReloading)
-                // var t = visualSetup.GetType();
-                // var m4 = t.GetMethod("UpdateVisuals", new[] { typeof(int), typeof(int), typeof(int), typeof(bool), typeof(int) });
-                // if (m4 != null)
-                // {
-                //     m4.Invoke(visualSetup, new object[] { weaponIndex, ammoInMag, reserveAmmo, isReloading, skinIndex });
-                // }
-                // else
-                // {
-                //     var m2 = t.GetMethod("UpdateVisuals", new[] { typeof(int), typeof(int), typeof(int) });
-                //     if (m2 != null)
-                //         m2.Invoke(visualSetup, new object[] { weaponIndex, ammoInMag, skinIndex });
-                // }
-                if (id == myPlayerId) Debug.Log($"[NetClient] Server sent Snapshot with weapon: {weaponIndex}, ammo: {ammoInMag}, reserve: {reserveAmmo}, reloading: {isReloading}, skin: {skinIndex}");
+                // Call updated method if available:
+                // UpdateVisuals(int primW,int primA,int primR,int secW,int secA,int secR,int equippedSlot,bool reload,int skin)
+                var t = visualSetup.GetType();
+                var mNew = t.GetMethod("UpdateVisuals", new[] {
+                    typeof(int), typeof(int), typeof(int),
+                    typeof(int), typeof(int), typeof(int),
+                    typeof(int), typeof(bool), typeof(int)
+                });
 
-                // if (id == myPlayerId) Debug.Log($"[NetClient] Server sent Snapshot with Skin: {skinIndex}");
+                if (mNew != null)
+                {
+                    mNew.Invoke(visualSetup, new object[] {
+                        primWeapon, primAmmo, primReserve,
+                        secWeapon, secAmmo, secReserve,
+                        equippedSlot, isReloading, skinIndex
+                    });
+                }
+                else
+                {
+                    // Fallback to your old UpdateVisuals(weapon, ammo, reserve, reloading, skin)
+                    int equippedWeapon = (equippedSlot == (int)WeaponSlotCp.primary) ? primWeapon : secWeapon;
+                    int equippedAmmo = (equippedSlot == (int)WeaponSlotCp.primary) ? primAmmo : secAmmo;
+                    int equippedReserve = (equippedSlot == (int)WeaponSlotCp.primary) ? primReserve : secReserve;
 
-                visualSetup.UpdateVisuals(weaponIndex, ammoInMag, reserveAmmo, isReloading, skinIndex);
+                    visualSetup.UpdateVisuals(equippedWeapon, equippedAmmo, equippedReserve, isReloading, skinIndex);
+                }
+
+                if (id == myPlayerId && log)
+                {
+                    Debug.Log($"[NetClient] Snapshot Loadout prim={primWeapon}({primAmmo}/{primReserve}) " +
+                              $"sec={secWeapon}({secAmmo}/{secReserve}) equippedSlot={equippedSlot} reload={isReloading} skin={skinIndex}");
+                }
             }
 
             // 4) Health sync
@@ -248,6 +273,26 @@ public class NetClient : MonoBehaviour
         foreach (var id in toRemove) _players.Remove(id);
     }
 
+    // ---------------- SNAPSHOT: SPAWNS ----------------
+
+    void ApplySpawns(Snapshot.READER snap)
+    {
+        // If your generated code uses a different property name, rename here.
+        // We expect: snap.Spawns : IReadOnlyList<WeaponSpawnState.READER>
+        if (snap.Spawns == null) return;
+
+        foreach (var s in snap.Spawns)
+        {
+            _spawns[(ushort)s.SpawnId] = s;
+
+            // If you have spawn visuals in the scene, update them by spawnId here.
+            // Example:
+            // WeaponSpawnViewRegistry.SetState((ushort)s.SpawnId, s.Available, (int)s.Weapon);
+        }
+    }
+
+    // ---------------- SNAPSHOT: EVENTS ----------------
+
     void ApplyEvents(Snapshot.READER snap)
     {
         if (snap.Events == null) return;
@@ -259,7 +304,6 @@ public class NetClient : MonoBehaviour
                 var s = e.ShotFired;
                 ulong shooterId = s.ShooterId;
 
-                // Ignore me (local client already played effects instantly)
                 if (shooterId == myPlayerId) continue;
 
                 if (_players.TryGetValue(shooterId, out GameObject shooterObj))
@@ -278,7 +322,7 @@ public class NetClient : MonoBehaviour
                     }
 
                     float yawDeg = s.Yaw * Mathf.Rad2Deg;
-                    float pitchDeg = -1 * s.Pitch * Mathf.Rad2Deg;
+                    float pitchDeg = -1f * s.Pitch * Mathf.Rad2Deg; // keep your invert fix
                     Quaternion shotRot = Quaternion.Euler(pitchDeg, yawDeg, 0f);
 
                     if (bulletPrefab != null)
@@ -290,7 +334,6 @@ public class NetClient : MonoBehaviour
 
     // ---------------- TX ----------------
 
-    // Generic sender (frame pump + big-endian length prefix)
     public void SendClientMsg(MessageBuilder mb)
     {
         if (_stream == null || !_stream.CanWrite) return;
@@ -319,12 +362,9 @@ public class NetClient : MonoBehaviour
             return;
         }
 
-        // Build ClientMsg { input: ClientInput }
         var mb = MessageBuilder.Create();
         var root = mb.BuildRoot<ClientMsg.WRITER>();
 
-        // NOTE: New schema -> ClientInput has NO PlayerId.
-        // Server uses your TCP connection to identify you.
         root.which = ClientMsg.WHICH.Input;
         root.Input.Sequence = 1;
         root.Input.DtMs = 16;
@@ -334,24 +374,27 @@ public class NetClient : MonoBehaviour
         root.Input.S = false;
         root.Input.D = false;
         root.Input.Run = false;
+
         root.Input.JumpPressed = false;
+        root.Input.FaceYaw = 0.0f;
+
         root.Input.AimYaw = 0.0f;
+        root.Input.AimPitch = 0.0f;
+
         root.Input.ShootPressed = false;
         root.Input.ReloadPressed = false;
 
-        byte[] payload;
-        using (var ms = new MemoryStream())
-        {
-            var pump = new FramePump(ms);
-            pump.Send(mb.Frame);
-            payload = ms.ToArray();
-        }
+        // NEW fields in schema
+        root.Input.InteractPressed = false;
+        root.Input.SwitchWeaponPressed = false;
 
-        Debug.Log($"[NetClient] Sending TEST input frame: payloadBytes={payload.Length}");
-        WriteFrameBigEndian(_stream, payload);
+        SendClientMsg(mb);
+
+        if (log) Debug.Log("[NetClient] Sent TEST input frame");
     }
 
-    void SendInitialClientMessage(CapnpGen.WeaponType pickedWeapon)
+    // ✅ NEW: One-time config message (skin + initial secondary weapon)
+    public void SendSelectLoadout(int skinId, WeaponTypeCp secondaryWeapon)
     {
         if (_stream == null || !_stream.CanWrite) return;
         if (myPlayerId == 0) return;
@@ -359,37 +402,34 @@ public class NetClient : MonoBehaviour
         var mb = MessageBuilder.Create();
         var root = mb.BuildRoot<ClientMsg.WRITER>();
 
-        // Use the NEW union variant instead of input
-        root.which = ClientMsg.WHICH.SelectSkin;
-        root.SelectSkin.PlayerId = myPlayerId;      // keep ONLY if your schema has PlayerId here
-        //root.SelectSkin.Weapon = pickedWeapon;
+        root.which = ClientMsg.WHICH.SelectLoadout;
 
-        // frame pump + big endian length prefix (same as your SendClientMsg)
-        byte[] payload;
-        using (var ms = new MemoryStream())
-        {
-            var pump = new FramePump(ms);
-            pump.Send(mb.Frame);
-            payload = ms.ToArray();
-        }
+        // server ignores this and trusts TCP connection, but we set it anyway (matches schema)
+        root.SelectLoadout.PlayerId = myPlayerId;
 
-        WriteFrameBigEndian(_stream, payload);
+        root.SelectLoadout.SkinId = (ushort)skinId;
+        root.SelectLoadout.SecondaryWeapon = secondaryWeapon;
 
-        if (log) Debug.Log($"[NetClient] Sent initial SelectWeapon: {pickedWeapon}");
+        SendClientMsg(mb);
+
+        if (log) Debug.Log($"[NetClient] Sent SelectLoadout skin={skinId} secondary={secondaryWeapon}");
     }
 
     public void SendInput(
         bool w, bool a, bool s, bool d,
         bool run, bool jumpPressed, float faceYaw,
-        float aimYaw, float aimPitch, bool shootPressed, bool reloadPressed,
+        float aimYaw, float aimPitch,
+        bool shootPressed, bool reloadPressed,
+        bool interactPressed, bool switchWeaponPressed,
         ushort dtMs
     )
     {
-        if (!isGameStarted) 
+        if (!isGameStarted)
         {
-            // Send zeros/false so the server sees you standing still
             w = a = s = d = false;
             run = jumpPressed = shootPressed = reloadPressed = false;
+            interactPressed = false;
+            switchWeaponPressed = false;
         }
 
         if (_stream == null || !_stream.CanWrite) return;
@@ -409,76 +449,20 @@ public class NetClient : MonoBehaviour
 
         root.Input.Run = run;
         root.Input.JumpPressed = jumpPressed;
+
         root.Input.FaceYaw = faceYaw;
         root.Input.AimYaw = aimYaw;
         root.Input.AimPitch = aimPitch;
+
         root.Input.ShootPressed = shootPressed;
         root.Input.ReloadPressed = reloadPressed;
 
-        byte[] payload;
-        using (var ms = new MemoryStream())
-        {
-            var pump = new FramePump(ms);
-            pump.Send(mb.Frame);
-            payload = ms.ToArray();
-        }
+        // NEW
+        root.Input.InteractPressed = interactPressed;
+        root.Input.SwitchWeaponPressed = switchWeaponPressed;
 
-        WriteFrameBigEndian(_stream, payload);
+        SendClientMsg(mb);
     }
-
-    // Weapon selection is now a union variant: ClientMsg.selectWeapon
-    public void SendSelectSkin(int skinid)
-    {
-        //skinid = 1;
-        if (_stream == null || !_stream.CanWrite) return;
-        if (myPlayerId == 0) return;
-
-        var mb = MessageBuilder.Create();
-        var root = mb.BuildRoot<ClientMsg.WRITER>();
-
-        root.which = ClientMsg.WHICH.SelectSkin;
-        root.SelectSkin.PlayerId = myPlayerId;
-        root.SelectSkin.SkinId = (ushort)skinid;
-
-        byte[] payload;
-        using (var ms = new MemoryStream())
-        {
-            var pump = new FramePump(ms);
-            pump.Send(mb.Frame);
-            payload = ms.ToArray();
-        }
-
-        WriteFrameBigEndian(_stream, payload);
-    }
-
-    // Call this to tell the server which gun we want
-    // public void SendSelectWeapon(int weaponId)
-    // {
-    //     if (_stream == null || !_stream.CanWrite) return;
-    //     if (myPlayerId == 0) return;
-
-    //     var mb = MessageBuilder.Create();
-    //     var root = mb.BuildRoot<ClientMsg.WRITER>();
-
-    //     // IMPORTANT: You need a "SelectWeapon" message in your Schema!
-    //     // If you don't have one, you might need to reuse an existing field or add it.
-    //     // Assuming you added: SelectWeapon @(some_id) :group { playerId @0 :UInt64; weaponId @1 :UInt16; }
-        
-    //     root.which = ClientMsg.WHICH.SelectWeapon; 
-    //     root.SelectWeapon.PlayerId = myPlayerId;
-    //     root.SelectWeapon.WeaponId = (ushort)weaponId;
-
-    //     byte[] payload;
-    //     using (var ms = new MemoryStream())
-    //     {
-    //         var pump = new FramePump(ms);
-    //         pump.Send(mb.Frame);
-    //         payload = ms.ToArray();
-    //     }
-
-    //     WriteFrameBigEndian(_stream, payload);
-    //     if (log) Debug.Log($"[NetClient] Sent Weapon Request: {weaponId}");
-    // }
 
     // ---------------- FRAMING (BIG-ENDIAN u32) ----------------
 
@@ -527,9 +511,7 @@ public class NetClient : MonoBehaviour
         foreach (Transform t in allChildren)
         {
             if (t.name == "Attack point" && t.gameObject.activeInHierarchy)
-            {
                 return t;
-            }
         }
         return null;
     }

@@ -57,7 +57,7 @@ public class MainMenu : MonoBehaviour
     public void SelectWeapon(int index)
     {
         selectedWeaponIndex = index;
-        PlayerPrefs.SetInt("SelectedWeapon", selectedWeaponIndex);
+        PlayerPrefs.SetInt("SelectedWeapon", selectedWeaponIndex+1);
         PlayerPrefs.Save();
         UpdateWeaponVisuals();
     }

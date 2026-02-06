@@ -19,15 +19,113 @@ namespace CapnpGen
         sniper
     }
 
-    [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xc5ababf90f27f61fUL)]
-    public class SelectSkin : ICapnpSerializable
+    [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0x8ed442bf76ca3473UL)]
+    public enum WeaponSlot : ushort
     {
-        public const UInt64 typeId = 0xc5ababf90f27f61fUL;
+        primary,
+        secondary
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xca11b0569a00f028UL)]
+    public class WeaponSlotState : ICapnpSerializable
+    {
+        public const UInt64 typeId = 0xca11b0569a00f028UL;
+        void ICapnpSerializable.Deserialize(DeserializerState arg_)
+        {
+            var reader = READER.create(arg_);
+            Weapon = reader.Weapon;
+            AmmoInMag = reader.AmmoInMag;
+            ReserveAmmo = reader.ReserveAmmo;
+            applyDefaults();
+        }
+
+        public void serialize(WRITER writer)
+        {
+            writer.Weapon = Weapon;
+            writer.AmmoInMag = AmmoInMag;
+            writer.ReserveAmmo = ReserveAmmo;
+        }
+
+        void ICapnpSerializable.Serialize(SerializerState arg_)
+        {
+            serialize(arg_.Rewrap<WRITER>());
+        }
+
+        public void applyDefaults()
+        {
+        }
+
+        public CapnpGen.WeaponType Weapon
+        {
+            get;
+            set;
+        }
+
+        public ushort AmmoInMag
+        {
+            get;
+            set;
+        }
+
+        public ushort ReserveAmmo
+        {
+            get;
+            set;
+        }
+
+        public struct READER
+        {
+            readonly DeserializerState ctx;
+            public READER(DeserializerState ctx)
+            {
+                this.ctx = ctx;
+            }
+
+            public static READER create(DeserializerState ctx) => new READER(ctx);
+            public static implicit operator DeserializerState(READER reader) => reader.ctx;
+            public static implicit operator READER(DeserializerState ctx) => new READER(ctx);
+            public CapnpGen.WeaponType Weapon => (CapnpGen.WeaponType)ctx.ReadDataUShort(0UL, (ushort)0);
+            public ushort AmmoInMag => ctx.ReadDataUShort(16UL, (ushort)0);
+            public ushort ReserveAmmo => ctx.ReadDataUShort(32UL, (ushort)0);
+        }
+
+        public class WRITER : SerializerState
+        {
+            public WRITER()
+            {
+                this.SetStruct(1, 0);
+            }
+
+            public CapnpGen.WeaponType Weapon
+            {
+                get => (CapnpGen.WeaponType)this.ReadDataUShort(0UL, (ushort)0);
+                set => this.WriteData(0UL, (ushort)value, (ushort)0);
+            }
+
+            public ushort AmmoInMag
+            {
+                get => this.ReadDataUShort(16UL, (ushort)0);
+                set => this.WriteData(16UL, value, (ushort)0);
+            }
+
+            public ushort ReserveAmmo
+            {
+                get => this.ReadDataUShort(32UL, (ushort)0);
+                set => this.WriteData(32UL, value, (ushort)0);
+            }
+        }
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xd89708c2aa7cdf4bUL)]
+    public class SelectLoadout : ICapnpSerializable
+    {
+        public const UInt64 typeId = 0xd89708c2aa7cdf4bUL;
         void ICapnpSerializable.Deserialize(DeserializerState arg_)
         {
             var reader = READER.create(arg_);
             PlayerId = reader.PlayerId;
             SkinId = reader.SkinId;
+            SecondaryWeapon = reader.SecondaryWeapon;
             applyDefaults();
         }
 
@@ -35,6 +133,7 @@ namespace CapnpGen
         {
             writer.PlayerId = PlayerId;
             writer.SkinId = SkinId;
+            writer.SecondaryWeapon = SecondaryWeapon;
         }
 
         void ICapnpSerializable.Serialize(SerializerState arg_)
@@ -58,6 +157,12 @@ namespace CapnpGen
             set;
         }
 
+        public CapnpGen.WeaponType SecondaryWeapon
+        {
+            get;
+            set;
+        }
+
         public struct READER
         {
             readonly DeserializerState ctx;
@@ -71,6 +176,7 @@ namespace CapnpGen
             public static implicit operator READER(DeserializerState ctx) => new READER(ctx);
             public ulong PlayerId => ctx.ReadDataULong(0UL, 0UL);
             public ushort SkinId => ctx.ReadDataUShort(64UL, (ushort)0);
+            public CapnpGen.WeaponType SecondaryWeapon => (CapnpGen.WeaponType)ctx.ReadDataUShort(80UL, (ushort)0);
         }
 
         public class WRITER : SerializerState
@@ -90,6 +196,12 @@ namespace CapnpGen
             {
                 get => this.ReadDataUShort(64UL, (ushort)0);
                 set => this.WriteData(64UL, value, (ushort)0);
+            }
+
+            public CapnpGen.WeaponType SecondaryWeapon
+            {
+                get => (CapnpGen.WeaponType)this.ReadDataUShort(80UL, (ushort)0);
+                set => this.WriteData(80UL, (ushort)value, (ushort)0);
             }
         }
     }
@@ -114,6 +226,8 @@ namespace CapnpGen
             ReloadPressed = reader.ReloadPressed;
             AimPitch = reader.AimPitch;
             FaceYaw = reader.FaceYaw;
+            InteractPressed = reader.InteractPressed;
+            SwitchWeaponPressed = reader.SwitchWeaponPressed;
             applyDefaults();
         }
 
@@ -132,6 +246,8 @@ namespace CapnpGen
             writer.ReloadPressed = ReloadPressed;
             writer.AimPitch = AimPitch;
             writer.FaceYaw = FaceYaw;
+            writer.InteractPressed = InteractPressed;
+            writer.SwitchWeaponPressed = SwitchWeaponPressed;
         }
 
         void ICapnpSerializable.Serialize(SerializerState arg_)
@@ -221,6 +337,18 @@ namespace CapnpGen
             set;
         }
 
+        public bool InteractPressed
+        {
+            get;
+            set;
+        }
+
+        public bool SwitchWeaponPressed
+        {
+            get;
+            set;
+        }
+
         public struct READER
         {
             readonly DeserializerState ctx;
@@ -245,6 +373,8 @@ namespace CapnpGen
             public bool ReloadPressed => ctx.ReadDataBool(55UL, false);
             public float AimPitch => ctx.ReadDataFloat(96UL, 0F);
             public float FaceYaw => ctx.ReadDataFloat(128UL, 0F);
+            public bool InteractPressed => ctx.ReadDataBool(56UL, false);
+            public bool SwitchWeaponPressed => ctx.ReadDataBool(57UL, false);
         }
 
         public class WRITER : SerializerState
@@ -331,6 +461,18 @@ namespace CapnpGen
                 get => this.ReadDataFloat(128UL, 0F);
                 set => this.WriteData(128UL, value, 0F);
             }
+
+            public bool InteractPressed
+            {
+                get => this.ReadDataBool(56UL, false);
+                set => this.WriteData(56UL, value, false);
+            }
+
+            public bool SwitchWeaponPressed
+            {
+                get => this.ReadDataBool(57UL, false);
+                set => this.WriteData(57UL, value, false);
+            }
         }
     }
 
@@ -340,7 +482,7 @@ namespace CapnpGen
         public const UInt64 typeId = 0xe268618f087c6fcaUL;
         public enum WHICH : ushort
         {
-            SelectSkin = 0,
+            SelectLoadout = 0,
             Input = 1,
             undefined = 65535
         }
@@ -350,8 +492,8 @@ namespace CapnpGen
             var reader = READER.create(arg_);
             switch (reader.which)
             {
-                case WHICH.SelectSkin:
-                    SelectSkin = CapnpSerializable.Create<CapnpGen.SelectSkin>(reader.SelectSkin);
+                case WHICH.SelectLoadout:
+                    SelectLoadout = CapnpSerializable.Create<CapnpGen.SelectLoadout>(reader.SelectLoadout);
                     break;
                 case WHICH.Input:
                     Input = CapnpSerializable.Create<CapnpGen.ClientInput>(reader.Input);
@@ -373,7 +515,7 @@ namespace CapnpGen
                 _which = value;
                 switch (value)
                 {
-                    case WHICH.SelectSkin:
+                    case WHICH.SelectLoadout:
                         _content = null;
                         break;
                     case WHICH.Input:
@@ -388,8 +530,8 @@ namespace CapnpGen
             writer.which = which;
             switch (which)
             {
-                case WHICH.SelectSkin:
-                    SelectSkin?.serialize(writer.SelectSkin);
+                case WHICH.SelectLoadout:
+                    SelectLoadout?.serialize(writer.SelectLoadout);
                     break;
                 case WHICH.Input:
                     Input?.serialize(writer.Input);
@@ -406,12 +548,12 @@ namespace CapnpGen
         {
         }
 
-        public CapnpGen.SelectSkin SelectSkin
+        public CapnpGen.SelectLoadout SelectLoadout
         {
-            get => _which == WHICH.SelectSkin ? (CapnpGen.SelectSkin)_content : null;
+            get => _which == WHICH.SelectLoadout ? (CapnpGen.SelectLoadout)_content : null;
             set
             {
-                _which = WHICH.SelectSkin;
+                _which = WHICH.SelectLoadout;
                 _content = value;
             }
         }
@@ -438,7 +580,7 @@ namespace CapnpGen
             public static implicit operator DeserializerState(READER reader) => reader.ctx;
             public static implicit operator READER(DeserializerState ctx) => new READER(ctx);
             public WHICH which => (WHICH)ctx.ReadDataUShort(0U, (ushort)0);
-            public CapnpGen.SelectSkin.READER SelectSkin => which == WHICH.SelectSkin ? ctx.ReadStruct(0, CapnpGen.SelectSkin.READER.create) : default;
+            public CapnpGen.SelectLoadout.READER SelectLoadout => which == WHICH.SelectLoadout ? ctx.ReadStruct(0, CapnpGen.SelectLoadout.READER.create) : default;
             public CapnpGen.ClientInput.READER Input => which == WHICH.Input ? ctx.ReadStruct(0, CapnpGen.ClientInput.READER.create) : default;
         }
 
@@ -455,9 +597,9 @@ namespace CapnpGen
                 set => this.WriteData(0U, (ushort)value, (ushort)0);
             }
 
-            public CapnpGen.SelectSkin.WRITER SelectSkin
+            public CapnpGen.SelectLoadout.WRITER SelectLoadout
             {
-                get => which == WHICH.SelectSkin ? BuildPointer<CapnpGen.SelectSkin.WRITER>(0) : default;
+                get => which == WHICH.SelectLoadout ? BuildPointer<CapnpGen.SelectLoadout.WRITER>(0) : default;
                 set => Link(0, value);
             }
 
@@ -486,9 +628,9 @@ namespace CapnpGen
             LastProcessedSequence = reader.LastProcessedSequence;
             Yaw = reader.Yaw;
             Health = reader.Health;
-            Weapon = reader.Weapon;
-            AmmoInMag = reader.AmmoInMag;
-            ReserveAmmo = reader.ReserveAmmo;
+            Primary = CapnpSerializable.Create<CapnpGen.WeaponSlotState>(reader.Primary);
+            Secondary = CapnpSerializable.Create<CapnpGen.WeaponSlotState>(reader.Secondary);
+            EquippedSlot = reader.EquippedSlot;
             IsReloading = reader.IsReloading;
             SkinId = reader.SkinId;
             applyDefaults();
@@ -506,9 +648,9 @@ namespace CapnpGen
             writer.LastProcessedSequence = LastProcessedSequence;
             writer.Yaw = Yaw;
             writer.Health = Health;
-            writer.Weapon = Weapon;
-            writer.AmmoInMag = AmmoInMag;
-            writer.ReserveAmmo = ReserveAmmo;
+            Primary?.serialize(writer.Primary);
+            Secondary?.serialize(writer.Secondary);
+            writer.EquippedSlot = EquippedSlot;
             writer.IsReloading = IsReloading;
             writer.SkinId = SkinId;
         }
@@ -582,19 +724,19 @@ namespace CapnpGen
             set;
         }
 
-        public CapnpGen.WeaponType Weapon
+        public CapnpGen.WeaponSlotState Primary
         {
             get;
             set;
         }
 
-        public ushort AmmoInMag
+        public CapnpGen.WeaponSlotState Secondary
         {
             get;
             set;
         }
 
-        public ushort ReserveAmmo
+        public CapnpGen.WeaponSlot EquippedSlot
         {
             get;
             set;
@@ -633,18 +775,18 @@ namespace CapnpGen
             public uint LastProcessedSequence => ctx.ReadDataUInt(256UL, 0U);
             public float Yaw => ctx.ReadDataFloat(288UL, 0F);
             public ushort Health => ctx.ReadDataUShort(320UL, (ushort)0);
-            public CapnpGen.WeaponType Weapon => (CapnpGen.WeaponType)ctx.ReadDataUShort(336UL, (ushort)0);
-            public ushort AmmoInMag => ctx.ReadDataUShort(352UL, (ushort)0);
-            public ushort ReserveAmmo => ctx.ReadDataUShort(368UL, (ushort)0);
-            public bool IsReloading => ctx.ReadDataBool(384UL, false);
-            public ushort SkinId => ctx.ReadDataUShort(400UL, (ushort)0);
+            public CapnpGen.WeaponSlotState.READER Primary => ctx.ReadStruct(0, CapnpGen.WeaponSlotState.READER.create);
+            public CapnpGen.WeaponSlotState.READER Secondary => ctx.ReadStruct(1, CapnpGen.WeaponSlotState.READER.create);
+            public CapnpGen.WeaponSlot EquippedSlot => (CapnpGen.WeaponSlot)ctx.ReadDataUShort(336UL, (ushort)0);
+            public bool IsReloading => ctx.ReadDataBool(352UL, false);
+            public ushort SkinId => ctx.ReadDataUShort(368UL, (ushort)0);
         }
 
         public class WRITER : SerializerState
         {
             public WRITER()
             {
-                this.SetStruct(7, 0);
+                this.SetStruct(6, 2);
             }
 
             public ulong PlayerId
@@ -707,34 +849,124 @@ namespace CapnpGen
                 set => this.WriteData(320UL, value, (ushort)0);
             }
 
-            public CapnpGen.WeaponType Weapon
+            public CapnpGen.WeaponSlotState.WRITER Primary
             {
-                get => (CapnpGen.WeaponType)this.ReadDataUShort(336UL, (ushort)0);
+                get => BuildPointer<CapnpGen.WeaponSlotState.WRITER>(0);
+                set => Link(0, value);
+            }
+
+            public CapnpGen.WeaponSlotState.WRITER Secondary
+            {
+                get => BuildPointer<CapnpGen.WeaponSlotState.WRITER>(1);
+                set => Link(1, value);
+            }
+
+            public CapnpGen.WeaponSlot EquippedSlot
+            {
+                get => (CapnpGen.WeaponSlot)this.ReadDataUShort(336UL, (ushort)0);
                 set => this.WriteData(336UL, (ushort)value, (ushort)0);
-            }
-
-            public ushort AmmoInMag
-            {
-                get => this.ReadDataUShort(352UL, (ushort)0);
-                set => this.WriteData(352UL, value, (ushort)0);
-            }
-
-            public ushort ReserveAmmo
-            {
-                get => this.ReadDataUShort(368UL, (ushort)0);
-                set => this.WriteData(368UL, value, (ushort)0);
             }
 
             public bool IsReloading
             {
-                get => this.ReadDataBool(384UL, false);
-                set => this.WriteData(384UL, value, false);
+                get => this.ReadDataBool(352UL, false);
+                set => this.WriteData(352UL, value, false);
             }
 
             public ushort SkinId
             {
-                get => this.ReadDataUShort(400UL, (ushort)0);
-                set => this.WriteData(400UL, value, (ushort)0);
+                get => this.ReadDataUShort(368UL, (ushort)0);
+                set => this.WriteData(368UL, value, (ushort)0);
+            }
+        }
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xc12f8f557ce7af1aUL)]
+    public class WeaponSpawnState : ICapnpSerializable
+    {
+        public const UInt64 typeId = 0xc12f8f557ce7af1aUL;
+        void ICapnpSerializable.Deserialize(DeserializerState arg_)
+        {
+            var reader = READER.create(arg_);
+            SpawnId = reader.SpawnId;
+            Weapon = reader.Weapon;
+            Available = reader.Available;
+            applyDefaults();
+        }
+
+        public void serialize(WRITER writer)
+        {
+            writer.SpawnId = SpawnId;
+            writer.Weapon = Weapon;
+            writer.Available = Available;
+        }
+
+        void ICapnpSerializable.Serialize(SerializerState arg_)
+        {
+            serialize(arg_.Rewrap<WRITER>());
+        }
+
+        public void applyDefaults()
+        {
+        }
+
+        public ushort SpawnId
+        {
+            get;
+            set;
+        }
+
+        public CapnpGen.WeaponType Weapon
+        {
+            get;
+            set;
+        }
+
+        public bool Available
+        {
+            get;
+            set;
+        }
+
+        public struct READER
+        {
+            readonly DeserializerState ctx;
+            public READER(DeserializerState ctx)
+            {
+                this.ctx = ctx;
+            }
+
+            public static READER create(DeserializerState ctx) => new READER(ctx);
+            public static implicit operator DeserializerState(READER reader) => reader.ctx;
+            public static implicit operator READER(DeserializerState ctx) => new READER(ctx);
+            public ushort SpawnId => ctx.ReadDataUShort(0UL, (ushort)0);
+            public CapnpGen.WeaponType Weapon => (CapnpGen.WeaponType)ctx.ReadDataUShort(16UL, (ushort)0);
+            public bool Available => ctx.ReadDataBool(32UL, false);
+        }
+
+        public class WRITER : SerializerState
+        {
+            public WRITER()
+            {
+                this.SetStruct(1, 0);
+            }
+
+            public ushort SpawnId
+            {
+                get => this.ReadDataUShort(0UL, (ushort)0);
+                set => this.WriteData(0UL, value, (ushort)0);
+            }
+
+            public CapnpGen.WeaponType Weapon
+            {
+                get => (CapnpGen.WeaponType)this.ReadDataUShort(16UL, (ushort)0);
+                set => this.WriteData(16UL, (ushort)value, (ushort)0);
+            }
+
+            public bool Available
+            {
+                get => this.ReadDataBool(32UL, false);
+                set => this.WriteData(32UL, value, false);
             }
         }
     }
@@ -751,8 +983,9 @@ namespace CapnpGen
             Y = reader.Y;
             Z = reader.Z;
             Yaw = reader.Yaw;
-            Weapon = reader.Weapon;
             Pitch = reader.Pitch;
+            Weapon = reader.Weapon;
+            Slot = reader.Slot;
             applyDefaults();
         }
 
@@ -763,8 +996,9 @@ namespace CapnpGen
             writer.Y = Y;
             writer.Z = Z;
             writer.Yaw = Yaw;
-            writer.Weapon = Weapon;
             writer.Pitch = Pitch;
+            writer.Weapon = Weapon;
+            writer.Slot = Slot;
         }
 
         void ICapnpSerializable.Serialize(SerializerState arg_)
@@ -806,13 +1040,19 @@ namespace CapnpGen
             set;
         }
 
+        public float Pitch
+        {
+            get;
+            set;
+        }
+
         public CapnpGen.WeaponType Weapon
         {
             get;
             set;
         }
 
-        public float Pitch
+        public CapnpGen.WeaponSlot Slot
         {
             get;
             set;
@@ -834,8 +1074,9 @@ namespace CapnpGen
             public float Y => ctx.ReadDataFloat(96UL, 0F);
             public float Z => ctx.ReadDataFloat(128UL, 0F);
             public float Yaw => ctx.ReadDataFloat(160UL, 0F);
-            public CapnpGen.WeaponType Weapon => (CapnpGen.WeaponType)ctx.ReadDataUShort(192UL, (ushort)0);
-            public float Pitch => ctx.ReadDataFloat(224UL, 0F);
+            public float Pitch => ctx.ReadDataFloat(192UL, 0F);
+            public CapnpGen.WeaponType Weapon => (CapnpGen.WeaponType)ctx.ReadDataUShort(224UL, (ushort)0);
+            public CapnpGen.WeaponSlot Slot => (CapnpGen.WeaponSlot)ctx.ReadDataUShort(240UL, (ushort)0);
         }
 
         public class WRITER : SerializerState
@@ -875,16 +1116,112 @@ namespace CapnpGen
                 set => this.WriteData(160UL, value, 0F);
             }
 
-            public CapnpGen.WeaponType Weapon
-            {
-                get => (CapnpGen.WeaponType)this.ReadDataUShort(192UL, (ushort)0);
-                set => this.WriteData(192UL, (ushort)value, (ushort)0);
-            }
-
             public float Pitch
             {
-                get => this.ReadDataFloat(224UL, 0F);
-                set => this.WriteData(224UL, value, 0F);
+                get => this.ReadDataFloat(192UL, 0F);
+                set => this.WriteData(192UL, value, 0F);
+            }
+
+            public CapnpGen.WeaponType Weapon
+            {
+                get => (CapnpGen.WeaponType)this.ReadDataUShort(224UL, (ushort)0);
+                set => this.WriteData(224UL, (ushort)value, (ushort)0);
+            }
+
+            public CapnpGen.WeaponSlot Slot
+            {
+                get => (CapnpGen.WeaponSlot)this.ReadDataUShort(240UL, (ushort)0);
+                set => this.WriteData(240UL, (ushort)value, (ushort)0);
+            }
+        }
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xad037e11cb77255cUL)]
+    public class WeaponPickedUp : ICapnpSerializable
+    {
+        public const UInt64 typeId = 0xad037e11cb77255cUL;
+        void ICapnpSerializable.Deserialize(DeserializerState arg_)
+        {
+            var reader = READER.create(arg_);
+            PlayerId = reader.PlayerId;
+            SpawnId = reader.SpawnId;
+            Weapon = reader.Weapon;
+            applyDefaults();
+        }
+
+        public void serialize(WRITER writer)
+        {
+            writer.PlayerId = PlayerId;
+            writer.SpawnId = SpawnId;
+            writer.Weapon = Weapon;
+        }
+
+        void ICapnpSerializable.Serialize(SerializerState arg_)
+        {
+            serialize(arg_.Rewrap<WRITER>());
+        }
+
+        public void applyDefaults()
+        {
+        }
+
+        public ulong PlayerId
+        {
+            get;
+            set;
+        }
+
+        public ushort SpawnId
+        {
+            get;
+            set;
+        }
+
+        public CapnpGen.WeaponType Weapon
+        {
+            get;
+            set;
+        }
+
+        public struct READER
+        {
+            readonly DeserializerState ctx;
+            public READER(DeserializerState ctx)
+            {
+                this.ctx = ctx;
+            }
+
+            public static READER create(DeserializerState ctx) => new READER(ctx);
+            public static implicit operator DeserializerState(READER reader) => reader.ctx;
+            public static implicit operator READER(DeserializerState ctx) => new READER(ctx);
+            public ulong PlayerId => ctx.ReadDataULong(0UL, 0UL);
+            public ushort SpawnId => ctx.ReadDataUShort(64UL, (ushort)0);
+            public CapnpGen.WeaponType Weapon => (CapnpGen.WeaponType)ctx.ReadDataUShort(80UL, (ushort)0);
+        }
+
+        public class WRITER : SerializerState
+        {
+            public WRITER()
+            {
+                this.SetStruct(2, 0);
+            }
+
+            public ulong PlayerId
+            {
+                get => this.ReadDataULong(0UL, 0UL);
+                set => this.WriteData(0UL, value, 0UL);
+            }
+
+            public ushort SpawnId
+            {
+                get => this.ReadDataUShort(64UL, (ushort)0);
+                set => this.WriteData(64UL, value, (ushort)0);
+            }
+
+            public CapnpGen.WeaponType Weapon
+            {
+                get => (CapnpGen.WeaponType)this.ReadDataUShort(80UL, (ushort)0);
+                set => this.WriteData(80UL, (ushort)value, (ushort)0);
             }
         }
     }
@@ -897,6 +1234,7 @@ namespace CapnpGen
         {
             ShotFired = 0,
             Noop = 1,
+            WeaponPickedUp = 2,
             undefined = 65535
         }
 
@@ -910,6 +1248,9 @@ namespace CapnpGen
                     break;
                 case WHICH.Noop:
                     which = reader.which;
+                    break;
+                case WHICH.WeaponPickedUp:
+                    WeaponPickedUp = CapnpSerializable.Create<CapnpGen.WeaponPickedUp>(reader.WeaponPickedUp);
                     break;
             }
 
@@ -933,6 +1274,9 @@ namespace CapnpGen
                         break;
                     case WHICH.Noop:
                         break;
+                    case WHICH.WeaponPickedUp:
+                        _content = null;
+                        break;
                 }
             }
         }
@@ -946,6 +1290,9 @@ namespace CapnpGen
                     ShotFired?.serialize(writer.ShotFired);
                     break;
                 case WHICH.Noop:
+                    break;
+                case WHICH.WeaponPickedUp:
+                    WeaponPickedUp?.serialize(writer.WeaponPickedUp);
                     break;
             }
         }
@@ -969,6 +1316,16 @@ namespace CapnpGen
             }
         }
 
+        public CapnpGen.WeaponPickedUp WeaponPickedUp
+        {
+            get => _which == WHICH.WeaponPickedUp ? (CapnpGen.WeaponPickedUp)_content : null;
+            set
+            {
+                _which = WHICH.WeaponPickedUp;
+                _content = value;
+            }
+        }
+
         public struct READER
         {
             readonly DeserializerState ctx;
@@ -982,6 +1339,7 @@ namespace CapnpGen
             public static implicit operator READER(DeserializerState ctx) => new READER(ctx);
             public WHICH which => (WHICH)ctx.ReadDataUShort(0U, (ushort)0);
             public CapnpGen.ShotFired.READER ShotFired => which == WHICH.ShotFired ? ctx.ReadStruct(0, CapnpGen.ShotFired.READER.create) : default;
+            public CapnpGen.WeaponPickedUp.READER WeaponPickedUp => which == WHICH.WeaponPickedUp ? ctx.ReadStruct(0, CapnpGen.WeaponPickedUp.READER.create) : default;
         }
 
         public class WRITER : SerializerState
@@ -1002,6 +1360,12 @@ namespace CapnpGen
                 get => which == WHICH.ShotFired ? BuildPointer<CapnpGen.ShotFired.WRITER>(0) : default;
                 set => Link(0, value);
             }
+
+            public CapnpGen.WeaponPickedUp.WRITER WeaponPickedUp
+            {
+                get => which == WHICH.WeaponPickedUp ? BuildPointer<CapnpGen.WeaponPickedUp.WRITER>(0) : default;
+                set => Link(0, value);
+            }
         }
     }
 
@@ -1015,6 +1379,7 @@ namespace CapnpGen
             ServerTick = reader.ServerTick;
             Players = reader.Players?.ToReadOnlyList(_ => CapnpSerializable.Create<CapnpGen.PlayerState>(_));
             Events = reader.Events?.ToReadOnlyList(_ => CapnpSerializable.Create<CapnpGen.ServerEvent>(_));
+            Spawns = reader.Spawns?.ToReadOnlyList(_ => CapnpSerializable.Create<CapnpGen.WeaponSpawnState>(_));
             applyDefaults();
         }
 
@@ -1023,6 +1388,7 @@ namespace CapnpGen
             writer.ServerTick = ServerTick;
             writer.Players.Init(Players, (_s1, _v1) => _v1?.serialize(_s1));
             writer.Events.Init(Events, (_s1, _v1) => _v1?.serialize(_s1));
+            writer.Spawns.Init(Spawns, (_s1, _v1) => _v1?.serialize(_s1));
         }
 
         void ICapnpSerializable.Serialize(SerializerState arg_)
@@ -1052,6 +1418,12 @@ namespace CapnpGen
             set;
         }
 
+        public IReadOnlyList<CapnpGen.WeaponSpawnState> Spawns
+        {
+            get;
+            set;
+        }
+
         public struct READER
         {
             readonly DeserializerState ctx;
@@ -1066,13 +1438,14 @@ namespace CapnpGen
             public ulong ServerTick => ctx.ReadDataULong(0UL, 0UL);
             public IReadOnlyList<CapnpGen.PlayerState.READER> Players => ctx.ReadList(0).Cast(CapnpGen.PlayerState.READER.create);
             public IReadOnlyList<CapnpGen.ServerEvent.READER> Events => ctx.ReadList(1).Cast(CapnpGen.ServerEvent.READER.create);
+            public IReadOnlyList<CapnpGen.WeaponSpawnState.READER> Spawns => ctx.ReadList(2).Cast(CapnpGen.WeaponSpawnState.READER.create);
         }
 
         public class WRITER : SerializerState
         {
             public WRITER()
             {
-                this.SetStruct(1, 2);
+                this.SetStruct(1, 3);
             }
 
             public ulong ServerTick
@@ -1091,6 +1464,12 @@ namespace CapnpGen
             {
                 get => BuildPointer<ListOfStructsSerializer<CapnpGen.ServerEvent.WRITER>>(1);
                 set => Link(1, value);
+            }
+
+            public ListOfStructsSerializer<CapnpGen.WeaponSpawnState.WRITER> Spawns
+            {
+                get => BuildPointer<ListOfStructsSerializer<CapnpGen.WeaponSpawnState.WRITER>>(2);
+                set => Link(2, value);
             }
         }
     }
