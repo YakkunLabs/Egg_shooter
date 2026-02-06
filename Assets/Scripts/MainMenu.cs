@@ -3,6 +3,9 @@ using UnityEngine.SceneManagement;
 
 public class MainMenu : MonoBehaviour
 {
+    [Header("Weapon Selection")]
+    public GameObject[] menuGuns;
+
     [Header("Skin Selection")]
     // Drag the MeshRenderer of your visible menu player here
     public MeshRenderer menuPlayerMesh; 
@@ -10,6 +13,7 @@ public class MainMenu : MonoBehaviour
     public Material[] allSkins;
 
     private int selectedSkinIndex = 0;
+    private int selectedWeaponIndex = 0;
 
     void Start()
     {
@@ -18,7 +22,10 @@ public class MainMenu : MonoBehaviour
         Cursor.visible = true;
 
         // Load saved skin (Default to 0 if none saved)
+        selectedWeaponIndex = PlayerPrefs.GetInt("SelectedWeapon", 0);
         selectedSkinIndex = PlayerPrefs.GetInt("SelectedSkin", 0);
+
+        UpdateWeaponVisuals();
         UpdateSkinVisuals();
     }
     
@@ -47,11 +54,28 @@ public class MainMenu : MonoBehaviour
         PlayerPrefs.Save();
     }
 
+    public void SelectWeapon(int index)
+    {
+        selectedWeaponIndex = index;
+        PlayerPrefs.SetInt("SelectedWeapon", selectedWeaponIndex);
+        PlayerPrefs.Save();
+        UpdateWeaponVisuals();
+    }
+
     void UpdateSkinVisuals()
     {
         if (menuPlayerMesh != null && allSkins != null && selectedSkinIndex < allSkins.Length)
         {
              menuPlayerMesh.material = allSkins[selectedSkinIndex];
+        }
+    }
+    void UpdateWeaponVisuals()
+    {
+        if (menuGuns == null) return;
+        for (int i = 0; i < menuGuns.Length; i++)
+        {
+            if (menuGuns[i] != null)
+                menuGuns[i].SetActive(i == selectedWeaponIndex);
         }
     }
 }

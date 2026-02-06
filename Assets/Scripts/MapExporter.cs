@@ -22,7 +22,18 @@ public class MapExporter : MonoBehaviour
     public class MapData
     {
         public List<SpawnEntry> spawnPoints = new List<SpawnEntry>(); 
+        public List<WeaponPoint> weaponPoints = new List<WeaponPoint>(); 
         public List<ColliderEntry> colliders = new List<ColliderEntry>();
+    }
+    
+    [System.Serializable]
+    public class WeaponPoint
+    {
+        public string name;
+        public string tag;
+        public Vector3 position;
+        public float yaw;
+        public string weapon; // extracted from object name (e.g., "Rifle")
     }
 
     [System.Serializable]
@@ -40,8 +51,8 @@ public class MapExporter : MonoBehaviour
     [System.Serializable]
     public class SpawnEntry
     {
-        public string name;      // Will be "Spawn_1", "Spawn_2" etc.
-        public string tag;       // NEW: Will be "spawn_point"
+        public string name;      
+        public string tag;       
         public Vector3 position;
         public float yaw; 
     }
@@ -59,8 +70,8 @@ public class MapExporter : MonoBehaviour
         foreach (GameObject sp in spawns)
         {
             SpawnEntry s = new SpawnEntry();
-            s.name = sp.name;               // Reads the object name (Rename them in Hierarchy!)
-            s.tag = sp.tag;                 // Exports "spawn_point"
+            s.name = sp.name;               
+            s.tag = sp.tag;                 
             s.position = sp.transform.position;
             s.yaw = sp.transform.eulerAngles.y; 
             data.spawnPoints.Add(s);
@@ -69,13 +80,40 @@ public class MapExporter : MonoBehaviour
         Debug.Log($"Found {data.spawnPoints.Count} Spawn Points.");
 
         // ---------------------------------------------------------
-        // PART 2: EXPORT COLLIDERS
+        // PART 2: EXPORT WEAPON POINTS (NEW)
+        // ---------------------------------------------------------
+        GameObject[] weapons = GameObject.FindGameObjectsWithTag("weapon_point");
+
+        foreach (GameObject wp in weapons)
+        {
+            WeaponPoint w = new WeaponPoint();
+            w.name = wp.name;
+            w.tag = wp.tag;
+            // Use the parent position (center of the crate area)
+            w.position = wp.transform.position;
+            w.yaw = wp.transform.eulerAngles.y;
+            
+            // Clean the name to guess the ID (e.g., "Rifle_Spawn (1)" -> "Rifle")
+            string rawName = wp.name.Replace("(Clone)", "").Replace("Spawn", "").Trim();
+            // Remove numbers if you named them "Rifle 1", "Rifle 2"
+            w.weapon = System.Text.RegularExpressions.Regex.Replace(rawName, @"[\d-]", "").Trim();
+
+            data.weaponPoints.Add(w);
+        }
+
+        Debug.Log($"Found {data.weaponPoints.Count} Weapon Points.");
+
+        // ---------------------------------------------------------
+        // PART 3: EXPORT COLLIDERS
         // ---------------------------------------------------------
         Collider[] allColliders = GetComponentsInChildren<Collider>();
 
         foreach (Collider col in allColliders)
         {
             if (col.isTrigger && !exportTriggers) continue;
+            
+            // Skip the weapon crates/triggers themselves if they are tagged
+            if (col.CompareTag("weapon_point") || col.CompareTag("spawn_point")) continue;
 
             ColliderEntry entry = new ColliderEntry();
             entry.tag = exportTags ? col.gameObject.tag : "Untagged";
@@ -126,13 +164,13 @@ public class MapExporter : MonoBehaviour
         }
 
         // ---------------------------------------------------------
-        // PART 3: SAVE FILE
+        // PART 4: SAVE FILE
         // ---------------------------------------------------------
         string json = JsonUtility.ToJson(data, true);
         string path = Path.Combine(Application.dataPath, fileName);
         File.WriteAllText(path, json);
 
-        Debug.Log($"<b>[MapExporter]</b> Exported {data.colliders.Count} colliders and {data.spawnPoints.Count} spawns to: {path}");
+        Debug.Log($"<b>[MapExporter]</b> Exported {data.colliders.Count} colliders, {data.spawnPoints.Count} spawns, and {data.weaponPoints.Count} weapon points to: {path}");
     }
 }
 

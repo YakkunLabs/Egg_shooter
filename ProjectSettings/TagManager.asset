@@ -9,6 +9,8 @@ TagManager:
   - Ladder
   - SpawnPoint
   - spawn_point
+  - Weapon_point
+  - weapon_point
   layers:
   - Default
   - TransparentFX
