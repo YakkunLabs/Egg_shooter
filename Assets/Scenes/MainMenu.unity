@@ -209,7 +209,7 @@ MonoBehaviour:
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 3
+          m_IntArgument: 4
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
@@ -609,6 +609,7 @@ MonoBehaviour:
   text_ammo: {fileID: 0}
   text_fireMode: {fileID: 0}
   reloadIndicator: {fileID: 0}
+  text_reloading: {fileID: 0}
   maxZoom: 60
   minZoom: 10
   zoomSpeed: 30
@@ -7790,10 +7791,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MainMenu
   menuGuns:
+  - {fileID: 0}
   - {fileID: 1840985784}
   - {fileID: 134858947}
-  - {fileID: 182562967}
   - {fileID: 448525515}
+  - {fileID: 448525515}
+  - {fileID: 182562967}
   menuPlayerMesh: {fileID: 336554602}
   allSkins:
   - {fileID: 2100000, guid: 52ad5d5058cdcd04b91895ee0c82d9b0, type: 2}
@@ -7904,7 +7907,7 @@ MonoBehaviour:
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 2
+          m_IntArgument: 5
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
@@ -8238,7 +8241,7 @@ MonoBehaviour:
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 1
+          m_IntArgument: 2
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0

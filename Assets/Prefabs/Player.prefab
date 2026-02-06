@@ -376,6 +376,7 @@ MonoBehaviour:
   text_ammo: {fileID: 0}
   text_fireMode: {fileID: 0}
   reloadIndicator: {fileID: 0}
+  text_reloading: {fileID: 0}
   maxZoom: 60
   minZoom: 10
   zoomSpeed: 30
@@ -5939,11 +5940,12 @@ MonoBehaviour:
   - {fileID: 2100000, guid: cccf87e80ee9f214c8367f224fb10940, type: 2}
   - {fileID: 2100000, guid: 8a9b496c89514e84aab004beddc6d21d, type: 2}
   availableGuns:
+  - {fileID: 0}
   - {fileID: 3115099672575953990}
   - {fileID: 516093960232186404}
-  - {fileID: 2721450169643973798}
   - {fileID: 6519193018780339815}
-  - {fileID: 467368729100604288}
+  - {fileID: 6519193018780339815}
+  - {fileID: 2721450169643973798}
 --- !u!114 &3831361852838125863
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -21418,6 +21420,7 @@ MonoBehaviour:
   text_ammo: {fileID: 0}
   text_fireMode: {fileID: 0}
   reloadIndicator: {fileID: 0}
+  text_reloading: {fileID: 0}
   maxZoom: 60
   minZoom: 10
   zoomSpeed: 30
@@ -21856,6 +21859,7 @@ MonoBehaviour:
   text_ammo: {fileID: 0}
   text_fireMode: {fileID: 0}
   reloadIndicator: {fileID: 0}
+  text_reloading: {fileID: 0}
   maxZoom: 60
   minZoom: 10
   zoomSpeed: 30
@@ -22248,6 +22252,7 @@ MonoBehaviour:
   text_ammo: {fileID: 0}
   text_fireMode: {fileID: 0}
   reloadIndicator: {fileID: 0}
+  text_reloading: {fileID: 0}
   maxZoom: 60
   minZoom: 10
   zoomSpeed: 30
@@ -22623,6 +22628,7 @@ MonoBehaviour:
   text_ammo: {fileID: 0}
   text_fireMode: {fileID: 0}
   reloadIndicator: {fileID: 0}
+  text_reloading: {fileID: 0}
   maxZoom: 60
   minZoom: 10
   zoomSpeed: 30
