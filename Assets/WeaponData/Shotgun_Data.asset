@@ -10,38 +10,38 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b88183b623460e74ea67b76679b9d805, type: 3}
-  m_Name: SniperRifle
+  m_Name: Shotgun_Data
   m_EditorClassIdentifier: Assembly-CSharp::WeaponData
-  weaponName: SniperRifle
-  weaponType: 2
-  fireMode: 3
+  weaponName: Pump Shotgun
+  weaponType: 3
+  fireMode: 0
   canToggleFireMode: 0
   availableFireModes: 
   damage: 100
-  headshotMultiplier: 3
-  roundsPerMinute: 40
-  bulletSpeed: 800
+  headshotMultiplier: 1.5
+  roundsPerMinute: 65
+  bulletSpeed: 80
   burstCount: 3
   burstDelay: 0.1
-  magazineSize: 6
-  reserveAmmo: 30
+  magazineSize: 8
+  reserveAmmo: 32
   infiniteAmmo: 0
-  reloadTime: 3.5
+  reloadTime: 4
   reloadFullMagazine: 1
-  reloadPerBulletTime: 0.5
-  spread: 0.0001
-  aimSpreadMultiplier: 0.01
+  reloadPerBulletTime: 0.6
+  spread: 0.1
+  aimSpreadMultiplier: 0.3
   recoilAmount: 4
-  effectiveRange: 300
-  maxRange: 500
-  hasScope: 1
+  effectiveRange: 20
+  maxRange: 40
+  hasScope: 0
   scopedFOV: 15
   scopeZoomSpeed: 10
   aimPosition: {x: 0, y: 0, z: 0}
-  aimZoom: 40
-  aimSpeed: 10
-  shootSound: {fileID: 8300000, guid: 47d89ffda00aa5445ae33552b6e13f64, type: 3}
-  reloadSound: {fileID: 8300000, guid: 4e35aaecdb45b144dbba3efa097126f5, type: 3}
+  aimZoom: 55
+  aimSpeed: 8
+  shootSound: {fileID: 8300000, guid: a1b2486c6f012d44ea36c147c9f5984e, type: 3}
+  reloadSound: {fileID: 8300000, guid: b1c73dd99d343ec4bafbce2588fb875f, type: 3}
   emptySound: {fileID: 0}
   explosionRadius: 0
   muzzleFlashPrefab: {fileID: 0}
