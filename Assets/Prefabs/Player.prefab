@@ -25,7 +25,7 @@ Transform:
   m_GameObject: {fileID: 1100728423022684850}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
-  m_LocalPosition: {x: 0.01, y: 0.021999996, z: -0.349}
+  m_LocalPosition: {x: -0.023, y: 0.021999996, z: -0.659}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -376,6 +376,7 @@ MonoBehaviour:
   text_ammo: {fileID: 0}
   text_fireMode: {fileID: 0}
   reloadIndicator: {fileID: 0}
+  text_reloading: {fileID: 0}
   maxZoom: 60
   minZoom: 10
   zoomSpeed: 30
@@ -21418,6 +21419,7 @@ MonoBehaviour:
   text_ammo: {fileID: 0}
   text_fireMode: {fileID: 0}
   reloadIndicator: {fileID: 0}
+  text_reloading: {fileID: 0}
   maxZoom: 60
   minZoom: 10
   zoomSpeed: 30
@@ -21856,6 +21858,7 @@ MonoBehaviour:
   text_ammo: {fileID: 0}
   text_fireMode: {fileID: 0}
   reloadIndicator: {fileID: 0}
+  text_reloading: {fileID: 0}
   maxZoom: 60
   minZoom: 10
   zoomSpeed: 30
@@ -22248,6 +22251,7 @@ MonoBehaviour:
   text_ammo: {fileID: 0}
   text_fireMode: {fileID: 0}
   reloadIndicator: {fileID: 0}
+  text_reloading: {fileID: 0}
   maxZoom: 60
   minZoom: 10
   zoomSpeed: 30
@@ -22423,9 +22427,6 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 85f6d43e35052784399666935eef017d, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 8442643011597310815}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 85f6d43e35052784399666935eef017d, type: 3}
-      insertIndex: -1
       addedObject: {fileID: 1555798701652004283}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 85f6d43e35052784399666935eef017d, type: 3}
       insertIndex: -1
@@ -22444,39 +22445,6 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 85f6d43e35052784399666935eef017d, type: 3}
   m_PrefabInstance: {fileID: 6249230824916841270}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &8442643011597310815
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6519193018780339815}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 339d87d0da1496d4d82ebbc4cef3db7b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::GunSystem
-  isSniper: 0
-  scopedFOV: 15
-  damage: 10
-  timeBetweenShooting: 0.1
-  spread: 0
-  reloadTime: 1.5
-  magazineSize: 30
-  bulletsLeft: 0
-  maxZoom: 60
-  minZoom: 20
-  zoomSpeed: 20
-  fpsCamera: {fileID: 3082280462444877071}
-  attackPoint: {fileID: 295561753502918557}
-  bulletPrefab: {fileID: 5115898143798426263, guid: b34ebd24c871c8647b8e1fb274878aa4, type: 3}
-  audioSource: {fileID: 2987595537985695928}
-  reloadSound: {fileID: 8300000, guid: 4e35aaecdb45b144dbba3efa097126f5, type: 3}
-  impactEffect: {fileID: 5115898143798426263, guid: b34ebd24c871c8647b8e1fb274878aa4, type: 3}
-  muzzleFlash: {fileID: 4783848806771632536}
-  scopeOverlay: {fileID: 0}
-  weaponModel: {fileID: 0}
-  text_ammo: {fileID: 0}
 --- !u!82 &1555798701652004283
 AudioSource:
   m_ObjectHideFlags: 0
@@ -22608,7 +22576,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 625f920999075dd498d463a2729a7566, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AdvancedGunSystem
-  weaponData: {fileID: 11400000, guid: 81da5d038f728f543b2f75777aac75e1, type: 2}
+  weaponData: {fileID: 11400000, guid: 08f987d6b74a8a84d88c7835531c910a, type: 2}
   currentAmmo: 0
   reserveAmmo: 0
   isReloading: 0
@@ -22623,6 +22591,7 @@ MonoBehaviour:
   text_ammo: {fileID: 0}
   text_fireMode: {fileID: 0}
   reloadIndicator: {fileID: 0}
+  text_reloading: {fileID: 0}
   maxZoom: 60
   minZoom: 10
   zoomSpeed: 30

@@ -82,6 +82,34 @@ public class AdvancedGunSystem : MonoBehaviour
             }
         }
 
+        if (text_reloading == null)
+        {
+            // Try to find it as a child of the indicator first (Best/Fastest way)
+            if (reloadIndicator != null)
+            {
+                text_reloading = reloadIndicator.GetComponentInChildren<TextMeshProUGUI>(true);
+            }
+
+            // If still null, search the whole world (Backup plan)
+            if (text_reloading == null)
+            {
+                Canvas[] canvases = FindObjectsByType<Canvas>(FindObjectsSortMode.None);
+                foreach (Canvas c in canvases)
+                {
+                    TextMeshProUGUI[] txts = c.GetComponentsInChildren<TextMeshProUGUI>(true);
+                    foreach (TextMeshProUGUI txt in txts)
+                    {
+                        if (txt.name == "ReloadingText")
+                        {
+                            text_reloading = txt;
+                            goto TextFound; // Break out of all loops
+                        }
+                    }
+                }
+            }
+        }
+        TextFound: // Label to jump to
+
         // 3. FORCE SETTINGS & HIDE
         if (reloadIndicator != null)
         {
@@ -331,57 +359,71 @@ public class AdvancedGunSystem : MonoBehaviour
         if (fpsCamera == null) fpsCamera = Camera.main;
         if (fpsCamera == null) return;
 
-        Ray ray = fpsCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
-        UpdateAim(ray);
+        // 1. DETERMINE PELLET COUNT
+        // If Shotgun, fire 8 pellets. Otherwise, fire 1.
+        int pelletCount = (weaponData.weaponType == WeaponType.Shotgun) ? 8 : 1;
 
-        RaycastHit hit;
-        Vector3 targetPoint;
-
-        if (Physics.Raycast(ray, out hit, weaponData.maxRange))
-            targetPoint = hit.point;
-        else
-            targetPoint = ray.GetPoint(weaponData.maxRange);
-
-        float currentSpread = isScoped ? 
-            weaponData.spread * weaponData.aimSpreadMultiplier : 
-            weaponData.spread;
-
-        Vector3 directionWithSpread = targetPoint - attackPoint.position;
-        directionWithSpread += new Vector3(
-            Random.Range(-currentSpread, currentSpread),
-            Random.Range(-currentSpread, currentSpread),
-            Random.Range(-currentSpread, currentSpread)
-        );
-        directionWithSpread.Normalize();
-
+        // 2. PLAY SOUND & FLASH ONCE
         if (audioSource != null && weaponData.shootSound != null)
             audioSource.PlayOneShot(weaponData.shootSound);
 
         if (muzzleFlash != null && !isScoped)
             muzzleFlash.Play();
 
-        if (bulletPrefab != null)
-        {
-            Vector3 spawnPos = attackPoint.position + (attackPoint.forward * 0.5f);
-            GameObject currentBullet = Instantiate(bulletPrefab, spawnPos, Quaternion.identity);
-            currentBullet.transform.forward = directionWithSpread;
+        // 3. CALCULATE TARGET POINT (Raycast center of screen)
+        Ray ray = fpsCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
+        UpdateAim(ray);
 
-            Projectile projectile = currentBullet.GetComponent<Projectile>();
-            if (projectile != null)
+        RaycastHit hit;
+        Vector3 targetPoint;
+        if (Physics.Raycast(ray, out hit, weaponData.maxRange))
+            targetPoint = hit.point;
+        else
+            targetPoint = ray.GetPoint(weaponData.maxRange);
+
+        // 4. LOOP TO SPAWN BULLETS
+        for (int i = 0; i < pelletCount; i++)
+        {
+            float currentSpread = isScoped ? 
+                weaponData.spread * weaponData.aimSpreadMultiplier : 
+                weaponData.spread;
+
+            // Calculate direction with RANDOM SPREAD for each pellet
+            Vector3 directionWithSpread = targetPoint - attackPoint.position;
+            directionWithSpread += new Vector3(
+                Random.Range(-currentSpread, currentSpread),
+                Random.Range(-currentSpread, currentSpread),
+                Random.Range(-currentSpread, currentSpread)
+            );
+            directionWithSpread.Normalize();
+
+            if (bulletPrefab != null)
             {
-                projectile.damage = weaponData.damage;
-                projectile.speed = weaponData.bulletSpeed > 0 ? weaponData.bulletSpeed : 100f; 
-                projectile.explosionRadius = weaponData.explosionRadius; 
-            }
-            
-            Collider bulletCollider = currentBullet.GetComponent<Collider>();
-            Collider playerCollider = GameObject.FindWithTag("Player")?.GetComponent<Collider>();
-            if (bulletCollider != null && playerCollider != null)
-            {
-                Physics.IgnoreCollision(bulletCollider, playerCollider);
+                Vector3 spawnPos = attackPoint.position + (attackPoint.forward * 0.5f);
+                GameObject currentBullet = Instantiate(bulletPrefab, spawnPos, Quaternion.identity);
+                currentBullet.transform.forward = directionWithSpread;
+
+                Projectile projectile = currentBullet.GetComponent<Projectile>();
+                if (projectile != null)
+                {
+                    // For shotguns, you might want to divide damage, or keep it per-pellet
+                    // If damage is 100 and you fire 8 pellets, that's 800 damage total! 
+                    // OPTIONAL: projectile.damage = weaponData.damage / pelletCount;
+                    projectile.damage = weaponData.damage; 
+                    projectile.speed = weaponData.bulletSpeed > 0 ? weaponData.bulletSpeed : 100f; 
+                    projectile.explosionRadius = weaponData.explosionRadius; 
+                }
+                
+                Collider bulletCollider = currentBullet.GetComponent<Collider>();
+                Collider playerCollider = GameObject.FindWithTag("Player")?.GetComponent<Collider>();
+                if (bulletCollider != null && playerCollider != null)
+                {
+                    Physics.IgnoreCollision(bulletCollider, playerCollider);
+                }
             }
         }
 
+        // 5. DECREASE AMMO ONCE (Per trigger pull, not per pellet)
         currentAmmo--;
         UpdateUI();
         ApplyRecoil();

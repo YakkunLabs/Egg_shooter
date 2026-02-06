@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b88183b623460e74ea67b76679b9d805, type: 3}
+  m_Name: ShotGun
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponData
+  weaponName: Pump Shotgun
+  weaponType: 3
+  fireMode: 0
+  canToggleFireMode: 0
+  availableFireModes: 
+  damage: 100
+  headshotMultiplier: 1.5
+  roundsPerMinute: 65
+  bulletSpeed: 5
+  burstCount: 3
+  burstDelay: 0.1
+  magazineSize: 8
+  reserveAmmo: 32
+  infiniteAmmo: 0
+  reloadTime: 0.5
+  reloadFullMagazine: 0
+  reloadPerBulletTime: 0.6
+  spread: 0.1
+  aimSpreadMultiplier: 0.3
+  recoilAmount: 4
+  effectiveRange: 20
+  maxRange: 40
+  hasScope: 0
+  scopedFOV: 15
+  scopeZoomSpeed: 10
+  aimPosition: {x: 0, y: 0, z: 0}
+  aimZoom: 55
+  aimSpeed: 8
+  shootSound: {fileID: 8300000, guid: 77c64ca3eae449c4db979d9b7fc850a5, type: 3}
+  reloadSound: {fileID: 8300000, guid: 4e35aaecdb45b144dbba3efa097126f5, type: 3}
+  emptySound: {fileID: 0}
+  explosionRadius: 0
+  muzzleFlashPrefab: {fileID: 0}
+  bulletTracerPrefab: {fileID: 0}
+  impactEffectPrefab: {fileID: 0}
