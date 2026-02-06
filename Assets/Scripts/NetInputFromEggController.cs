@@ -11,7 +11,8 @@ public class NetInputFromEggController : MonoBehaviour
     // --- QUEUED INPUTS (Latch these so they aren't missed) ---
     int _pendingShots = 0;
     bool _pendingJump = false;
-    bool _pendingReload = false; 
+    bool _pendingReload = false;
+    bool _pendingSwitch = false;
 
     void Start()
     {
@@ -63,11 +64,10 @@ public class NetInputFromEggController : MonoBehaviour
             if (myGun != null) myGun.AttemptToReload(); // 2. RELOAD LOCALLY
         }
 
-        bool weapon_switch = false;
         // --- Weapon switch ---
         if (Input.GetKeyDown(KeyCode.Q))
         {
-            weapon_switch = true;  // 1. Queue for Network
+            _pendingSwitch = true;  // 1. Queue for Network
             //if (myGun != null) myGun.AttemptToReload(); // 2. RELOAD LOCALLY
         }
 
@@ -103,7 +103,8 @@ public class NetInputFromEggController : MonoBehaviour
         // --- RETRIEVE QUEUED INPUTS ---
         bool shootPressed = _pendingShots > 0;
         bool jumpPressed = _pendingJump;
-        bool reloadPressed = _pendingReload; 
+        bool reloadPressed = _pendingReload;
+        bool weapon_switch = _pendingSwitch;
 
         // --- CALCULATE ANGLES (Use Camera for accuracy) ---
         
@@ -151,6 +152,7 @@ public class NetInputFromEggController : MonoBehaviour
         // --- RESET QUEUES ---
         if (shootPressed) _pendingShots--;
         _pendingJump = false;
-        _pendingReload = false; 
+        _pendingReload = false;
+        _pendingSwitch = false;
     }
 }
