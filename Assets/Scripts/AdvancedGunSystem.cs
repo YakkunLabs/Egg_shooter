@@ -50,6 +50,11 @@ public class AdvancedGunSystem : MonoBehaviour
 
     void Start()
     {
+        if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name == "MainMenu") 
+        {
+            return;
+        }
+        
         // 1. AUTO-FIND TEXT
         if (text_ammo == null)
         {
@@ -63,35 +68,54 @@ public class AdvancedGunSystem : MonoBehaviour
             if (uiObj != null) text_fireMode = uiObj.GetComponent<TextMeshProUGUI>();
         }
 
-        // 2. AUTO-FIND RELOAD UI (Indicator & Text)
-        if (reloadIndicator == null)
+        // 2. SEARCH ALL CANVASES (Finds Scope, Reload, and Text - even if hidden!)
+        if (reloadIndicator == null || scopeOverlay == null || text_reloading == null)
         {
             Canvas[] canvases = FindObjectsByType<Canvas>(FindObjectsSortMode.None);
             foreach (Canvas c in canvases)
             {
-                // Find Circle
-                Image[] imgs = c.GetComponentsInChildren<Image>(true);
-                foreach (Image img in imgs)
+                // A. FIND RELOAD INDICATOR
+                if (reloadIndicator == null)
                 {
-                    if (img.name == "ReloadIndicator")
+                    Image[] imgs = c.GetComponentsInChildren<Image>(true); // 'true' finds hidden objects
+                    foreach (Image img in imgs)
                     {
-                        reloadIndicator = img;
-                        break;
+                        if (img.name == "ReloadIndicator")
+                        {
+                            reloadIndicator = img;
+                            break;
+                        }
                     }
                 }
 
-                // Find Text (NEW)
-                TextMeshProUGUI[] txts = c.GetComponentsInChildren<TextMeshProUGUI>(true);
-                foreach (TextMeshProUGUI txt in txts)
+                // B. FIND SCOPE OVERLAY (New robust search)
+                if (scopeOverlay == null)
                 {
-                    if (txt.name == "ReloadingText")
+                    // We look for Transforms because ScopeOverlay might be a Panel or Image
+                    Transform[] kids = c.GetComponentsInChildren<Transform>(true); 
+                    foreach (Transform t in kids)
                     {
-                        text_reloading = txt;
-                        break;
+                        if (t.name == "ScopeOverlay")
+                        {
+                            scopeOverlay = t.gameObject;
+                            break;
+                        }
                     }
                 }
-                
-                if (reloadIndicator != null) break;
+
+                // C. FIND RELOADING TEXT
+                if (text_reloading == null)
+                {
+                    TextMeshProUGUI[] txts = c.GetComponentsInChildren<TextMeshProUGUI>(true);
+                    foreach (TextMeshProUGUI txt in txts)
+                    {
+                        if (txt.name == "ReloadingText")
+                        {
+                            text_reloading = txt;
+                            break;
+                        }
+                    }
+                }
             }
         }
 
@@ -104,11 +128,19 @@ public class AdvancedGunSystem : MonoBehaviour
         }
         else
         {
-            Debug.LogError("❌ UI ERROR: Could not find 'ReloadIndicator'. Ensure it is named exactly that.");
+            Debug.LogError("❌ UI ERROR: Could not find 'ReloadIndicator'.");
         }
-        if (text_reloading != null)
+
+        if (text_reloading != null) text_reloading.gameObject.SetActive(false);
+
+        // Ensure Scope is hidden initially
+        if (scopeOverlay != null)
         {
-            text_reloading.gameObject.SetActive(false);
+            scopeOverlay.SetActive(false);
+        }
+        else
+        {
+            // Debug.LogError("❌ UI ERROR: Could not find 'ScopeOverlay'. Name it exactly that.");
         }
 
         // 4. SETUP WEAPON
@@ -137,7 +169,6 @@ public class AdvancedGunSystem : MonoBehaviour
 
         UpdateUI();
     }
-
     // --- DIAGNOSTIC: CATCH DISABLES ---
     void OnDisable()
     {

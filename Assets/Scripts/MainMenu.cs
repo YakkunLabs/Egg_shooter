@@ -1,17 +1,22 @@
 using UnityEngine;
 using UnityEngine.SceneManagement; 
-using UnityEngine.UI; // Required if you are using UI Buttons
+using UnityEngine.UI; // Required for UI Buttons
 
 public class MainMenu : MonoBehaviour
 {
     [Header("Secondary Weapon Selection")]
     // Drag your weapon models here (e.g. 0=Pistol, 1=Rifle, 2=Shotgun)
-    // Make sure the order matches your Server's WeaponType ID!
     public GameObject[] secondaryWeaponModels; 
+    public Button[] weaponButtons; // <--- NEW: Drag your UI Buttons here (Order must match models!)
 
     [Header("Skin Selection")]
     public MeshRenderer menuPlayerMesh; 
     public Material[] allSkins;
+    public Button[] skinButtons;   // <--- NEW: Drag your Skin Buttons here
+
+    [Header("Highlight Settings")]
+    public Color selectedColor = Color.green; 
+    public Color normalColor = Color.white;
 
     // We store the "Secondary Weapon" choice here
     private int selectedSecondaryWeaponIndex = 0;
@@ -23,18 +28,19 @@ public class MainMenu : MonoBehaviour
         Cursor.visible = true;
 
         // 1. LOAD SAVED DATA
-        // Default to 1 (Rifle) or 0 (None) depending on your preference
         selectedSecondaryWeaponIndex = PlayerPrefs.GetInt("SelectedWeapon", 1); 
         selectedSkinIndex = PlayerPrefs.GetInt("SelectedSkin", 0);
 
         // 2. APPLY VISUALS
         UpdateWeaponVisuals();
         UpdateSkinVisuals();
+        
+        // 3. APPLY HIGHLIGHTS INITIALY
+        UpdateHighlights();
     }
     
     public void PlayGame()
     {
-        // Save everything one last time before leaving
         PlayerPrefs.SetInt("SelectedWeapon", selectedSecondaryWeaponIndex);
         PlayerPrefs.SetInt("SelectedSkin", selectedSkinIndex);
         PlayerPrefs.Save();
@@ -49,14 +55,14 @@ public class MainMenu : MonoBehaviour
     }
 
     // --- SECONDARY WEAPON BUTTONS ---
-    // Link your Buttons to this: SelectSecondaryWeapon(1), SelectSecondaryWeapon(2), etc.
-    // NOTE: Check your Schema! If 1=Pistol, Button 1 should pass 1.
     public void SelectSecondaryWeapon(int index)
     {
         selectedSecondaryWeaponIndex = index;
         PlayerPrefs.SetInt("SelectedWeapon", selectedSecondaryWeaponIndex);
         PlayerPrefs.Save();
+        
         UpdateWeaponVisuals();
+        UpdateHighlights(); // <--- NEW: Updates colors when clicked
     }
 
     void UpdateWeaponVisuals()
@@ -70,9 +76,7 @@ public class MainMenu : MonoBehaviour
                 secondaryWeaponModels[i].SetActive(false);
         }
 
-        // Show the selected one (if valid)
-        // Note: Arrays are 0-indexed. If your ID '1' matches model at index '0', adjust here.
-        // Assuming models are ordered exactly by ID:
+        // Show the selected one
         if (selectedSecondaryWeaponIndex >= 0 && selectedSecondaryWeaponIndex < secondaryWeaponModels.Length)
         {
             if (secondaryWeaponModels[selectedSecondaryWeaponIndex] != null)
@@ -86,7 +90,9 @@ public class MainMenu : MonoBehaviour
         selectedSkinIndex = index;
         PlayerPrefs.SetInt("SelectedSkin", selectedSkinIndex);
         PlayerPrefs.Save();
+        
         UpdateSkinVisuals();
+        UpdateHighlights(); // <--- NEW: Updates colors when clicked
     }
 
     void UpdateSkinVisuals()
@@ -96,6 +102,41 @@ public class MainMenu : MonoBehaviour
             if (selectedSkinIndex >= 0 && selectedSkinIndex < allSkins.Length)
             {
                 menuPlayerMesh.material = allSkins[selectedSkinIndex];
+            }
+        }
+    }
+
+    // --- NEW: HIGHLIGHT LOGIC ---
+    void UpdateHighlights()
+    {
+        // 1. Highlight Weapon Buttons
+        if (weaponButtons != null)
+        {
+            for (int i = 0; i < weaponButtons.Length; i++)
+            {
+                if (weaponButtons[i] == null) continue;
+                
+                Image btnImg = weaponButtons[i].GetComponent<Image>();
+                if (btnImg != null)
+                {
+                    // If index matches selection, use Green. Else White.
+                    btnImg.color = (i == selectedSecondaryWeaponIndex) ? selectedColor : normalColor;
+                }
+            }
+        }
+
+        // 2. Highlight Skin Buttons
+        if (skinButtons != null)
+        {
+            for (int i = 0; i < skinButtons.Length; i++)
+            {
+                if (skinButtons[i] == null) continue;
+
+                Image btnImg = skinButtons[i].GetComponent<Image>();
+                if (btnImg != null)
+                {
+                    btnImg.color = (i == selectedSkinIndex) ? selectedColor : normalColor;
+                }
             }
         }
     }
