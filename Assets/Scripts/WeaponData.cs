@@ -75,6 +75,7 @@ public class WeaponData : ScriptableObject
     public float explosionRadius = 0f; // 0 = no explosion
 
     [Header("Visual Effects")]
+    
     public GameObject muzzleFlashPrefab;
     public GameObject bulletTracerPrefab;
     public GameObject impactEffectPrefab;

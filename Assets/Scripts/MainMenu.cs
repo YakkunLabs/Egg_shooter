@@ -1,37 +1,44 @@
 using UnityEngine;
 using UnityEngine.SceneManagement; 
+using UnityEngine.UI; // Required if you are using UI Buttons
 
 public class MainMenu : MonoBehaviour
 {
-    [Header("Weapon Selection")]
-    public GameObject[] menuGuns;
+    [Header("Secondary Weapon Selection")]
+    // Drag your weapon models here (e.g. 0=Pistol, 1=Rifle, 2=Shotgun)
+    // Make sure the order matches your Server's WeaponType ID!
+    public GameObject[] secondaryWeaponModels; 
 
     [Header("Skin Selection")]
-    // Drag the MeshRenderer of your visible menu player here
     public MeshRenderer menuPlayerMesh; 
-    // Drag all your skin Materials here (Element 0 = Default)
     public Material[] allSkins;
 
+    // We store the "Secondary Weapon" choice here
+    private int selectedSecondaryWeaponIndex = 0;
     private int selectedSkinIndex = 0;
-    private int selectedWeaponIndex = 0;
 
     void Start()
     {
-        // Unlock the cursor so the player can click buttons
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
-        // Load saved skin (Default to 0 if none saved)
-        selectedWeaponIndex = PlayerPrefs.GetInt("SelectedWeapon", 0);
+        // 1. LOAD SAVED DATA
+        // Default to 1 (Rifle) or 0 (None) depending on your preference
+        selectedSecondaryWeaponIndex = PlayerPrefs.GetInt("SelectedWeapon", 1); 
         selectedSkinIndex = PlayerPrefs.GetInt("SelectedSkin", 0);
 
+        // 2. APPLY VISUALS
         UpdateWeaponVisuals();
         UpdateSkinVisuals();
     }
     
     public void PlayGame()
     {
-        // Loads the next scene (The World)
+        // Save everything one last time before leaving
+        PlayerPrefs.SetInt("SelectedWeapon", selectedSecondaryWeaponIndex);
+        PlayerPrefs.SetInt("SelectedSkin", selectedSkinIndex);
+        PlayerPrefs.Save();
+
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
     }
 
@@ -41,41 +48,55 @@ public class MainMenu : MonoBehaviour
         Application.Quit();
     }
 
-    // Connect this to your SKIN Buttons (0, 1, 2, etc.)
-    public void SelectSkin(int index)
+    // --- SECONDARY WEAPON BUTTONS ---
+    // Link your Buttons to this: SelectSecondaryWeapon(1), SelectSecondaryWeapon(2), etc.
+    // NOTE: Check your Schema! If 1=Pistol, Button 1 should pass 1.
+    public void SelectSecondaryWeapon(int index)
     {
-        selectedSkinIndex = index;
-
-        // 1. Change the material immediately in the menu
-        UpdateSkinVisuals();
-
-        // 2. Save the choice for the Game Scene (NetClient will read this)
-        PlayerPrefs.SetInt("SelectedSkin", selectedSkinIndex);
-        PlayerPrefs.Save();
-    }
-
-    public void SelectWeapon(int index)
-    {
-        selectedWeaponIndex = index;
-        PlayerPrefs.SetInt("SelectedWeapon", selectedWeaponIndex+1);
+        selectedSecondaryWeaponIndex = index;
+        PlayerPrefs.SetInt("SelectedWeapon", selectedSecondaryWeaponIndex);
         PlayerPrefs.Save();
         UpdateWeaponVisuals();
     }
 
-    void UpdateSkinVisuals()
-    {
-        if (menuPlayerMesh != null && allSkins != null && selectedSkinIndex < allSkins.Length)
-        {
-             menuPlayerMesh.material = allSkins[selectedSkinIndex];
-        }
-    }
     void UpdateWeaponVisuals()
     {
-        if (menuGuns == null) return;
-        for (int i = 0; i < menuGuns.Length; i++)
+        if (secondaryWeaponModels == null) return;
+
+        // Hide all models first
+        for (int i = 0; i < secondaryWeaponModels.Length; i++)
         {
-            if (menuGuns[i] != null)
-                menuGuns[i].SetActive(i == selectedWeaponIndex);
+            if (secondaryWeaponModels[i] != null)
+                secondaryWeaponModels[i].SetActive(false);
+        }
+
+        // Show the selected one (if valid)
+        // Note: Arrays are 0-indexed. If your ID '1' matches model at index '0', adjust here.
+        // Assuming models are ordered exactly by ID:
+        if (selectedSecondaryWeaponIndex >= 0 && selectedSecondaryWeaponIndex < secondaryWeaponModels.Length)
+        {
+            if (secondaryWeaponModels[selectedSecondaryWeaponIndex] != null)
+                secondaryWeaponModels[selectedSecondaryWeaponIndex].SetActive(true);
+        }
+    }
+
+    // --- SKIN BUTTONS ---
+    public void SelectSkin(int index)
+    {
+        selectedSkinIndex = index;
+        PlayerPrefs.SetInt("SelectedSkin", selectedSkinIndex);
+        PlayerPrefs.Save();
+        UpdateSkinVisuals();
+    }
+
+    void UpdateSkinVisuals()
+    {
+        if (menuPlayerMesh != null && allSkins != null)
+        {
+            if (selectedSkinIndex >= 0 && selectedSkinIndex < allSkins.Length)
+            {
+                menuPlayerMesh.material = allSkins[selectedSkinIndex];
+            }
         }
     }
 }

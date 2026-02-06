@@ -63,12 +63,13 @@ public class AdvancedGunSystem : MonoBehaviour
             if (uiObj != null) text_fireMode = uiObj.GetComponent<TextMeshProUGUI>();
         }
 
-        // 2. AUTO-FIND RELOAD INDICATOR (Deep Search)
+        // 2. AUTO-FIND RELOAD UI (Indicator & Text)
         if (reloadIndicator == null)
         {
             Canvas[] canvases = FindObjectsByType<Canvas>(FindObjectsSortMode.None);
             foreach (Canvas c in canvases)
             {
+                // Find Circle
                 Image[] imgs = c.GetComponentsInChildren<Image>(true);
                 foreach (Image img in imgs)
                 {
@@ -78,6 +79,18 @@ public class AdvancedGunSystem : MonoBehaviour
                         break;
                     }
                 }
+
+                // Find Text (NEW)
+                TextMeshProUGUI[] txts = c.GetComponentsInChildren<TextMeshProUGUI>(true);
+                foreach (TextMeshProUGUI txt in txts)
+                {
+                    if (txt.name == "ReloadingText")
+                    {
+                        text_reloading = txt;
+                        break;
+                    }
+                }
+                
                 if (reloadIndicator != null) break;
             }
         }
