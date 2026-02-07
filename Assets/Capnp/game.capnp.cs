@@ -611,6 +611,201 @@ namespace CapnpGen
         }
     }
 
+    [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0x9f99eaff7ed96bf2UL)]
+    public class ScoreUpdate : ICapnpSerializable
+    {
+        public const UInt64 typeId = 0x9f99eaff7ed96bf2UL;
+        void ICapnpSerializable.Deserialize(DeserializerState arg_)
+        {
+            var reader = READER.create(arg_);
+            Score = reader.Score;
+            applyDefaults();
+        }
+
+        public void serialize(WRITER writer)
+        {
+            writer.Score = Score;
+        }
+
+        void ICapnpSerializable.Serialize(SerializerState arg_)
+        {
+            serialize(arg_.Rewrap<WRITER>());
+        }
+
+        public void applyDefaults()
+        {
+        }
+
+        public uint Score
+        {
+            get;
+            set;
+        }
+
+        public struct READER
+        {
+            readonly DeserializerState ctx;
+            public READER(DeserializerState ctx)
+            {
+                this.ctx = ctx;
+            }
+
+            public static READER create(DeserializerState ctx) => new READER(ctx);
+            public static implicit operator DeserializerState(READER reader) => reader.ctx;
+            public static implicit operator READER(DeserializerState ctx) => new READER(ctx);
+            public uint Score => ctx.ReadDataUInt(0UL, 0U);
+        }
+
+        public class WRITER : SerializerState
+        {
+            public WRITER()
+            {
+                this.SetStruct(1, 0);
+            }
+
+            public uint Score
+            {
+                get => this.ReadDataUInt(0UL, 0U);
+                set => this.WriteData(0UL, value, 0U);
+            }
+        }
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xb0abbed64b0b0e9bUL)]
+    public class PlayerScore : ICapnpSerializable
+    {
+        public const UInt64 typeId = 0xb0abbed64b0b0e9bUL;
+        void ICapnpSerializable.Deserialize(DeserializerState arg_)
+        {
+            var reader = READER.create(arg_);
+            PlayerId = reader.PlayerId;
+            Score = reader.Score;
+            applyDefaults();
+        }
+
+        public void serialize(WRITER writer)
+        {
+            writer.PlayerId = PlayerId;
+            writer.Score = Score;
+        }
+
+        void ICapnpSerializable.Serialize(SerializerState arg_)
+        {
+            serialize(arg_.Rewrap<WRITER>());
+        }
+
+        public void applyDefaults()
+        {
+        }
+
+        public ulong PlayerId
+        {
+            get;
+            set;
+        }
+
+        public uint Score
+        {
+            get;
+            set;
+        }
+
+        public struct READER
+        {
+            readonly DeserializerState ctx;
+            public READER(DeserializerState ctx)
+            {
+                this.ctx = ctx;
+            }
+
+            public static READER create(DeserializerState ctx) => new READER(ctx);
+            public static implicit operator DeserializerState(READER reader) => reader.ctx;
+            public static implicit operator READER(DeserializerState ctx) => new READER(ctx);
+            public ulong PlayerId => ctx.ReadDataULong(0UL, 0UL);
+            public uint Score => ctx.ReadDataUInt(64UL, 0U);
+        }
+
+        public class WRITER : SerializerState
+        {
+            public WRITER()
+            {
+                this.SetStruct(2, 0);
+            }
+
+            public ulong PlayerId
+            {
+                get => this.ReadDataULong(0UL, 0UL);
+                set => this.WriteData(0UL, value, 0UL);
+            }
+
+            public uint Score
+            {
+                get => this.ReadDataUInt(64UL, 0U);
+                set => this.WriteData(64UL, value, 0U);
+            }
+        }
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xf95e275bc929f542UL)]
+    public class MatchEnded : ICapnpSerializable
+    {
+        public const UInt64 typeId = 0xf95e275bc929f542UL;
+        void ICapnpSerializable.Deserialize(DeserializerState arg_)
+        {
+            var reader = READER.create(arg_);
+            Scores = reader.Scores?.ToReadOnlyList(_ => CapnpSerializable.Create<CapnpGen.PlayerScore>(_));
+            applyDefaults();
+        }
+
+        public void serialize(WRITER writer)
+        {
+            writer.Scores.Init(Scores, (_s1, _v1) => _v1?.serialize(_s1));
+        }
+
+        void ICapnpSerializable.Serialize(SerializerState arg_)
+        {
+            serialize(arg_.Rewrap<WRITER>());
+        }
+
+        public void applyDefaults()
+        {
+        }
+
+        public IReadOnlyList<CapnpGen.PlayerScore> Scores
+        {
+            get;
+            set;
+        }
+
+        public struct READER
+        {
+            readonly DeserializerState ctx;
+            public READER(DeserializerState ctx)
+            {
+                this.ctx = ctx;
+            }
+
+            public static READER create(DeserializerState ctx) => new READER(ctx);
+            public static implicit operator DeserializerState(READER reader) => reader.ctx;
+            public static implicit operator READER(DeserializerState ctx) => new READER(ctx);
+            public IReadOnlyList<CapnpGen.PlayerScore.READER> Scores => ctx.ReadList(0).Cast(CapnpGen.PlayerScore.READER.create);
+        }
+
+        public class WRITER : SerializerState
+        {
+            public WRITER()
+            {
+                this.SetStruct(0, 1);
+            }
+
+            public ListOfStructsSerializer<CapnpGen.PlayerScore.WRITER> Scores
+            {
+                get => BuildPointer<ListOfStructsSerializer<CapnpGen.PlayerScore.WRITER>>(0);
+                set => Link(0, value);
+            }
+        }
+    }
+
     [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xd7707db593543632UL)]
     public class PlayerState : ICapnpSerializable
     {
@@ -1542,6 +1737,8 @@ namespace CapnpGen
         {
             AssignId = 0,
             Snapshot = 1,
+            ScoreUpdate = 2,
+            MatchEnded = 3,
             undefined = 65535
         }
 
@@ -1555,6 +1752,12 @@ namespace CapnpGen
                     break;
                 case WHICH.Snapshot:
                     Snapshot = CapnpSerializable.Create<CapnpGen.Snapshot>(reader.Snapshot);
+                    break;
+                case WHICH.ScoreUpdate:
+                    ScoreUpdate = CapnpSerializable.Create<CapnpGen.ScoreUpdate>(reader.ScoreUpdate);
+                    break;
+                case WHICH.MatchEnded:
+                    MatchEnded = CapnpSerializable.Create<CapnpGen.MatchEnded>(reader.MatchEnded);
                     break;
             }
 
@@ -1579,6 +1782,12 @@ namespace CapnpGen
                     case WHICH.Snapshot:
                         _content = null;
                         break;
+                    case WHICH.ScoreUpdate:
+                        _content = null;
+                        break;
+                    case WHICH.MatchEnded:
+                        _content = null;
+                        break;
                 }
             }
         }
@@ -1593,6 +1802,12 @@ namespace CapnpGen
                     break;
                 case WHICH.Snapshot:
                     Snapshot?.serialize(writer.Snapshot);
+                    break;
+                case WHICH.ScoreUpdate:
+                    ScoreUpdate?.serialize(writer.ScoreUpdate);
+                    break;
+                case WHICH.MatchEnded:
+                    MatchEnded?.serialize(writer.MatchEnded);
                     break;
             }
         }
@@ -1626,6 +1841,26 @@ namespace CapnpGen
             }
         }
 
+        public CapnpGen.ScoreUpdate ScoreUpdate
+        {
+            get => _which == WHICH.ScoreUpdate ? (CapnpGen.ScoreUpdate)_content : null;
+            set
+            {
+                _which = WHICH.ScoreUpdate;
+                _content = value;
+            }
+        }
+
+        public CapnpGen.MatchEnded MatchEnded
+        {
+            get => _which == WHICH.MatchEnded ? (CapnpGen.MatchEnded)_content : null;
+            set
+            {
+                _which = WHICH.MatchEnded;
+                _content = value;
+            }
+        }
+
         public struct READER
         {
             readonly DeserializerState ctx;
@@ -1640,6 +1875,8 @@ namespace CapnpGen
             public WHICH which => (WHICH)ctx.ReadDataUShort(0U, (ushort)0);
             public CapnpGen.AssignId.READER AssignId => which == WHICH.AssignId ? ctx.ReadStruct(0, CapnpGen.AssignId.READER.create) : default;
             public CapnpGen.Snapshot.READER Snapshot => which == WHICH.Snapshot ? ctx.ReadStruct(0, CapnpGen.Snapshot.READER.create) : default;
+            public CapnpGen.ScoreUpdate.READER ScoreUpdate => which == WHICH.ScoreUpdate ? ctx.ReadStruct(0, CapnpGen.ScoreUpdate.READER.create) : default;
+            public CapnpGen.MatchEnded.READER MatchEnded => which == WHICH.MatchEnded ? ctx.ReadStruct(0, CapnpGen.MatchEnded.READER.create) : default;
         }
 
         public class WRITER : SerializerState
@@ -1664,6 +1901,18 @@ namespace CapnpGen
             public CapnpGen.Snapshot.WRITER Snapshot
             {
                 get => which == WHICH.Snapshot ? BuildPointer<CapnpGen.Snapshot.WRITER>(0) : default;
+                set => Link(0, value);
+            }
+
+            public CapnpGen.ScoreUpdate.WRITER ScoreUpdate
+            {
+                get => which == WHICH.ScoreUpdate ? BuildPointer<CapnpGen.ScoreUpdate.WRITER>(0) : default;
+                set => Link(0, value);
+            }
+
+            public CapnpGen.MatchEnded.WRITER MatchEnded
+            {
+                get => which == WHICH.MatchEnded ? BuildPointer<CapnpGen.MatchEnded.WRITER>(0) : default;
                 set => Link(0, value);
             }
         }

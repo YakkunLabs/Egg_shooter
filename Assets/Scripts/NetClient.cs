@@ -16,6 +16,7 @@ using WS = NativeWebSocket.WebSocket;
 // ✅ Avoid WeaponType name collisions
 using WeaponTypeCp = CapnpGen.WeaponType;
 using WeaponSlotCp = CapnpGen.WeaponSlot;
+using UnityEngine.SocialPlatforms.Impl;
 
 public class NetClient : MonoBehaviour
 {
@@ -137,6 +138,17 @@ public class NetClient : MonoBehaviour
             {
                 var snap = msg.Snapshot;
                 _mainThread.Enqueue(() => ApplySnapshot(snap));
+            }
+            else if (msg.which == ServerMsg.WHICH.ScoreUpdate)
+            {
+                var score = msg.ScoreUpdate.Score;
+                Debug.Log($"[NetClient] Score: {score}");
+            }
+            else if (msg.which == ServerMsg.WHICH.MatchEnded) {
+                var scores = msg.MatchEnded.Scores;
+                foreach (var score in scores) {
+                    Debug.Log($"[NetClient] Player : { score.PlayerId }  Score: {score.Score}");
+                }
             }
         }
         catch (Exception e)
