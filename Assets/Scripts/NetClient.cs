@@ -450,7 +450,7 @@ public class NetClient : MonoBehaviour
 
         root.Input.FaceYaw = faceYaw;
         root.Input.AimYaw = aimYaw;
-        root.Input.AimPitch = aimPitch;
+        root.Input.AimPitch = -aimPitch;
 
         root.Input.ShootPressed = shootPressed;
         root.Input.ReloadPressed = reloadPressed;
