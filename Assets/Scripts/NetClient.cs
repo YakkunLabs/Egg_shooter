@@ -17,6 +17,7 @@ using WS = NativeWebSocket.WebSocket;
 using WeaponTypeCp = CapnpGen.WeaponType;
 using WeaponSlotCp = CapnpGen.WeaponSlot;
 using UnityEngine.SocialPlatforms.Impl;
+using Unity.VisualScripting;
 
 public class NetClient : MonoBehaviour
 {
@@ -144,10 +145,12 @@ public class NetClient : MonoBehaviour
                 var score = msg.ScoreUpdate.Score;
                 Debug.Log($"[NetClient] Score: {score}");
             }
-            else if (msg.which == ServerMsg.WHICH.MatchEnded) {
+            else if (msg.which == ServerMsg.WHICH.MatchEnded)
+            {
                 var scores = msg.MatchEnded.Scores;
-                foreach (var score in scores) {
-                    Debug.Log($"[NetClient] Player : { score.PlayerId }  Score: {score.Score}");
+                foreach (var score in scores)
+                {
+                    Debug.Log($"[NetClient] Player : {score.PlayerId}  Score: {score.Score}");
                 }
             }
             else if (msg.which == ServerMsg.WHICH.PlayerJoined)
@@ -172,11 +175,50 @@ public class NetClient : MonoBehaviour
                 var info = msg.LobbyInfo;
                 Debug.Log($"[NetClient] Players in lobby: {info.PlayerCount}");
             }
+            else if (msg.which == ServerMsg.WHICH.ServerFull)
+            {
+                uint max = msg.ServerFull.MaxPlayers;
+
+                Debug.Log($"[NetClient] Server full. Max players = {max}");
+
+                ShowPopup($"Server is full.\nMax players: {max}");
+                Disconnect();
+            }
         }
         catch (Exception e)
         {
             Debug.LogError($"[NetClient] Parse message error: {e}");
         }
+    }
+
+    void Disconnect()
+    {
+        try
+        {
+            if (_net != null)
+            {
+                _net.OnMessage -= OnTransportMessage;
+                _net.Dispose();          // closes TCP or WSS safely
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning($"[NetClient] Disconnect error: {e.Message}");
+        }
+        finally
+        {
+            _net = null;
+            myPlayerId = 0;
+            isGameStarted = false;
+
+            Debug.Log("[NetClient] Disconnected");
+        }
+    }
+
+
+    void ShowPopup(string message)
+    {
+        Debug.Log($"[POPUP] {message}");
     }
 
     string GenerateRandomName(int length = 10)

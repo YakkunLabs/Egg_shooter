@@ -2014,6 +2014,66 @@ namespace CapnpGen
         }
     }
 
+    [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xd3649a02b37b8c1eUL)]
+    public class ServerFull : ICapnpSerializable
+    {
+        public const UInt64 typeId = 0xd3649a02b37b8c1eUL;
+        void ICapnpSerializable.Deserialize(DeserializerState arg_)
+        {
+            var reader = READER.create(arg_);
+            MaxPlayers = reader.MaxPlayers;
+            applyDefaults();
+        }
+
+        public void serialize(WRITER writer)
+        {
+            writer.MaxPlayers = MaxPlayers;
+        }
+
+        void ICapnpSerializable.Serialize(SerializerState arg_)
+        {
+            serialize(arg_.Rewrap<WRITER>());
+        }
+
+        public void applyDefaults()
+        {
+        }
+
+        public uint MaxPlayers
+        {
+            get;
+            set;
+        }
+
+        public struct READER
+        {
+            readonly DeserializerState ctx;
+            public READER(DeserializerState ctx)
+            {
+                this.ctx = ctx;
+            }
+
+            public static READER create(DeserializerState ctx) => new READER(ctx);
+            public static implicit operator DeserializerState(READER reader) => reader.ctx;
+            public static implicit operator READER(DeserializerState ctx) => new READER(ctx);
+            public uint MaxPlayers => ctx.ReadDataUInt(0UL, 0U);
+        }
+
+        public class WRITER : SerializerState
+        {
+            public WRITER()
+            {
+                this.SetStruct(1, 0);
+            }
+
+            public uint MaxPlayers
+            {
+                get => this.ReadDataUInt(0UL, 0U);
+                set => this.WriteData(0UL, value, 0U);
+            }
+        }
+    }
+
     [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xc86a7cbc9d1ca950UL)]
     public class ServerMsg : ICapnpSerializable
     {
@@ -2027,6 +2087,7 @@ namespace CapnpGen
             Roster = 4,
             PlayerJoined = 5,
             LobbyInfo = 6,
+            ServerFull = 7,
             undefined = 65535
         }
 
@@ -2055,6 +2116,9 @@ namespace CapnpGen
                     break;
                 case WHICH.LobbyInfo:
                     LobbyInfo = CapnpSerializable.Create<CapnpGen.LobbyInfo>(reader.LobbyInfo);
+                    break;
+                case WHICH.ServerFull:
+                    ServerFull = CapnpSerializable.Create<CapnpGen.ServerFull>(reader.ServerFull);
                     break;
             }
 
@@ -2094,6 +2158,9 @@ namespace CapnpGen
                     case WHICH.LobbyInfo:
                         _content = null;
                         break;
+                    case WHICH.ServerFull:
+                        _content = null;
+                        break;
                 }
             }
         }
@@ -2123,6 +2190,9 @@ namespace CapnpGen
                     break;
                 case WHICH.LobbyInfo:
                     LobbyInfo?.serialize(writer.LobbyInfo);
+                    break;
+                case WHICH.ServerFull:
+                    ServerFull?.serialize(writer.ServerFull);
                     break;
             }
         }
@@ -2206,6 +2276,16 @@ namespace CapnpGen
             }
         }
 
+        public CapnpGen.ServerFull ServerFull
+        {
+            get => _which == WHICH.ServerFull ? (CapnpGen.ServerFull)_content : null;
+            set
+            {
+                _which = WHICH.ServerFull;
+                _content = value;
+            }
+        }
+
         public struct READER
         {
             readonly DeserializerState ctx;
@@ -2225,6 +2305,7 @@ namespace CapnpGen
             public CapnpGen.Roster.READER Roster => which == WHICH.Roster ? ctx.ReadStruct(0, CapnpGen.Roster.READER.create) : default;
             public CapnpGen.PlayerJoined.READER PlayerJoined => which == WHICH.PlayerJoined ? ctx.ReadStruct(0, CapnpGen.PlayerJoined.READER.create) : default;
             public CapnpGen.LobbyInfo.READER LobbyInfo => which == WHICH.LobbyInfo ? ctx.ReadStruct(0, CapnpGen.LobbyInfo.READER.create) : default;
+            public CapnpGen.ServerFull.READER ServerFull => which == WHICH.ServerFull ? ctx.ReadStruct(0, CapnpGen.ServerFull.READER.create) : default;
         }
 
         public class WRITER : SerializerState
@@ -2279,6 +2360,12 @@ namespace CapnpGen
             public CapnpGen.LobbyInfo.WRITER LobbyInfo
             {
                 get => which == WHICH.LobbyInfo ? BuildPointer<CapnpGen.LobbyInfo.WRITER>(0) : default;
+                set => Link(0, value);
+            }
+
+            public CapnpGen.ServerFull.WRITER ServerFull
+            {
+                get => which == WHICH.ServerFull ? BuildPointer<CapnpGen.ServerFull.WRITER>(0) : default;
                 set => Link(0, value);
             }
         }
