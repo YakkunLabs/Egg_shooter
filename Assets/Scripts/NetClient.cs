@@ -150,11 +150,40 @@ public class NetClient : MonoBehaviour
                     Debug.Log($"[NetClient] Player : { score.PlayerId }  Score: {score.Score}");
                 }
             }
+            else if (msg.which == ServerMsg.WHICH.PlayerJoined)
+            {
+                var joined = msg.PlayerJoined;
+                var p = joined.Player;
+
+                Debug.Log($"[NetClient] PlayerJoined -> id={p.PlayerId}, name='{p.Name}', skin={p.SkinId}");
+            }
+            else if (msg.which == ServerMsg.WHICH.Roster)
+            {
+                var roster = msg.Roster;
+                Debug.Log($"[NetClient] Roster received. Player count = {roster.Players.Count}");
+
+                foreach (var p in roster.Players)
+                {
+                    Debug.Log($"[NetClient] Roster Player -> id={p.PlayerId}, name='{p.Name}', skin={p.SkinId}");
+                }
+            }
         }
         catch (Exception e)
         {
             Debug.LogError($"[NetClient] Parse message error: {e}");
         }
+    }
+
+    string GenerateRandomName(int length = 10)
+    {
+        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        System.Random rng = new System.Random();
+
+        char[] buffer = new char[length];
+        for (int i = 0; i < length; i++)
+            buffer[i] = chars[rng.Next(chars.Length)];
+
+        return new string(buffer);
     }
 
     void ApplySnapshot(Snapshot.READER snap)
@@ -370,9 +399,13 @@ public class NetClient : MonoBehaviour
         root.SelectLoadout.SkinId = (ushort)skinId;
         root.SelectLoadout.SecondaryWeapon = secondaryWeapon;
 
+        // Generate random name
+        string randomName = GenerateRandomName(10);
+        root.SelectLoadout.PlayerName = randomName;
+
         SendClientMsg(mb);
 
-        if (log) Debug.Log($"[NetClient] Sent SelectLoadout skin={skinId} secondary={secondaryWeapon}");
+        if (log) Debug.Log($"[NetClient] Sent SelectLoadout skin={skinId} secondary={secondaryWeapon} name={randomName}");
     }
 
     public void SendInput(
@@ -685,4 +718,8 @@ public class NetClient : MonoBehaviour
         public void Dispose() { }
     }
 #endif
+
+
 }
+
+
