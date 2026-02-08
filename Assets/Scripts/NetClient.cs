@@ -167,6 +167,11 @@ public class NetClient : MonoBehaviour
                     Debug.Log($"[NetClient] Roster Player -> id={p.PlayerId}, name='{p.Name}', skin={p.SkinId}");
                 }
             }
+            else if (msg.which == ServerMsg.WHICH.LobbyInfo)
+            {
+                var info = msg.LobbyInfo;
+                Debug.Log($"[NetClient] Players in lobby: {info.PlayerCount}");
+            }
         }
         catch (Exception e)
         {
