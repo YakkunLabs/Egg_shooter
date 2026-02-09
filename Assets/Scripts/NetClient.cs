@@ -49,6 +49,7 @@ public class NetClient : MonoBehaviour
 
     readonly ConcurrentQueue<Action> _mainThread = new();
     readonly Dictionary<ulong, GameObject> _players = new();
+    readonly Dictionary<ulong, string> _playerNames = new();
 
     // cache spawns from snapshot (spawnId -> state)
     readonly Dictionary<ushort, WeaponSpawnState.READER> _spawns = new();
@@ -139,6 +140,31 @@ public class NetClient : MonoBehaviour
             {
                 var snap = msg.Snapshot;
                 _mainThread.Enqueue(() => ApplySnapshot(snap));
+            }
+            // ✅ SAVE NAME WHEN PLAYER JOINS
+            else if (msg.which == ServerMsg.WHICH.PlayerJoined)
+            {
+                var joined = msg.PlayerJoined;
+                var p = joined.Player;
+
+                lock (_playerNames)
+                {
+                    _playerNames[p.PlayerId] = p.Name;
+                }
+                Debug.Log($"[NetClient] PlayerJoined -> id={p.PlayerId}, name='{p.Name}'");
+            }
+            // ✅ SAVE ALL NAMES FROM ROSTER
+            else if (msg.which == ServerMsg.WHICH.Roster)
+            {
+                var roster = msg.Roster;
+                lock (_playerNames)
+                {
+                    foreach (var p in roster.Players)
+                    {
+                        _playerNames[p.PlayerId] = p.Name;
+                    }
+                }
+                Debug.Log($"[NetClient] Roster received. Saved {_playerNames.Count} names.");
             }
             else if (msg.which == ServerMsg.WHICH.ScoreUpdate)
             {
@@ -277,6 +303,19 @@ public class NetClient : MonoBehaviour
             NetworkPlayerSetup visualSetup = go.GetComponent<NetworkPlayerSetup>();
             if (visualSetup != null)
             {
+                // ✅ GET NAME FROM DICTIONARY
+                string displayName = $"Player {id}"; // Default
+                lock (_playerNames)
+                {
+                    if (_playerNames.ContainsKey(id))
+                    {
+                        displayName = _playerNames[id];
+                    }
+                }
+
+                // Send Name to Setup Script
+                visualSetup.SetName(displayName);
+                
                 int primWeapon = (int)p.Primary.Weapon;
                 int primAmmo = (int)p.Primary.AmmoInMag;
                 int primReserve = (int)p.Primary.ReserveAmmo;

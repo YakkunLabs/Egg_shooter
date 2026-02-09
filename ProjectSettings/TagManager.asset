@@ -11,6 +11,9 @@ TagManager:
   - spawn_point
   - Weapon_point
   - weapon_point
+  - player_point
+  - PlayerSpawn
+  - ItemSpawn
   layers:
   - Default
   - TransparentFX
