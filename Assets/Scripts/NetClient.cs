@@ -142,16 +142,32 @@ public class NetClient : MonoBehaviour
                 _mainThread.Enqueue(() => ApplySnapshot(snap));
             }
             // ✅ SAVE NAME WHEN PLAYER JOINS
-            else if (msg.which == ServerMsg.WHICH.PlayerJoined)
+else if (msg.which == ServerMsg.WHICH.PlayerJoined)
             {
                 var joined = msg.PlayerJoined;
                 var p = joined.Player;
 
+                // 1. Save Name to Dictionary (For Name Tags)
                 lock (_playerNames)
                 {
                     _playerNames[p.PlayerId] = p.Name;
                 }
+                
                 Debug.Log($"[NetClient] PlayerJoined -> id={p.PlayerId}, name='{p.Name}'");
+
+                // 2. Trigger UI Notification (For Join Panel)
+                _mainThread.Enqueue(() => 
+                {
+                    if (JoinNotification.Instance != null)
+                    {
+                        JoinNotification.Instance.ShowMessage(p.Name);
+                    }
+                    else
+                    {
+                        // If this prints, check if NotificationManager is ACTIVE in the Hierarchy!
+                        Debug.LogError("❌ JoinNotification.Instance is NULL!"); 
+                    }
+                });
             }
             // ✅ SAVE ALL NAMES FROM ROSTER
             else if (msg.which == ServerMsg.WHICH.Roster)
