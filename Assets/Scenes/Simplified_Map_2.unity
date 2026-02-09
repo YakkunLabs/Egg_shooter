@@ -1514,7 +1514,7 @@ GameObject:
   - component: {fileID: 292034683}
   - component: {fileID: 292034682}
   m_Layer: 5
-  m_Name: Text_Score_HUD
+  m_Name: ScoreText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1559,7 +1559,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'KILLS: 0'
+  m_text: 'Score: 0'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -6513,6 +6513,8 @@ MonoBehaviour:
   muzzleFlashPrefab: {fileID: 0}
   shootSound: {fileID: 8300000, guid: 77c64ca3eae449c4db979d9b7fc850a5, type: 3}
   playerCountText: {fileID: 616537488}
+  scoreText: {fileID: 292034682}
+  killFeed: {fileID: 0}
   isGameStarted: 0
   host: 127.0.0.1
   port: 9000

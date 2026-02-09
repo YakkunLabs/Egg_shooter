@@ -30,6 +30,7 @@ public class NetClient : MonoBehaviour
 
     [Header("UI")]
     public TMPro.TextMeshProUGUI playerCountText;
+    public TMPro.TextMeshProUGUI scoreText;
 
     public bool isGameStarted = false;
 
@@ -185,11 +186,23 @@ else if (msg.which == ServerMsg.WHICH.PlayerJoined)
                 }
                 Debug.Log($"[NetClient] Roster received. Saved {_playerNames.Count} names.");
             }
+
             else if (msg.which == ServerMsg.WHICH.ScoreUpdate)
             {
                 var score = msg.ScoreUpdate.Score;
+                
+                // Run on Main Thread to update UI
+                _mainThread.Enqueue(() => 
+                {
+                    if (scoreText != null)
+                    {
+                        scoreText.text = $"Score: {score}";
+                    }
+                });
+
                 Debug.Log($"[NetClient] Score: {score}");
             }
+
             else if (msg.which == ServerMsg.WHICH.MatchEnded)
             {
                 var scores = msg.MatchEnded.Scores;
@@ -829,8 +842,6 @@ else if (msg.which == ServerMsg.WHICH.PlayerJoined)
         public void Dispose() { }
     }
 #endif
-
-
 }
 
 
