@@ -277,6 +277,19 @@ else if (msg.which == ServerMsg.WHICH.PlayerJoined)
     void ShowPopup(string message)
     {
         Debug.Log($"[POPUP] {message}");
+
+        // Use the Main Thread to update UI
+        _mainThread.Enqueue(() =>
+        {
+            if (ServerMessagePopup.Instance != null)
+            {
+                ServerMessagePopup.Instance.ShowError(message);
+            }
+            else
+            {
+                Debug.LogError("❌ ServerMessagePopup is missing from the scene!");
+            }
+        });
     }
 
     string GenerateRandomName(int length = 10)
