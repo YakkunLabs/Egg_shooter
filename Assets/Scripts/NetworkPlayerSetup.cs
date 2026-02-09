@@ -1,4 +1,5 @@
 using UnityEngine;
+using TMPro;
 
 public class NetworkPlayerSetup : MonoBehaviour
 {
@@ -9,6 +10,17 @@ public class NetworkPlayerSetup : MonoBehaviour
     [Header("Configuration Libraries")]
     public Material[] availableSkins; 
     public GameObject[] availableGuns; 
+
+    [Header("UI")]
+    public TextMeshPro nameTagText;
+
+    public void SetName(string name)
+    {
+        if (nameTagText != null)
+        {
+            nameTagText.text = name;
+        }
+    }
 
     // ------------------------------------------------------------------------
     // METHOD 1: The Full Version (Used by NetClient)

@@ -21,19 +21,17 @@ public class MapExporter : MonoBehaviour
     [System.Serializable]
     public class MapData
     {
-        public List<SpawnEntry> spawnPoints = new List<SpawnEntry>(); 
-        public List<WeaponPoint> weaponPoints = new List<WeaponPoint>(); 
+        public List<MapPoint> PlayerSpawnPoints = new List<MapPoint>(); 
+        public List<MapPoint> ItemSpawnPoints = new List<MapPoint>(); 
         public List<ColliderEntry> colliders = new List<ColliderEntry>();
     }
-    
+
     [System.Serializable]
-    public class WeaponPoint
+    public class MapPoint
     {
-        public string name;
-        public string tag;
+        public string name;      // Changed back to 'name'
         public Vector3 position;
-        public float yaw;
-        public string weapon; // extracted from object name (e.g., "Rifle")
+        // Removed 'yaw' and 'type' as requested
     }
 
     [System.Serializable]
@@ -48,60 +46,43 @@ public class MapExporter : MonoBehaviour
         public bool isTrigger;    
     }
 
-    [System.Serializable]
-    public class SpawnEntry
-    {
-        public string name;      
-        public string tag;       
-        public Vector3 position;
-        public float yaw; 
-    }
-
     // --- LOGIC ---
     public void ExportMap()
     {
         MapData data = new MapData();
 
         // ---------------------------------------------------------
-        // PART 1: EXPORT SPAWN POINTS
+        // PART 1: EXPORT PLAYER SPAWN POINTS
         // ---------------------------------------------------------
-        GameObject[] spawns = GameObject.FindGameObjectsWithTag("spawn_point");
+        GameObject[] playerSpawns = GameObject.FindGameObjectsWithTag("PlayerSpawn");
         
-        foreach (GameObject sp in spawns)
+        foreach (GameObject go in playerSpawns)
         {
-            SpawnEntry s = new SpawnEntry();
-            s.name = sp.name;               
-            s.tag = sp.tag;                 
-            s.position = sp.transform.position;
-            s.yaw = sp.transform.eulerAngles.y; 
-            data.spawnPoints.Add(s);
-        }
-
-        Debug.Log($"Found {data.spawnPoints.Count} Spawn Points.");
-
-        // ---------------------------------------------------------
-        // PART 2: EXPORT WEAPON POINTS (NEW)
-        // ---------------------------------------------------------
-        GameObject[] weapons = GameObject.FindGameObjectsWithTag("weapon_point");
-
-        foreach (GameObject wp in weapons)
-        {
-            WeaponPoint w = new WeaponPoint();
-            w.name = wp.name;
-            w.tag = wp.tag;
-            // Use the parent position (center of the crate area)
-            w.position = wp.transform.position;
-            w.yaw = wp.transform.eulerAngles.y;
+            MapPoint p = new MapPoint();
+            p.name = go.name;
+            p.position = go.transform.position;
             
-            // Clean the name to guess the ID (e.g., "Rifle_Spawn (1)" -> "Rifle")
-            string rawName = wp.name.Replace("(Clone)", "").Replace("Spawn", "").Trim();
-            // Remove numbers if you named them "Rifle 1", "Rifle 2"
-            w.weapon = System.Text.RegularExpressions.Regex.Replace(rawName, @"[\d-]", "").Trim();
-
-            data.weaponPoints.Add(w);
+            data.PlayerSpawnPoints.Add(p);
         }
 
-        Debug.Log($"Found {data.weaponPoints.Count} Weapon Points.");
+        Debug.Log($"Found {data.PlayerSpawnPoints.Count} Player Spawns.");
+
+        // ---------------------------------------------------------
+        // PART 2: EXPORT ITEM SPAWN POINTS
+        // ---------------------------------------------------------
+        GameObject[] itemSpawns = GameObject.FindGameObjectsWithTag("ItemSpawn");
+
+        foreach (GameObject go in itemSpawns)
+        {
+            MapPoint p = new MapPoint();
+            // We just use the raw object name now (e.g., "ItemSpawn_Rifle")
+            p.name = go.name; 
+            p.position = go.transform.position;
+
+            data.ItemSpawnPoints.Add(p);
+        }
+
+        Debug.Log($"Found {data.ItemSpawnPoints.Count} Item Spawns.");
 
         // ---------------------------------------------------------
         // PART 3: EXPORT COLLIDERS
@@ -112,8 +93,8 @@ public class MapExporter : MonoBehaviour
         {
             if (col.isTrigger && !exportTriggers) continue;
             
-            // Skip the weapon crates/triggers themselves if they are tagged
-            if (col.CompareTag("weapon_point") || col.CompareTag("spawn_point")) continue;
+            // Skip the spawn points themselves if they have colliders
+            if (col.CompareTag("PlayerSpawn") || col.CompareTag("ItemSpawn")) continue;
 
             ColliderEntry entry = new ColliderEntry();
             entry.tag = exportTags ? col.gameObject.tag : "Untagged";
@@ -170,7 +151,7 @@ public class MapExporter : MonoBehaviour
         string path = Path.Combine(Application.dataPath, fileName);
         File.WriteAllText(path, json);
 
-        Debug.Log($"<b>[MapExporter]</b> Exported {data.colliders.Count} colliders, {data.spawnPoints.Count} spawns, and {data.weaponPoints.Count} weapon points to: {path}");
+        Debug.Log($"<b>[MapExporter]</b> Exported {data.colliders.Count} colliders, {data.PlayerSpawnPoints.Count} Player Spawns, and {data.ItemSpawnPoints.Count} Item Spawns to: {path}");
     }
 }
 

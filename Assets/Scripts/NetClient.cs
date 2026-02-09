@@ -28,6 +28,10 @@ public class NetClient : MonoBehaviour
     public GameObject muzzleFlashPrefab;
     public AudioClip shootSound;
 
+    [Header("UI")]
+    public TMPro.TextMeshProUGUI playerCountText;
+    public TMPro.TextMeshProUGUI scoreText;
+
     public bool isGameStarted = false;
 
     [Header("TCP (Editor/Standalone)")]
@@ -49,6 +53,7 @@ public class NetClient : MonoBehaviour
 
     readonly ConcurrentQueue<Action> _mainThread = new();
     readonly Dictionary<ulong, GameObject> _players = new();
+    readonly Dictionary<ulong, string> _playerNames = new();
 
     // cache spawns from snapshot (spawnId -> state)
     readonly Dictionary<ushort, WeaponSpawnState.READER> _spawns = new();
@@ -140,19 +145,98 @@ public class NetClient : MonoBehaviour
                 var snap = msg.Snapshot;
                 _mainThread.Enqueue(() => ApplySnapshot(snap));
             }
+            // ✅ SAVE NAME WHEN PLAYER JOINS
+else if (msg.which == ServerMsg.WHICH.PlayerJoined)
+            {
+                var joined = msg.PlayerJoined;
+                var p = joined.Player;
+
+                // 1. Save Name to Dictionary (For Name Tags)
+                lock (_playerNames)
+                {
+                    _playerNames[p.PlayerId] = p.Name;
+                }
+                
+                Debug.Log($"[NetClient] PlayerJoined -> id={p.PlayerId}, name='{p.Name}'");
+
+                // 2. Trigger UI Notification (For Join Panel)
+                _mainThread.Enqueue(() => 
+                {
+                    if (JoinNotification.Instance != null)
+                    {
+                        JoinNotification.Instance.ShowMessage(p.Name);
+                    }
+                    else
+                    {
+                        // If this prints, check if NotificationManager is ACTIVE in the Hierarchy!
+                        Debug.LogError("❌ JoinNotification.Instance is NULL!"); 
+                    }
+                });
+            }
+            // ✅ SAVE ALL NAMES FROM ROSTER
+            else if (msg.which == ServerMsg.WHICH.Roster)
+            {
+                var roster = msg.Roster;
+                lock (_playerNames)
+                {
+                    foreach (var p in roster.Players)
+                    {
+                        _playerNames[p.PlayerId] = p.Name;
+                    }
+                }
+                Debug.Log($"[NetClient] Roster received. Saved {_playerNames.Count} names.");
+            }
+
             else if (msg.which == ServerMsg.WHICH.ScoreUpdate)
             {
                 var score = msg.ScoreUpdate.Score;
+                
+                // Run on Main Thread to update UI
+                _mainThread.Enqueue(() => 
+                {
+                    if (scoreText != null)
+                    {
+                        scoreText.text = $"Score: {score}";
+                    }
+                });
+
                 Debug.Log($"[NetClient] Score: {score}");
             }
+
             else if (msg.which == ServerMsg.WHICH.MatchEnded)
             {
                 var scores = msg.MatchEnded.Scores;
+                Debug.Log("[NetClient] Match Ended! Stopping simulation.");
+
+                // 1. STOP THE GAME (Disable Input)
+                isGameStarted = false; 
+
+                // 2. UNLOCK MOUSE (So player can see UI)
+                _mainThread.Enqueue(() => 
+                {
+                    Cursor.lockState = CursorLockMode.None;
+                    Cursor.visible = true;
+                });
+
+                // 3. SHOW FINAL SCORES
+                List<string> finalResults = new List<string>();
+
                 foreach (var score in scores)
                 {
-                    Debug.Log($"[NetClient] Player : {score.PlayerId}  Score: {score.Score}");
+                    string pName = GetPlayerName(score.PlayerId); 
+                    int pScore = (int)score.Score;
+                    finalResults.Add($"{pName} : {pScore}");
                 }
+
+                _mainThread.Enqueue(() => 
+                {
+                    if (MatchResultsUI.Instance != null)
+                    {
+                        MatchResultsUI.Instance.ShowResults(finalResults);
+                    }
+                });
             }
+
             else if (msg.which == ServerMsg.WHICH.PlayerJoined)
             {
                 var joined = msg.PlayerJoined;
@@ -219,6 +303,19 @@ public class NetClient : MonoBehaviour
     void ShowPopup(string message)
     {
         Debug.Log($"[POPUP] {message}");
+
+        // Use the Main Thread to update UI
+        _mainThread.Enqueue(() =>
+        {
+            if (ServerMessagePopup.Instance != null)
+            {
+                ServerMessagePopup.Instance.ShowError(message);
+            }
+            else
+            {
+                Debug.LogError("❌ ServerMessagePopup is missing from the scene!");
+            }
+        });
     }
 
     string GenerateRandomName(int length = 10)
@@ -231,6 +328,16 @@ public class NetClient : MonoBehaviour
             buffer[i] = chars[rng.Next(chars.Length)];
 
         return new string(buffer);
+    }
+
+    string GetPlayerName(ulong playerId)
+    {
+        lock (_playerNames)
+        {
+            if (_playerNames.TryGetValue(playerId, out var name))
+                return name;
+        }
+        return $"Player {playerId}";
     }
 
     void ApplySnapshot(Snapshot.READER snap)
@@ -277,6 +384,19 @@ public class NetClient : MonoBehaviour
             NetworkPlayerSetup visualSetup = go.GetComponent<NetworkPlayerSetup>();
             if (visualSetup != null)
             {
+                // ✅ GET NAME FROM DICTIONARY
+                string displayName = $"Player {id}"; // Default
+                lock (_playerNames)
+                {
+                    if (_playerNames.ContainsKey(id))
+                    {
+                        displayName = _playerNames[id];
+                    }
+                }
+
+                // Send Name to Setup Script
+                visualSetup.SetName(displayName);
+                
                 int primWeapon = (int)p.Primary.Weapon;
                 int primAmmo = (int)p.Primary.AmmoInMag;
                 int primReserve = (int)p.Primary.ReserveAmmo;
@@ -329,6 +449,12 @@ public class NetClient : MonoBehaviour
             }
         }
         foreach (var id in toRemove) _players.Remove(id);
+
+        if (playerCountText != null)
+        {
+            // _players.Count gives the number of active 3D models in the game
+            playerCountText.text = $"Players: {_players.Count}";
+        }
     }
 
     // ---------------- SNAPSHOT: SPAWNS ----------------
@@ -765,8 +891,6 @@ public class NetClient : MonoBehaviour
         public void Dispose() { }
     }
 #endif
-
-
 }
 
 

@@ -182,7 +182,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &83952606
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5012,15 +5012,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AdvancedGunSystem
   weaponData: {fileID: 11400000, guid: 4683180794c63b545ba142fcc0cd1182, type: 2}
+  currentAmmo: 0
+  reserveAmmo: 0
+  isReloading: 0
+  readyToShoot: 1
   fpsCamera: {fileID: 330585545}
   attackPoint: {fileID: 1258201923}
   bulletPrefab: {fileID: 0}
   audioSource: {fileID: 177902961}
+  weaponModel: {fileID: 0}
   muzzleFlash: {fileID: 0}
   scopeOverlay: {fileID: 0}
-  weaponModel: {fileID: 0}
   text_ammo: {fileID: 0}
   text_fireMode: {fileID: 0}
+  reloadIndicator: {fileID: 0}
+  text_reloading: {fileID: 0}
   maxZoom: 60
   minZoom: 10
   zoomSpeed: 30
@@ -5037,15 +5043,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AdvancedGunSystem
   weaponData: {fileID: 11400000, guid: 4683180794c63b545ba142fcc0cd1182, type: 2}
+  currentAmmo: 0
+  reserveAmmo: 0
+  isReloading: 0
+  readyToShoot: 1
   fpsCamera: {fileID: 330585545}
   attackPoint: {fileID: 1899027787}
   bulletPrefab: {fileID: 0}
   audioSource: {fileID: 177902960}
+  weaponModel: {fileID: 0}
   muzzleFlash: {fileID: 0}
   scopeOverlay: {fileID: 0}
-  weaponModel: {fileID: 0}
   text_ammo: {fileID: 0}
   text_fireMode: {fileID: 0}
+  reloadIndicator: {fileID: 0}
+  text_reloading: {fileID: 0}
   maxZoom: 60
   minZoom: 10
   zoomSpeed: 30
@@ -5185,7 +5197,7 @@ RectTransform:
   m_Father: {fileID: 2051898543}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 10, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -5946,6 +5958,8 @@ MonoBehaviour:
   canMove: 1
   isClimbing: 0
   climbSpeed: 6
+  climbMessageUI: {fileID: 0}
+  serverAuthoritative: 1
 --- !u!143 &286266172
 CharacterController:
   m_ObjectHideFlags: 0
@@ -6082,6 +6096,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerHealth
   maxHealth: 100
   currentHealth: 0
+  canRegenerate: 1
+  regenAmount: 20
+  timeBeforeRegen: 3
   kills: 0
   healthSlider: {fileID: 1784785903}
   gameOverScreen: {fileID: 1041381034}
@@ -7740,15 +7757,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AdvancedGunSystem
   weaponData: {fileID: 11400000, guid: 4683180794c63b545ba142fcc0cd1182, type: 2}
+  currentAmmo: 0
+  reserveAmmo: 0
+  isReloading: 0
+  readyToShoot: 1
   fpsCamera: {fileID: 330585545}
   attackPoint: {fileID: 1244289659}
   bulletPrefab: {fileID: 0}
   audioSource: {fileID: 378064769}
+  weaponModel: {fileID: 0}
   muzzleFlash: {fileID: 0}
   scopeOverlay: {fileID: 0}
-  weaponModel: {fileID: 0}
   text_ammo: {fileID: 0}
   text_fireMode: {fileID: 0}
+  reloadIndicator: {fileID: 0}
+  text_reloading: {fileID: 0}
   maxZoom: 60
   minZoom: 10
   zoomSpeed: 30
@@ -7765,15 +7788,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AdvancedGunSystem
   weaponData: {fileID: 11400000, guid: 4683180794c63b545ba142fcc0cd1182, type: 2}
+  currentAmmo: 0
+  reserveAmmo: 0
+  isReloading: 0
+  readyToShoot: 1
   fpsCamera: {fileID: 330585545}
   attackPoint: {fileID: 1675595084}
   bulletPrefab: {fileID: 0}
   audioSource: {fileID: 378064768}
+  weaponModel: {fileID: 0}
   muzzleFlash: {fileID: 0}
   scopeOverlay: {fileID: 0}
-  weaponModel: {fileID: 0}
   text_ammo: {fileID: 0}
   text_fireMode: {fileID: 0}
+  reloadIndicator: {fileID: 0}
+  text_reloading: {fileID: 0}
   maxZoom: 60
   minZoom: 10
   zoomSpeed: 30
@@ -9013,88 +9042,88 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1421736179}
     m_Modifications:
-    - target: {fileID: -8679921383154817045, guid: 8d38820612b7c3c41b67336735718cf9, type: 3}
+    - target: {fileID: -8679921383154817045, guid: 44906496f1ed4ae42823ace70384fa76, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.5
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 8d38820612b7c3c41b67336735718cf9, type: 3}
+    - target: {fileID: -8679921383154817045, guid: 44906496f1ed4ae42823ace70384fa76, type: 3}
       propertyPath: m_LocalScale.y
       value: 1.5
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 8d38820612b7c3c41b67336735718cf9, type: 3}
+    - target: {fileID: -8679921383154817045, guid: 44906496f1ed4ae42823ace70384fa76, type: 3}
       propertyPath: m_LocalScale.z
       value: 1.5
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 8d38820612b7c3c41b67336735718cf9, type: 3}
+    - target: {fileID: -8679921383154817045, guid: 44906496f1ed4ae42823ace70384fa76, type: 3}
       propertyPath: m_LocalPosition.x
       value: -0.002
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 8d38820612b7c3c41b67336735718cf9, type: 3}
+    - target: {fileID: -8679921383154817045, guid: 44906496f1ed4ae42823ace70384fa76, type: 3}
       propertyPath: m_LocalPosition.y
       value: -0.061
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 8d38820612b7c3c41b67336735718cf9, type: 3}
+    - target: {fileID: -8679921383154817045, guid: 44906496f1ed4ae42823ace70384fa76, type: 3}
       propertyPath: m_LocalPosition.z
       value: 0.559
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 8d38820612b7c3c41b67336735718cf9, type: 3}
+    - target: {fileID: -8679921383154817045, guid: 44906496f1ed4ae42823ace70384fa76, type: 3}
       propertyPath: m_LocalRotation.w
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 8d38820612b7c3c41b67336735718cf9, type: 3}
+    - target: {fileID: -8679921383154817045, guid: 44906496f1ed4ae42823ace70384fa76, type: 3}
       propertyPath: m_LocalRotation.x
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 8d38820612b7c3c41b67336735718cf9, type: 3}
+    - target: {fileID: -8679921383154817045, guid: 44906496f1ed4ae42823ace70384fa76, type: 3}
       propertyPath: m_LocalRotation.y
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 8d38820612b7c3c41b67336735718cf9, type: 3}
+    - target: {fileID: -8679921383154817045, guid: 44906496f1ed4ae42823ace70384fa76, type: 3}
       propertyPath: m_LocalRotation.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 8d38820612b7c3c41b67336735718cf9, type: 3}
+    - target: {fileID: -8679921383154817045, guid: 44906496f1ed4ae42823ace70384fa76, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 8d38820612b7c3c41b67336735718cf9, type: 3}
+    - target: {fileID: -8679921383154817045, guid: 44906496f1ed4ae42823ace70384fa76, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 8d38820612b7c3c41b67336735718cf9, type: 3}
+    - target: {fileID: -8679921383154817045, guid: 44906496f1ed4ae42823ace70384fa76, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 919132149155446097, guid: 8d38820612b7c3c41b67336735718cf9, type: 3}
+    - target: {fileID: 919132149155446097, guid: 44906496f1ed4ae42823ace70384fa76, type: 3}
       propertyPath: m_Name
-      value: blaster-n
+      value: blaster-h
       objectReference: {fileID: 0}
-    - target: {fileID: 919132149155446097, guid: 8d38820612b7c3c41b67336735718cf9, type: 3}
+    - target: {fileID: 919132149155446097, guid: 44906496f1ed4ae42823ace70384fa76, type: 3}
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 8d38820612b7c3c41b67336735718cf9, type: 3}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 44906496f1ed4ae42823ace70384fa76, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1209482398}
     m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 8d38820612b7c3c41b67336735718cf9, type: 3}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 44906496f1ed4ae42823ace70384fa76, type: 3}
       insertIndex: -1
       addedObject: {fileID: 522834920}
-    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 8d38820612b7c3c41b67336735718cf9, type: 3}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 44906496f1ed4ae42823ace70384fa76, type: 3}
       insertIndex: -1
       addedObject: {fileID: 522834919}
-  m_SourcePrefab: {fileID: 100100000, guid: 8d38820612b7c3c41b67336735718cf9, type: 3}
+  m_SourcePrefab: {fileID: 100100000, guid: 44906496f1ed4ae42823ace70384fa76, type: 3}
 --- !u!4 &522834917 stripped
 Transform:
-  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 8d38820612b7c3c41b67336735718cf9, type: 3}
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 44906496f1ed4ae42823ace70384fa76, type: 3}
   m_PrefabInstance: {fileID: 522834916}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &522834918 stripped
 GameObject:
-  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 8d38820612b7c3c41b67336735718cf9, type: 3}
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 44906496f1ed4ae42823ace70384fa76, type: 3}
   m_PrefabInstance: {fileID: 522834916}
   m_PrefabAsset: {fileID: 0}
 --- !u!82 &522834919
@@ -9207,15 +9236,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AdvancedGunSystem
   weaponData: {fileID: 11400000, guid: 81da5d038f728f543b2f75777aac75e1, type: 2}
+  currentAmmo: 0
+  reserveAmmo: 0
+  isReloading: 0
+  readyToShoot: 1
   fpsCamera: {fileID: 330585545}
   attackPoint: {fileID: 1209482398}
   bulletPrefab: {fileID: 0}
   audioSource: {fileID: 522834919}
+  weaponModel: {fileID: 0}
   muzzleFlash: {fileID: 0}
   scopeOverlay: {fileID: 0}
-  weaponModel: {fileID: 0}
   text_ammo: {fileID: 0}
   text_fireMode: {fileID: 0}
+  reloadIndicator: {fileID: 0}
+  text_reloading: {fileID: 0}
   maxZoom: 60
   minZoom: 10
   zoomSpeed: 30
@@ -16075,15 +16110,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AdvancedGunSystem
   weaponData: {fileID: 11400000, guid: 3dc298ca64ff48948a9b7b9403b33d15, type: 2}
+  currentAmmo: 0
+  reserveAmmo: 0
+  isReloading: 0
+  readyToShoot: 1
   fpsCamera: {fileID: 330585545}
   attackPoint: {fileID: 691091013}
   bulletPrefab: {fileID: 5115898143798426263, guid: b34ebd24c871c8647b8e1fb274878aa4, type: 3}
   audioSource: {fileID: 688326354}
+  weaponModel: {fileID: 0}
   muzzleFlash: {fileID: 579075399}
   scopeOverlay: {fileID: 0}
-  weaponModel: {fileID: 0}
   text_ammo: {fileID: 167007554}
   text_fireMode: {fileID: 0}
+  reloadIndicator: {fileID: 0}
+  text_reloading: {fileID: 0}
   maxZoom: 60
   minZoom: 10
   zoomSpeed: 30
@@ -17052,15 +17093,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AdvancedGunSystem
   weaponData: {fileID: 11400000, guid: 81da5d038f728f543b2f75777aac75e1, type: 2}
+  currentAmmo: 0
+  reserveAmmo: 0
+  isReloading: 0
+  readyToShoot: 1
   fpsCamera: {fileID: 330585545}
   attackPoint: {fileID: 298598690}
   bulletPrefab: {fileID: 0}
   audioSource: {fileID: 822417148}
+  weaponModel: {fileID: 0}
   muzzleFlash: {fileID: 0}
   scopeOverlay: {fileID: 0}
-  weaponModel: {fileID: 0}
   text_ammo: {fileID: 0}
   text_fireMode: {fileID: 0}
+  reloadIndicator: {fileID: 0}
+  text_reloading: {fileID: 0}
   maxZoom: 60
   minZoom: 10
   zoomSpeed: 30
@@ -18803,7 +18850,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 58ce48fc47ebc0b4fb9b62883b26df14, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MiniMapFollow
-  player: {fileID: 286266176}
+  height: 30
+  rotateWithPlayer: 0
 --- !u!114 &1030482849
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -25793,7 +25841,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 1babf3e98f4bc5f4c860242fcc410c5c, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -25966,15 +26014,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AdvancedGunSystem
   weaponData: {fileID: 11400000, guid: 1ee98c6dddbc77648a93f5c333d3127b, type: 2}
+  currentAmmo: 0
+  reserveAmmo: 0
+  isReloading: 0
+  readyToShoot: 1
   fpsCamera: {fileID: 330585545}
   attackPoint: {fileID: 1407973811}
   bulletPrefab: {fileID: 5115898143798426263, guid: b34ebd24c871c8647b8e1fb274878aa4, type: 3}
   audioSource: {fileID: 1410140925}
+  weaponModel: {fileID: 0}
   muzzleFlash: {fileID: 579075399}
   scopeOverlay: {fileID: 0}
-  weaponModel: {fileID: 0}
   text_ammo: {fileID: 167007554}
   text_fireMode: {fileID: 0}
+  reloadIndicator: {fileID: 0}
+  text_reloading: {fileID: 0}
   maxZoom: 60
   minZoom: 10
   zoomSpeed: 30
@@ -28272,15 +28326,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AdvancedGunSystem
   weaponData: {fileID: 11400000, guid: aead5629996738e46b22b18d47529e84, type: 2}
+  currentAmmo: 0
+  reserveAmmo: 0
+  isReloading: 0
+  readyToShoot: 1
   fpsCamera: {fileID: 330585545}
   attackPoint: {fileID: 1760352822}
   bulletPrefab: {fileID: 5115898143798426263, guid: b34ebd24c871c8647b8e1fb274878aa4, type: 3}
   audioSource: {fileID: 1617881815}
+  weaponModel: {fileID: 1617881813}
   muzzleFlash: {fileID: 1233730321}
   scopeOverlay: {fileID: 180245609}
-  weaponModel: {fileID: 1617881813}
   text_ammo: {fileID: 167007554}
   text_fireMode: {fileID: 0}
+  reloadIndicator: {fileID: 0}
+  text_reloading: {fileID: 0}
   maxZoom: 60
   minZoom: 10
   zoomSpeed: 30
@@ -28486,15 +28546,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AdvancedGunSystem
   weaponData: {fileID: 11400000, guid: 81da5d038f728f543b2f75777aac75e1, type: 2}
+  currentAmmo: 0
+  reserveAmmo: 0
+  isReloading: 0
+  readyToShoot: 1
   fpsCamera: {fileID: 330585545}
   attackPoint: {fileID: 1363633449}
   bulletPrefab: {fileID: 0}
   audioSource: {fileID: 1655466110}
+  weaponModel: {fileID: 0}
   muzzleFlash: {fileID: 0}
   scopeOverlay: {fileID: 0}
-  weaponModel: {fileID: 0}
   text_ammo: {fileID: 0}
   text_fireMode: {fileID: 0}
+  reloadIndicator: {fileID: 0}
+  text_reloading: {fileID: 0}
   maxZoom: 60
   minZoom: 10
   zoomSpeed: 30
@@ -29636,6 +29702,230 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
+--- !u!1 &1801068792
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1801068796}
+  - component: {fileID: 1801068795}
+  - component: {fileID: 1801068794}
+  - component: {fileID: 1801068793}
+  m_Layer: 0
+  m_Name: Player (1)
+  m_TagString: Player
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!143 &1801068793
+CharacterController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1801068792}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 0
+  serializedVersion: 3
+  m_Height: 2
+  m_Radius: 0.5
+  m_SlopeLimit: 45
+  m_StepOffset: 0.3
+  m_SkinWidth: 0.08
+  m_MinMoveDistance: 0.001
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!23 &1801068794
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1801068792}
+  m_Enabled: 0
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: cccf87e80ee9f214c8367f224fb10940, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &1801068795
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1801068792}
+  m_Mesh: {fileID: 4711208715938537054, guid: 4506b9e36416f88428c810a47f9e6655, type: 3}
+--- !u!4 &1801068796
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1801068792}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
+  m_LocalPosition: {x: 0, y: 100, z: 5.02}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1850304552}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
+--- !u!1 &1850304551
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1850304552}
+  - component: {fileID: 1850304555}
+  - component: {fileID: 1850304554}
+  - component: {fileID: 1850304553}
+  m_Layer: 0
+  m_Name: Visuals
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1850304552
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1850304551}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.7071068, y: -0, z: -0, w: -0.7071068}
+  m_LocalPosition: {x: 0, y: 0.317, z: 0}
+  m_LocalScale: {x: 70, y: 70, z: 70}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1801068796}
+  m_LocalEulerAnglesHint: {x: 270, y: 0, z: 0}
+--- !u!114 &1850304553
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1850304551}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d81b509c4c097fd419ad95e5bc6e9079, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerSkinLoader
+  playerMesh: {fileID: 1850304554}
+  allSkins:
+  - {fileID: 2100000, guid: 52ad5d5058cdcd04b91895ee0c82d9b0, type: 2}
+  - {fileID: 2100000, guid: cccf87e80ee9f214c8367f224fb10940, type: 2}
+--- !u!23 &1850304554
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1850304551}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 52ad5d5058cdcd04b91895ee0c82d9b0, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &1850304555
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1850304551}
+  m_Mesh: {fileID: 4711208715938537054, guid: 4506b9e36416f88428c810a47f9e6655, type: 3}
 --- !u!1 &1865901941
 GameObject:
   m_ObjectHideFlags: 0
@@ -30003,15 +30293,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AdvancedGunSystem
   weaponData: {fileID: 11400000, guid: 4683180794c63b545ba142fcc0cd1182, type: 2}
+  currentAmmo: 0
+  reserveAmmo: 0
+  isReloading: 0
+  readyToShoot: 1
   fpsCamera: {fileID: 330585545}
   attackPoint: {fileID: 1012045326}
   bulletPrefab: {fileID: 0}
   audioSource: {fileID: 1920042682}
+  weaponModel: {fileID: 0}
   muzzleFlash: {fileID: 0}
   scopeOverlay: {fileID: 0}
-  weaponModel: {fileID: 0}
   text_ammo: {fileID: 0}
   text_fireMode: {fileID: 0}
+  reloadIndicator: {fileID: 0}
+  text_reloading: {fileID: 0}
   maxZoom: 60
   minZoom: 10
   zoomSpeed: 30
@@ -30028,15 +30324,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AdvancedGunSystem
   weaponData: {fileID: 11400000, guid: 4683180794c63b545ba142fcc0cd1182, type: 2}
+  currentAmmo: 0
+  reserveAmmo: 0
+  isReloading: 0
+  readyToShoot: 1
   fpsCamera: {fileID: 330585545}
   attackPoint: {fileID: 1491363023}
   bulletPrefab: {fileID: 0}
   audioSource: {fileID: 1920042681}
+  weaponModel: {fileID: 0}
   muzzleFlash: {fileID: 0}
   scopeOverlay: {fileID: 0}
-  weaponModel: {fileID: 0}
   text_ammo: {fileID: 0}
   text_fireMode: {fileID: 0}
+  reloadIndicator: {fileID: 0}
+  text_reloading: {fileID: 0}
   maxZoom: 60
   minZoom: 10
   zoomSpeed: 30
@@ -31046,6 +31348,7 @@ SceneRoots:
   - {fileID: 410087041}
   - {fileID: 832575519}
   - {fileID: 286266176}
+  - {fileID: 1801068796}
   - {fileID: 83952609}
   - {fileID: 916297732}
   - {fileID: 176934344}
