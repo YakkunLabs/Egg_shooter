@@ -28,6 +28,9 @@ public class NetClient : MonoBehaviour
     public GameObject muzzleFlashPrefab;
     public AudioClip shootSound;
 
+    [Header("UI")]
+    public TMPro.TextMeshProUGUI playerCountText;
+
     public bool isGameStarted = false;
 
     [Header("TCP (Editor/Standalone)")]
@@ -384,6 +387,12 @@ else if (msg.which == ServerMsg.WHICH.PlayerJoined)
             }
         }
         foreach (var id in toRemove) _players.Remove(id);
+
+        if (playerCountText != null)
+        {
+            // _players.Count gives the number of active 3D models in the game
+            playerCountText.text = $"Players: {_players.Count}";
+        }
     }
 
     // ---------------- SNAPSHOT: SPAWNS ----------------
