@@ -41,116 +41,116 @@
             "yaw": 0.0
         }
     ],
-    "weaponPoints": [
+    "playerPoints": [
         {
-            "name": "Weapon_Point_1",
-            "tag": "weapon_point",
+            "name": "Point_1",
+            "tag": "player_point",
             "position": {
                 "x": 9.110420227050782,
                 "y": -0.5788500308990479,
                 "z": 23.10972023010254
             },
             "yaw": 0.0,
-            "weapon": "Weapon_Point_"
+            "player": "Point_"
         },
         {
-            "name": "Weapon_Point_2",
-            "tag": "weapon_point",
+            "name": "Point_2",
+            "tag": "player_point",
             "position": {
                 "x": 35.01042175292969,
                 "y": -0.5788500308990479,
                 "z": 23.10972023010254
             },
             "yaw": 0.0,
-            "weapon": "Weapon_Point_"
+            "player": "Point_"
         },
         {
-            "name": "Weapon_Point_3",
-            "tag": "weapon_point",
+            "name": "Point_3",
+            "tag": "player_point",
             "position": {
                 "x": 60.01042175292969,
                 "y": -0.5788500308990479,
                 "z": 8.109720230102539
             },
             "yaw": 0.0,
-            "weapon": "Weapon_Point_"
+            "player": "Point_"
         },
         {
-            "name": "Weapon_Point_4",
-            "tag": "weapon_point",
+            "name": "Point_4",
+            "tag": "player_point",
             "position": {
                 "x": 60.01042175292969,
                 "y": -0.5788500308990479,
                 "z": -21.790281295776368
             },
             "yaw": 0.0,
-            "weapon": "Weapon_Point_"
+            "player": "Point_"
         },
         {
-            "name": "Weapon_Point_5",
-            "tag": "weapon_point",
+            "name": "Point_5",
+            "tag": "player_point",
             "position": {
                 "x": 43.810420989990237,
                 "y": -0.5788500308990479,
                 "z": -21.790281295776368
             },
             "yaw": 0.0,
-            "weapon": "Weapon_Point_"
+            "player": "Point_"
         },
         {
-            "name": "Weapon_Point_6",
-            "tag": "weapon_point",
+            "name": "Point_6",
+            "tag": "player_point",
             "position": {
                 "x": 43.810420989990237,
                 "y": -0.5788500308990479,
                 "z": -64.09027862548828
             },
             "yaw": 0.0,
-            "weapon": "Weapon_Point_"
+            "player": "Point_"
         },
         {
-            "name": "Weapon_Point_7",
-            "tag": "weapon_point",
+            "name": "Point_7",
+            "tag": "player_point",
             "position": {
                 "x": 14.010419845581055,
                 "y": -0.5788500308990479,
                 "z": -64.09027862548828
             },
             "yaw": 0.0,
-            "weapon": "Weapon_Point_"
+            "player": "Point_"
         },
         {
-            "name": "Weapon_Point_8",
-            "tag": "weapon_point",
+            "name": "Point_8",
+            "tag": "player_point",
             "position": {
                 "x": -22.88957977294922,
                 "y": -0.5788500308990479,
                 "z": -64.09027862548828
             },
             "yaw": 0.0,
-            "weapon": "Weapon_Point_"
+            "player": "Point_"
         },
         {
-            "name": "Weapon_Point_9",
-            "tag": "weapon_point",
+            "name": "Point_9",
+            "tag": "player_point",
             "position": {
                 "x": -43.08958053588867,
                 "y": -0.5788500308990479,
                 "z": -88.49028015136719
             },
             "yaw": 0.0,
-            "weapon": "Weapon_Point_"
+            "player": "Point_"
         },
         {
-            "name": "Weapon_Point_10",
-            "tag": "weapon_point",
+            "name": "Point_10",
+            "tag": "player_point",
             "position": {
                 "x": -51.189579010009769,
                 "y": -0.5788500308990479,
                 "z": -30.39027976989746
             },
             "yaw": 0.0,
-            "weapon": "Weapon_Point_"
+            "player": "Point_"
         }
     ],
     "colliders": [

@@ -22,7 +22,7 @@ public class MapExporter : MonoBehaviour
     public class MapData
     {
         public List<SpawnEntry> spawnPoints = new List<SpawnEntry>(); 
-        public List<WeaponPoint> weaponPoints = new List<WeaponPoint>(); 
+        public List<playerPoint> playerPoints = new List<playerPoint>(); 
         public List<ColliderEntry> colliders = new List<ColliderEntry>();
     }
     
@@ -33,7 +33,17 @@ public class MapExporter : MonoBehaviour
         public string tag;
         public Vector3 position;
         public float yaw;
-        public string weapon; // extracted from object name (e.g., "Rifle")
+        public string player; // extracted from object name (e.g., "Rifle")
+    }
+
+    [System.Serializable]
+    public class playerPoint
+    {
+        public string name;
+        public string tag;
+        public Vector3 position;
+        public float yaw;
+        public string player;
     }
 
     [System.Serializable]
@@ -80,28 +90,28 @@ public class MapExporter : MonoBehaviour
         Debug.Log($"Found {data.spawnPoints.Count} Spawn Points.");
 
         // ---------------------------------------------------------
-        // PART 2: EXPORT WEAPON POINTS (NEW)
+        // PART 2: EXPORT PLAYER POINTS (NEW)
         // ---------------------------------------------------------
-        GameObject[] weapons = GameObject.FindGameObjectsWithTag("weapon_point");
+        GameObject[] playerPoints = GameObject.FindGameObjectsWithTag("player_point");
 
-        foreach (GameObject wp in weapons)
+        foreach (GameObject wp in playerPoints)
         {
-            WeaponPoint w = new WeaponPoint();
+            playerPoint w = new playerPoint();
             w.name = wp.name;
             w.tag = wp.tag;
             // Use the parent position (center of the crate area)
             w.position = wp.transform.position;
             w.yaw = wp.transform.eulerAngles.y;
             
-            // Clean the name to guess the ID (e.g., "Rifle_Spawn (1)" -> "Rifle")
+           
             string rawName = wp.name.Replace("(Clone)", "").Replace("Spawn", "").Trim();
-            // Remove numbers if you named them "Rifle 1", "Rifle 2"
-            w.weapon = System.Text.RegularExpressions.Regex.Replace(rawName, @"[\d-]", "").Trim();
+           
+            w.player = System.Text.RegularExpressions.Regex.Replace(rawName, @"[\d-]", "").Trim();
 
-            data.weaponPoints.Add(w);
+            data.playerPoints.Add(w);
         }
 
-        Debug.Log($"Found {data.weaponPoints.Count} Weapon Points.");
+        Debug.Log($"Found {data.playerPoints.Count} Player Points.");
 
         // ---------------------------------------------------------
         // PART 3: EXPORT COLLIDERS
@@ -170,7 +180,7 @@ public class MapExporter : MonoBehaviour
         string path = Path.Combine(Application.dataPath, fileName);
         File.WriteAllText(path, json);
 
-        Debug.Log($"<b>[MapExporter]</b> Exported {data.colliders.Count} colliders, {data.spawnPoints.Count} spawns, and {data.weaponPoints.Count} weapon points to: {path}");
+        Debug.Log($"<b>[MapExporter]</b> Exported {data.colliders.Count} colliders, {data.spawnPoints.Count} spawns, and {data.playerPoints.Count} player points to: {path}");
     }
 }
 
