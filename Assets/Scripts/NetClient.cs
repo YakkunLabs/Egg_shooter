@@ -8,9 +8,16 @@ using System.Net.Sockets;
 using System.Threading;
 using UnityEngine;
 
+#if UNITY_WEBGL && !UNITY_EDITOR
+using NativeWebSocket;
+using WS = NativeWebSocket.WebSocket;
+#endif
+
 // ✅ Avoid WeaponType name collisions
 using WeaponTypeCp = CapnpGen.WeaponType;
 using WeaponSlotCp = CapnpGen.WeaponSlot;
+using UnityEngine.SocialPlatforms.Impl;
+using Unity.VisualScripting;
 
 public class NetClient : MonoBehaviour
 {
@@ -23,9 +30,13 @@ public class NetClient : MonoBehaviour
 
     public bool isGameStarted = false;
 
-    [Header("TCP")]
+    [Header("TCP (Editor/Standalone)")]
     public string host = "127.0.0.1";
     public int port = 9001;
+
+    [Header("WSS (WebGL/Browser)")]
+    [Tooltip("Example: wss://your-domain.com/ws  (this should be your WS->TCP proxy endpoint)")]
+    public string wssUrl = "wss://your-domain.com/ws";
 
     [Header("Capsules")]
     public float capsuleHeight = 2f;
@@ -34,17 +45,12 @@ public class NetClient : MonoBehaviour
     [Header("Debug")]
     public bool log = true;
 
-    TcpClient _tcp;
-    NetworkStream _stream;
-    Thread _rxThread;
-    volatile bool _running;
-
     uint _sequence = 0;
 
     readonly ConcurrentQueue<Action> _mainThread = new();
     readonly Dictionary<ulong, GameObject> _players = new();
 
-    // NEW: cache spawns from snapshot (spawnId -> available/weapon)
+    // cache spawns from snapshot (spawnId -> state)
     readonly Dictionary<ushort, WeaponSpawnState.READER> _spawns = new();
 
     public ulong myPlayerId { get; private set; } = 0;
@@ -52,105 +58,185 @@ public class NetClient : MonoBehaviour
     public GameObject playerPrefab;
     public GameObject enemyPrefab;
 
+    INetTransport _net;
+
     void Start() => Connect();
     void OnDestroy() => Shutdown();
 
     void Update()
     {
-        while (_mainThread.TryDequeue(out var a)) a();
+        _net?.Pump();
+
+        while (_mainThread.TryDequeue(out var a))
+            a();
     }
 
     // ---------------- CONNECT ----------------
 
     public void Connect()
     {
-        try
-        {
-            _tcp = new TcpClient();
-            _tcp.NoDelay = true;
-            _tcp.Connect(host, port);
-            _stream = _tcp.GetStream();
+        Shutdown();
 
-            _running = true;
-            _rxThread = new Thread(RxLoop) { IsBackground = true };
-            _rxThread.Start();
+#if UNITY_WEBGL && !UNITY_EDITOR
+        _net = new WebSocketTransport(wssUrl, log);
+#else
+        _net = new TcpTransport(host, port, log);
+#endif
 
-            if (log) Debug.Log($"[NetClient] Connected {host}:{port}");
-        }
-        catch (Exception e)
+        _net.OnMessage += OnTransportMessage;
+        _net.OnDisconnected += () =>
         {
-            Debug.LogError($"[NetClient] Connect failed: {e}");
-        }
+            if (log) Debug.Log("[NetClient] Disconnected");
+        };
+        _net.OnError += (err) =>
+        {
+            Debug.LogError($"[NetClient] Net error: {err}");
+        };
+
+        _net.Connect();
     }
 
     public void Shutdown()
     {
-        _running = false;
-        try { _stream?.Close(); } catch { }
-        try { _tcp?.Close(); } catch { }
-        try { if (_rxThread != null && _rxThread.IsAlive) _rxThread.Join(200); } catch { }
+        if (_net != null)
+        {
+            _net.OnMessage -= OnTransportMessage;
+            _net.Dispose();
+            _net = null;
+        }
     }
 
-    // ---------------- RX LOOP ----------------
+    // ---------------- RX DISPATCH ----------------
 
-    void RxLoop()
+    void OnTransportMessage(byte[] payload)
     {
         try
         {
-            while (_running)
+            using var ms = new MemoryStream(payload, writable: false);
+            var segments = Framing.ReadSegments(ms);
+            var state = DeserializerState.CreateRoot(segments);
+
+            var msg = new ServerMsg.READER(state);
+
+            if (msg.which == ServerMsg.WHICH.AssignId)
             {
-                byte[] payload = ReadFrameBigEndian(_stream);
-                if (payload == null) break;
-
-                using var ms = new MemoryStream(payload, writable: false);
-                var segments = Framing.ReadSegments(ms);
-                var state = DeserializerState.CreateRoot(segments);
-
-                var msg = new ServerMsg.READER(state);
-
-                if (msg.which == ServerMsg.WHICH.AssignId)
+                var a = msg.AssignId;
+                _mainThread.Enqueue(() =>
                 {
-                    var a = msg.AssignId;
-                    _mainThread.Enqueue(() =>
-                    {
-                        myPlayerId = a.PlayerId;
-                        if (log) Debug.Log($"[NetClient] Assigned playerId={myPlayerId}");
+                    myPlayerId = a.PlayerId;
+                    if (log) Debug.Log($"[NetClient] Assigned playerId={myPlayerId}");
 
-                        int savedSkin = PlayerPrefs.GetInt("SelectedSkin", 0);
+                    int savedSkin = PlayerPrefs.GetInt("SelectedSkin", 0);
+                    int savedSecondaryWeapon = PlayerPrefs.GetInt("SelectedWeapon", 0);
 
-                        // IMPORTANT:
-                        // Secondary weapon selection should map to CapnpGen.WeaponType values:
-                        // 0=none, 1=pistol, 2=rifle, 3=smg, 4=shotgun, 5=sniper (based on your schema)
-                        int savedSecondaryWeapon = PlayerPrefs.GetInt("SelectedWeapon", 0);
+                    if (log) Debug.Log($"[NetClient] Sending SelectLoadout -> Skin: {savedSkin}, SecondaryWeapon: {savedSecondaryWeapon}");
 
-                        if (log) Debug.Log($"[NetClient] Sending SelectLoadout -> Skin: {savedSkin}, SecondaryWeapon: {savedSecondaryWeapon}");
-
-                        SendSelectLoadout(savedSkin, (WeaponTypeCp)savedSecondaryWeapon);
-
-                        // optional: send a first empty input so server sees activity
-                        SendTestInput();
-                    });
-                }
-                else if (msg.which == ServerMsg.WHICH.Snapshot)
+                    SendSelectLoadout(savedSkin, (WeaponTypeCp)savedSecondaryWeapon);
+                    SendTestInput();
+                });
+            }
+            else if (msg.which == ServerMsg.WHICH.Snapshot)
+            {
+                var snap = msg.Snapshot;
+                _mainThread.Enqueue(() => ApplySnapshot(snap));
+            }
+            else if (msg.which == ServerMsg.WHICH.ScoreUpdate)
+            {
+                var score = msg.ScoreUpdate.Score;
+                Debug.Log($"[NetClient] Score: {score}");
+            }
+            else if (msg.which == ServerMsg.WHICH.MatchEnded)
+            {
+                var scores = msg.MatchEnded.Scores;
+                foreach (var score in scores)
                 {
-                    var snap = msg.Snapshot;
-                    _mainThread.Enqueue(() => ApplySnapshot(snap));
+                    Debug.Log($"[NetClient] Player : {score.PlayerId}  Score: {score.Score}");
                 }
+            }
+            else if (msg.which == ServerMsg.WHICH.PlayerJoined)
+            {
+                var joined = msg.PlayerJoined;
+                var p = joined.Player;
+
+                Debug.Log($"[NetClient] PlayerJoined -> id={p.PlayerId}, name='{p.Name}', skin={p.SkinId}");
+            }
+            else if (msg.which == ServerMsg.WHICH.Roster)
+            {
+                var roster = msg.Roster;
+                Debug.Log($"[NetClient] Roster received. Player count = {roster.Players.Count}");
+
+                foreach (var p in roster.Players)
+                {
+                    Debug.Log($"[NetClient] Roster Player -> id={p.PlayerId}, name='{p.Name}', skin={p.SkinId}");
+                }
+            }
+            else if (msg.which == ServerMsg.WHICH.LobbyInfo)
+            {
+                var info = msg.LobbyInfo;
+                Debug.Log($"[NetClient] Players in lobby: {info.PlayerCount}");
+            }
+            else if (msg.which == ServerMsg.WHICH.ServerFull)
+            {
+                uint max = msg.ServerFull.MaxPlayers;
+
+                Debug.Log($"[NetClient] Server full. Max players = {max}");
+
+                ShowPopup($"Server is full.\nMax players: {max}");
+                Disconnect();
             }
         }
         catch (Exception e)
         {
-            Debug.LogError($"[NetClient] RxLoop error: {e}");
+            Debug.LogError($"[NetClient] Parse message error: {e}");
         }
+    }
 
-        _running = false;
-        if (log) Debug.Log("[NetClient] Disconnected");
+    void Disconnect()
+    {
+        try
+        {
+            if (_net != null)
+            {
+                _net.OnMessage -= OnTransportMessage;
+                _net.Dispose();          // closes TCP or WSS safely
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning($"[NetClient] Disconnect error: {e.Message}");
+        }
+        finally
+        {
+            _net = null;
+            myPlayerId = 0;
+            isGameStarted = false;
+
+            Debug.Log("[NetClient] Disconnected");
+        }
+    }
+
+
+    void ShowPopup(string message)
+    {
+        Debug.Log($"[POPUP] {message}");
+    }
+
+    string GenerateRandomName(int length = 10)
+    {
+        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        System.Random rng = new System.Random();
+
+        char[] buffer = new char[length];
+        for (int i = 0; i < length; i++)
+            buffer[i] = chars[rng.Next(chars.Length)];
+
+        return new string(buffer);
     }
 
     void ApplySnapshot(Snapshot.READER snap)
     {
         ApplyPlayers(snap);
-        ApplySpawns(snap);   // NEW
+        ApplySpawns(snap);
         ApplyEvents(snap);
     }
 
@@ -165,16 +251,13 @@ public class NetClient : MonoBehaviour
             var id = p.PlayerId;
             alive.Add(id);
 
-            // 1) Spawn
             if (!_players.TryGetValue(id, out var go) || go == null)
             {
                 bool isLocal = (id == myPlayerId);
                 go = isLocal ? Instantiate(playerPrefab) : Instantiate(enemyPrefab);
 
-                // Enable weapon controller only for local player
                 PlayerWeaponController wc = go.GetComponent<PlayerWeaponController>();
-                if (wc != null)
-                    wc.enabled = isLocal;
+                if (wc != null) wc.enabled = isLocal;
 
                 go.name = $"Player_{id}";
                 go.transform.localScale = new Vector3(capsuleRadius * 2f, capsuleHeight / 2f, capsuleRadius * 2f);
@@ -182,29 +265,18 @@ public class NetClient : MonoBehaviour
 
                 if (isLocal)
                 {
-                    // Disable any other main camera that isn't our player camera
                     if (Camera.main != null && Camera.main.transform.root != go.transform)
                         Camera.main.gameObject.SetActive(false);
                 }
             }
 
-            // 2) Movement
             go.transform.position = new Vector3(p.X, p.Y, p.Z);
             if (id != myPlayerId)
-            {
                 go.transform.rotation = Quaternion.Euler(0f, p.Yaw * Mathf.Rad2Deg, 0f);
-            }
 
-            // 3) Visuals from NEW schema (primary+secondary+equipped)
             NetworkPlayerSetup visualSetup = go.GetComponent<NetworkPlayerSetup>();
             if (visualSetup != null)
             {
-                // NEW fields:
-                // p.Primary (WeaponSlotState)
-                // p.Secondary (WeaponSlotState)
-                // p.EquippedSlot (WeaponSlot)
-                // p.IsReloading
-                // p.SkinId
                 int primWeapon = (int)p.Primary.Weapon;
                 int primAmmo = (int)p.Primary.AmmoInMag;
                 int primReserve = (int)p.Primary.ReserveAmmo;
@@ -217,8 +289,6 @@ public class NetClient : MonoBehaviour
                 bool isReloading = p.IsReloading;
                 int skinIndex = (int)p.SkinId;
 
-                // Call updated method if available:
-                // UpdateVisuals(int primW,int primA,int primR,int secW,int secA,int secR,int equippedSlot,bool reload,int skin)
                 var t = visualSetup.GetType();
                 var mNew = t.GetMethod("UpdateVisuals", new[] {
                     typeof(int), typeof(int), typeof(int),
@@ -236,31 +306,19 @@ public class NetClient : MonoBehaviour
                 }
                 else
                 {
-                    // Fallback to your old UpdateVisuals(weapon, ammo, reserve, reloading, skin)
                     int equippedWeapon = (equippedSlot == (int)WeaponSlotCp.primary) ? primWeapon : secWeapon;
                     int equippedAmmo = (equippedSlot == (int)WeaponSlotCp.primary) ? primAmmo : secAmmo;
                     int equippedReserve = (equippedSlot == (int)WeaponSlotCp.primary) ? primReserve : secReserve;
 
                     visualSetup.UpdateVisuals(equippedWeapon, equippedAmmo, equippedReserve, isReloading, skinIndex);
                 }
-
-                if (id == myPlayerId && log)
-                {
-                    Debug.Log($"[NetClient] Snapshot Loadout prim={primWeapon}({primAmmo}/{primReserve}) " +
-                              $"sec={secWeapon}({secAmmo}/{secReserve}) equippedSlot={equippedSlot} reload={isReloading} skin={skinIndex}");
-                }
             }
 
-            // 4) Health sync
             int serverHealth = (int)p.Health;
             PlayerHealth hpScript = go.GetComponent<PlayerHealth>();
-            if (hpScript != null)
-            {
-                hpScript.UpdateHealthFromServer(serverHealth);
-            }
+            if (hpScript != null) hpScript.UpdateHealthFromServer(serverHealth);
         }
 
-        // 5) Cleanup disconnected players
         var toRemove = new List<ulong>();
         foreach (var kv in _players)
         {
@@ -277,18 +335,9 @@ public class NetClient : MonoBehaviour
 
     void ApplySpawns(Snapshot.READER snap)
     {
-        // If your generated code uses a different property name, rename here.
-        // We expect: snap.Spawns : IReadOnlyList<WeaponSpawnState.READER>
         if (snap.Spawns == null) return;
-
         foreach (var s in snap.Spawns)
-        {
             _spawns[(ushort)s.SpawnId] = s;
-
-            // If you have spawn visuals in the scene, update them by spawnId here.
-            // Example:
-            // WeaponSpawnViewRegistry.SetState((ushort)s.SpawnId, s.Available, (int)s.Weapon);
-        }
     }
 
     // ---------------- SNAPSHOT: EVENTS ----------------
@@ -322,7 +371,7 @@ public class NetClient : MonoBehaviour
                     }
 
                     float yawDeg = s.Yaw * Mathf.Rad2Deg;
-                    float pitchDeg = -1f * s.Pitch * Mathf.Rad2Deg; // keep your invert fix
+                    float pitchDeg = -1f * s.Pitch * Mathf.Rad2Deg;
                     Quaternion shotRot = Quaternion.Euler(pitchDeg, yawDeg, 0f);
 
                     if (bulletPrefab != null)
@@ -336,7 +385,7 @@ public class NetClient : MonoBehaviour
 
     public void SendClientMsg(MessageBuilder mb)
     {
-        if (_stream == null || !_stream.CanWrite) return;
+        if (_net == null || !_net.IsConnected) return;
 
         byte[] payload;
         using (var ms = new MemoryStream())
@@ -346,21 +395,13 @@ public class NetClient : MonoBehaviour
             payload = ms.ToArray();
         }
 
-        WriteFrameBigEndian(_stream, payload);
+        _net.Send(payload);
     }
 
     void SendTestInput()
     {
-        if (_stream == null || !_stream.CanWrite)
-        {
-            Debug.LogWarning("[NetClient] SendTestInput: stream not writable");
-            return;
-        }
-        if (myPlayerId == 0)
-        {
-            Debug.LogWarning("[NetClient] SendTestInput: myPlayerId is 0");
-            return;
-        }
+        if (_net == null || !_net.IsConnected) return;
+        if (myPlayerId == 0) return;
 
         var mb = MessageBuilder.Create();
         var root = mb.BuildRoot<ClientMsg.WRITER>();
@@ -384,35 +425,34 @@ public class NetClient : MonoBehaviour
         root.Input.ShootPressed = false;
         root.Input.ReloadPressed = false;
 
-        // NEW fields in schema
         root.Input.InteractPressed = false;
         root.Input.SwitchWeaponPressed = false;
 
         SendClientMsg(mb);
-
         if (log) Debug.Log("[NetClient] Sent TEST input frame");
     }
 
-    // ✅ NEW: One-time config message (skin + initial secondary weapon)
     public void SendSelectLoadout(int skinId, WeaponTypeCp secondaryWeapon)
     {
-        if (_stream == null || !_stream.CanWrite) return;
+        if (_net == null || !_net.IsConnected) return;
         if (myPlayerId == 0) return;
 
         var mb = MessageBuilder.Create();
         var root = mb.BuildRoot<ClientMsg.WRITER>();
 
         root.which = ClientMsg.WHICH.SelectLoadout;
-
-        // server ignores this and trusts TCP connection, but we set it anyway (matches schema)
         root.SelectLoadout.PlayerId = myPlayerId;
 
         root.SelectLoadout.SkinId = (ushort)skinId;
         root.SelectLoadout.SecondaryWeapon = secondaryWeapon;
 
+        // Generate random name
+        string randomName = GenerateRandomName(10);
+        root.SelectLoadout.PlayerName = randomName;
+
         SendClientMsg(mb);
 
-        if (log) Debug.Log($"[NetClient] Sent SelectLoadout skin={skinId} secondary={secondaryWeapon}");
+        if (log) Debug.Log($"[NetClient] Sent SelectLoadout skin={skinId} secondary={secondaryWeapon} name={randomName}");
     }
 
     public void SendInput(
@@ -432,7 +472,7 @@ public class NetClient : MonoBehaviour
             switchWeaponPressed = false;
         }
 
-        if (_stream == null || !_stream.CanWrite) return;
+        if (_net == null || !_net.IsConnected) return;
         if (myPlayerId == 0) return;
 
         var mb = MessageBuilder.Create();
@@ -452,67 +492,281 @@ public class NetClient : MonoBehaviour
 
         root.Input.FaceYaw = faceYaw;
         root.Input.AimYaw = aimYaw;
-        root.Input.AimPitch = aimPitch;
+        root.Input.AimPitch = -aimPitch;
 
         root.Input.ShootPressed = shootPressed;
         root.Input.ReloadPressed = reloadPressed;
 
-        // NEW
         root.Input.InteractPressed = interactPressed;
         root.Input.SwitchWeaponPressed = switchWeaponPressed;
 
         SendClientMsg(mb);
     }
 
-    // ---------------- FRAMING (BIG-ENDIAN u32) ----------------
-
-    static byte[] ReadFrameBigEndian(NetworkStream s)
-    {
-        byte[] lenBytes = ReadExact(s, 4);
-        if (lenBytes == null) return null;
-
-        int len = (lenBytes[0] << 24) | (lenBytes[1] << 16) | (lenBytes[2] << 8) | (lenBytes[3]);
-        if (len <= 0 || len > 20_000_000) throw new Exception($"Invalid frame len={len}");
-
-        return ReadExact(s, len);
-    }
-
-    static void WriteFrameBigEndian(NetworkStream s, byte[] payload)
-    {
-        int len = payload.Length;
-
-        byte[] lenBytes = new byte[4];
-        lenBytes[0] = (byte)((len >> 24) & 0xFF);
-        lenBytes[1] = (byte)((len >> 16) & 0xFF);
-        lenBytes[2] = (byte)((len >> 8) & 0xFF);
-        lenBytes[3] = (byte)(len & 0xFF);
-
-        s.Write(lenBytes, 0, 4);
-        s.Write(payload, 0, payload.Length);
-        s.Flush();
-    }
-
-    static byte[] ReadExact(NetworkStream s, int n)
-    {
-        byte[] buf = new byte[n];
-        int off = 0;
-        while (off < n)
-        {
-            int r = s.Read(buf, off, n - off);
-            if (r <= 0) return null;
-            off += r;
-        }
-        return buf;
-    }
-
     Transform FindGunMuzzle(GameObject player)
     {
         Transform[] allChildren = player.GetComponentsInChildren<Transform>();
         foreach (Transform t in allChildren)
-        {
             if (t.name == "Attack point" && t.gameObject.activeInHierarchy)
                 return t;
-        }
+
         return null;
     }
+
+    // ============================================================
+    // Transport Abstraction
+    // ============================================================
+
+    interface INetTransport : IDisposable
+    {
+        bool IsConnected { get; }
+        event Action<byte[]> OnMessage;
+        event Action OnDisconnected;
+        event Action<string> OnError;
+
+        void Connect();
+        void Send(byte[] payload);
+
+        // ✅ per-frame pump (safe on all platforms)
+        void Pump();
+    }
+
+    // ---------------- TCP transport (Editor/Standalone) ----------------
+    class TcpTransport : INetTransport
+    {
+        public bool IsConnected => _running && _tcp != null && _tcp.Connected;
+
+        public event Action<byte[]> OnMessage;
+        public event Action OnDisconnected;
+        public event Action<string> OnError;
+
+        readonly string _host;
+        readonly int _port;
+        readonly bool _log;
+
+        TcpClient _tcp;
+        NetworkStream _stream;
+        Thread _rxThread;
+        volatile bool _running;
+
+        public TcpTransport(string host, int port, bool log)
+        {
+            _host = host;
+            _port = port;
+            _log = log;
+        }
+
+        public void Connect()
+        {
+            try
+            {
+                _tcp = new TcpClient();
+                _tcp.NoDelay = true;
+                _tcp.Connect(_host, _port);
+                _stream = _tcp.GetStream();
+
+                _running = true;
+                _rxThread = new Thread(RxLoop) { IsBackground = true };
+                _rxThread.Start();
+
+                if (_log) Debug.Log($"[NetClient] TCP connected {_host}:{_port}");
+            }
+            catch (Exception e)
+            {
+                OnError?.Invoke(e.ToString());
+            }
+        }
+
+        public void Send(byte[] payload)
+        {
+            if (_stream == null || !_stream.CanWrite) return;
+            try
+            {
+                WriteFrameBigEndian(_stream, payload);
+            }
+            catch (Exception e)
+            {
+                OnError?.Invoke(e.ToString());
+            }
+        }
+
+        public void Pump()
+        {
+            // TCP uses a background thread -> nothing to do each frame
+        }
+
+        void RxLoop()
+        {
+            try
+            {
+                while (_running)
+                {
+                    byte[] payload = ReadFrameBigEndian(_stream);
+                    if (payload == null) break;
+                    OnMessage?.Invoke(payload);
+                }
+            }
+            catch (Exception e)
+            {
+                OnError?.Invoke(e.ToString());
+            }
+
+            _running = false;
+            OnDisconnected?.Invoke();
+        }
+
+        public void Dispose()
+        {
+            _running = false;
+            try { _stream?.Close(); } catch { }
+            try { _tcp?.Close(); } catch { }
+            try { if (_rxThread != null && _rxThread.IsAlive) _rxThread.Join(200); } catch { }
+        }
+
+        static byte[] ReadFrameBigEndian(NetworkStream s)
+        {
+            byte[] lenBytes = ReadExact(s, 4);
+            if (lenBytes == null) return null;
+
+            int len = (lenBytes[0] << 24) | (lenBytes[1] << 16) | (lenBytes[2] << 8) | (lenBytes[3]);
+            if (len <= 0 || len > 20_000_000) throw new Exception($"Invalid frame len={len}");
+
+            return ReadExact(s, len);
+        }
+
+        static void WriteFrameBigEndian(NetworkStream s, byte[] payload)
+        {
+            int len = payload.Length;
+
+            byte[] lenBytes = new byte[4];
+            lenBytes[0] = (byte)((len >> 24) & 0xFF);
+            lenBytes[1] = (byte)((len >> 16) & 0xFF);
+            lenBytes[2] = (byte)((len >> 8) & 0xFF);
+            lenBytes[3] = (byte)(len & 0xFF);
+
+            s.Write(lenBytes, 0, 4);
+            s.Write(payload, 0, payload.Length);
+            s.Flush();
+        }
+
+        static byte[] ReadExact(NetworkStream s, int n)
+        {
+            byte[] buf = new byte[n];
+            int off = 0;
+            while (off < n)
+            {
+                int r = s.Read(buf, off, n - off);
+                if (r <= 0) return null;
+                off += r;
+            }
+            return buf;
+        }
+    }
+
+    // ---------------- WebSocket transport (WebGL) ----------------
+#if UNITY_WEBGL && !UNITY_EDITOR
+    class WebSocketTransport : INetTransport
+    {
+        public bool IsConnected => _ws != null && _ws.State == WebSocketState.Open;
+
+        public event Action<byte[]> OnMessage;
+        public event Action OnDisconnected;
+        public event Action<string> OnError;
+
+        readonly string _url;
+        readonly bool _log;
+        WS _ws;
+
+        public WebSocketTransport(string url, bool log)
+        {
+            _url = url;
+            _log = log;
+        }
+
+        public async void Connect()
+        {
+            try
+            {
+                _ws = new WS(_url);
+
+                _ws.OnOpen += () =>
+                {
+                    if (_log) Debug.Log($"[NetClient] WSS connected {_url}");
+                };
+
+                _ws.OnError += (e) => OnError?.Invoke(e);
+
+                _ws.OnClose += (code) =>
+                {
+                    if (_log) Debug.Log($"[NetClient] WSS closed code={code}");
+                    OnDisconnected?.Invoke();
+                };
+
+                _ws.OnMessage += (bytes) =>
+                {
+                    OnMessage?.Invoke(bytes);
+                };
+
+                await _ws.Connect();
+            }
+            catch (Exception e)
+            {
+                OnError?.Invoke(e.ToString());
+            }
+        }
+
+        public async void Send(byte[] payload)
+        {
+            if (!IsConnected) return;
+            try
+            {
+                await _ws.Send(payload);
+            }
+            catch (Exception e)
+            {
+                OnError?.Invoke(e.ToString());
+            }
+        }
+
+        public void Pump()
+        {
+            // In WebGL, do NOT call DispatchMessageQueue()
+            // WebSocket callbacks are driven by the browser event loop.
+        }
+
+        public async void Dispose()
+        {
+            try
+            {
+                if (_ws != null)
+                {
+                    await _ws.Close();
+                    _ws = null;
+                }
+            }
+            catch { }
+        }
+    }
+#else
+    // Stub for non-WebGL builds (so the file compiles everywhere even without NativeWebSocket)
+    class WebSocketTransport : INetTransport
+    {
+        public bool IsConnected => false;
+
+        public event Action<byte[]> OnMessage;
+        public event Action OnDisconnected;
+        public event Action<string> OnError;
+
+        public WebSocketTransport(string url, bool log) { }
+
+        public void Connect() => OnError?.Invoke("WebSocketTransport is only used in WebGL builds.");
+        public void Send(byte[] payload) { }
+        public void Pump() { }
+        public void Dispose() { }
+    }
+#endif
+
+
 }
+
+

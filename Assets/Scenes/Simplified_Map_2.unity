@@ -6989,6 +6989,7 @@ MonoBehaviour:
   isGameStarted: 0
   host: 127.0.0.1
   port: 9000
+  wssUrl: ws://localhost:8080
   capsuleHeight: 2
   capsuleRadius: 0.5
   log: 1
