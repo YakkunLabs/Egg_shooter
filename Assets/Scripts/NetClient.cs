@@ -206,11 +206,37 @@ else if (msg.which == ServerMsg.WHICH.PlayerJoined)
             else if (msg.which == ServerMsg.WHICH.MatchEnded)
             {
                 var scores = msg.MatchEnded.Scores;
+                Debug.Log("[NetClient] Match Ended! Stopping simulation.");
+
+                // 1. STOP THE GAME (Disable Input)
+                isGameStarted = false; 
+
+                // 2. UNLOCK MOUSE (So player can see UI)
+                _mainThread.Enqueue(() => 
+                {
+                    Cursor.lockState = CursorLockMode.None;
+                    Cursor.visible = true;
+                });
+
+                // 3. SHOW FINAL SCORES
+                List<string> finalResults = new List<string>();
+
                 foreach (var score in scores)
                 {
-                    Debug.Log($"[NetClient] Player : {score.PlayerId}  Score: {score.Score}");
+                    string pName = GetPlayerName(score.PlayerId); 
+                    int pScore = (int)score.Score;
+                    finalResults.Add($"{pName} : {pScore}");
                 }
+
+                _mainThread.Enqueue(() => 
+                {
+                    if (MatchResultsUI.Instance != null)
+                    {
+                        MatchResultsUI.Instance.ShowResults(finalResults);
+                    }
+                });
             }
+
             else if (msg.which == ServerMsg.WHICH.PlayerJoined)
             {
                 var joined = msg.PlayerJoined;
@@ -302,6 +328,16 @@ else if (msg.which == ServerMsg.WHICH.PlayerJoined)
             buffer[i] = chars[rng.Next(chars.Length)];
 
         return new string(buffer);
+    }
+
+    string GetPlayerName(ulong playerId)
+    {
+        lock (_playerNames)
+        {
+            if (_playerNames.TryGetValue(playerId, out var name))
+                return name;
+        }
+        return $"Player {playerId}";
     }
 
     void ApplySnapshot(Snapshot.READER snap)
