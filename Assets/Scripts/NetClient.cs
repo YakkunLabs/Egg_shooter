@@ -78,11 +78,26 @@ public class NetClient : MonoBehaviour
 
     // ---------------- CONNECT ----------------
 
+#if UNITY_WEBGL && !UNITY_EDITOR
+    [System.Runtime.InteropServices.DllImport("__Internal")]
+    private static extern string GetURLParameter(string name);
+#endif
+
     public void Connect()
     {
         Shutdown();
 
 #if UNITY_WEBGL && !UNITY_EDITOR
+        // ✅ Check if a server URL is provided in the browser query string
+        string customUrl = GetURLParameter("server");
+        if (!string.IsNullOrEmpty(customUrl))
+        {
+            // Decode potential URL encoding
+            customUrl = System.Uri.UnescapeDataString(customUrl);
+            if (log) Debug.Log($"[NetClient] Found custom server URL in parameter: {customUrl}");
+            wssUrl = customUrl;
+        }
+
         _net = new WebSocketTransport(wssUrl, log);
 #else
         _net = new TcpTransport(host, port, log);
