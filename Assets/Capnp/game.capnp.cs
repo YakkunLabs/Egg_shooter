@@ -1091,24 +1091,22 @@ namespace CapnpGen
         }
     }
 
-    [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xc12f8f557ce7af1aUL)]
-    public class WeaponSpawnState : ICapnpSerializable
+    [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xf8a77b48386c4a4aUL)]
+    public class ItemSpawnsSnapshot : ICapnpSerializable
     {
-        public const UInt64 typeId = 0xc12f8f557ce7af1aUL;
+        public const UInt64 typeId = 0xf8a77b48386c4a4aUL;
         void ICapnpSerializable.Deserialize(DeserializerState arg_)
         {
             var reader = READER.create(arg_);
-            SpawnId = reader.SpawnId;
-            Weapon = reader.Weapon;
-            Available = reader.Available;
+            ServerTick = reader.ServerTick;
+            Items = reader.Items;
             applyDefaults();
         }
 
         public void serialize(WRITER writer)
         {
-            writer.SpawnId = SpawnId;
-            writer.Weapon = Weapon;
-            writer.Available = Available;
+            writer.ServerTick = ServerTick;
+            writer.Items.Init(Items);
         }
 
         void ICapnpSerializable.Serialize(SerializerState arg_)
@@ -1120,19 +1118,13 @@ namespace CapnpGen
         {
         }
 
-        public ushort SpawnId
+        public ulong ServerTick
         {
             get;
             set;
         }
 
-        public CapnpGen.WeaponType Weapon
-        {
-            get;
-            set;
-        }
-
-        public bool Available
+        public IReadOnlyList<byte> Items
         {
             get;
             set;
@@ -1149,34 +1141,27 @@ namespace CapnpGen
             public static READER create(DeserializerState ctx) => new READER(ctx);
             public static implicit operator DeserializerState(READER reader) => reader.ctx;
             public static implicit operator READER(DeserializerState ctx) => new READER(ctx);
-            public ushort SpawnId => ctx.ReadDataUShort(0UL, (ushort)0);
-            public CapnpGen.WeaponType Weapon => (CapnpGen.WeaponType)ctx.ReadDataUShort(16UL, (ushort)0);
-            public bool Available => ctx.ReadDataBool(32UL, false);
+            public ulong ServerTick => ctx.ReadDataULong(0UL, 0UL);
+            public IReadOnlyList<byte> Items => ctx.ReadList(0).CastByte();
         }
 
         public class WRITER : SerializerState
         {
             public WRITER()
             {
-                this.SetStruct(1, 0);
+                this.SetStruct(1, 1);
             }
 
-            public ushort SpawnId
+            public ulong ServerTick
             {
-                get => this.ReadDataUShort(0UL, (ushort)0);
-                set => this.WriteData(0UL, value, (ushort)0);
+                get => this.ReadDataULong(0UL, 0UL);
+                set => this.WriteData(0UL, value, 0UL);
             }
 
-            public CapnpGen.WeaponType Weapon
+            public ListOfPrimitivesSerializer<byte> Items
             {
-                get => (CapnpGen.WeaponType)this.ReadDataUShort(16UL, (ushort)0);
-                set => this.WriteData(16UL, (ushort)value, (ushort)0);
-            }
-
-            public bool Available
-            {
-                get => this.ReadDataBool(32UL, false);
-                set => this.WriteData(32UL, value, false);
+                get => BuildPointer<ListOfPrimitivesSerializer<byte>>(0);
+                set => Link(0, value);
             }
         }
     }
@@ -1346,96 +1331,6 @@ namespace CapnpGen
         }
     }
 
-    [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xad037e11cb77255cUL)]
-    public class WeaponPickedUp : ICapnpSerializable
-    {
-        public const UInt64 typeId = 0xad037e11cb77255cUL;
-        void ICapnpSerializable.Deserialize(DeserializerState arg_)
-        {
-            var reader = READER.create(arg_);
-            PlayerId = reader.PlayerId;
-            SpawnId = reader.SpawnId;
-            Weapon = reader.Weapon;
-            applyDefaults();
-        }
-
-        public void serialize(WRITER writer)
-        {
-            writer.PlayerId = PlayerId;
-            writer.SpawnId = SpawnId;
-            writer.Weapon = Weapon;
-        }
-
-        void ICapnpSerializable.Serialize(SerializerState arg_)
-        {
-            serialize(arg_.Rewrap<WRITER>());
-        }
-
-        public void applyDefaults()
-        {
-        }
-
-        public ulong PlayerId
-        {
-            get;
-            set;
-        }
-
-        public ushort SpawnId
-        {
-            get;
-            set;
-        }
-
-        public CapnpGen.WeaponType Weapon
-        {
-            get;
-            set;
-        }
-
-        public struct READER
-        {
-            readonly DeserializerState ctx;
-            public READER(DeserializerState ctx)
-            {
-                this.ctx = ctx;
-            }
-
-            public static READER create(DeserializerState ctx) => new READER(ctx);
-            public static implicit operator DeserializerState(READER reader) => reader.ctx;
-            public static implicit operator READER(DeserializerState ctx) => new READER(ctx);
-            public ulong PlayerId => ctx.ReadDataULong(0UL, 0UL);
-            public ushort SpawnId => ctx.ReadDataUShort(64UL, (ushort)0);
-            public CapnpGen.WeaponType Weapon => (CapnpGen.WeaponType)ctx.ReadDataUShort(80UL, (ushort)0);
-        }
-
-        public class WRITER : SerializerState
-        {
-            public WRITER()
-            {
-                this.SetStruct(2, 0);
-            }
-
-            public ulong PlayerId
-            {
-                get => this.ReadDataULong(0UL, 0UL);
-                set => this.WriteData(0UL, value, 0UL);
-            }
-
-            public ushort SpawnId
-            {
-                get => this.ReadDataUShort(64UL, (ushort)0);
-                set => this.WriteData(64UL, value, (ushort)0);
-            }
-
-            public CapnpGen.WeaponType Weapon
-            {
-                get => (CapnpGen.WeaponType)this.ReadDataUShort(80UL, (ushort)0);
-                set => this.WriteData(80UL, (ushort)value, (ushort)0);
-            }
-        }
-    }
-
     [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xb2f2e8ad2c2811ecUL)]
     public class ServerEvent : ICapnpSerializable
     {
@@ -1444,7 +1339,6 @@ namespace CapnpGen
         {
             ShotFired = 0,
             Noop = 1,
-            WeaponPickedUp = 2,
             undefined = 65535
         }
 
@@ -1458,9 +1352,6 @@ namespace CapnpGen
                     break;
                 case WHICH.Noop:
                     which = reader.which;
-                    break;
-                case WHICH.WeaponPickedUp:
-                    WeaponPickedUp = CapnpSerializable.Create<CapnpGen.WeaponPickedUp>(reader.WeaponPickedUp);
                     break;
             }
 
@@ -1484,9 +1375,6 @@ namespace CapnpGen
                         break;
                     case WHICH.Noop:
                         break;
-                    case WHICH.WeaponPickedUp:
-                        _content = null;
-                        break;
                 }
             }
         }
@@ -1500,9 +1388,6 @@ namespace CapnpGen
                     ShotFired?.serialize(writer.ShotFired);
                     break;
                 case WHICH.Noop:
-                    break;
-                case WHICH.WeaponPickedUp:
-                    WeaponPickedUp?.serialize(writer.WeaponPickedUp);
                     break;
             }
         }
@@ -1526,16 +1411,6 @@ namespace CapnpGen
             }
         }
 
-        public CapnpGen.WeaponPickedUp WeaponPickedUp
-        {
-            get => _which == WHICH.WeaponPickedUp ? (CapnpGen.WeaponPickedUp)_content : null;
-            set
-            {
-                _which = WHICH.WeaponPickedUp;
-                _content = value;
-            }
-        }
-
         public struct READER
         {
             readonly DeserializerState ctx;
@@ -1549,7 +1424,6 @@ namespace CapnpGen
             public static implicit operator READER(DeserializerState ctx) => new READER(ctx);
             public WHICH which => (WHICH)ctx.ReadDataUShort(0U, (ushort)0);
             public CapnpGen.ShotFired.READER ShotFired => which == WHICH.ShotFired ? ctx.ReadStruct(0, CapnpGen.ShotFired.READER.create) : default;
-            public CapnpGen.WeaponPickedUp.READER WeaponPickedUp => which == WHICH.WeaponPickedUp ? ctx.ReadStruct(0, CapnpGen.WeaponPickedUp.READER.create) : default;
         }
 
         public class WRITER : SerializerState
@@ -1570,12 +1444,6 @@ namespace CapnpGen
                 get => which == WHICH.ShotFired ? BuildPointer<CapnpGen.ShotFired.WRITER>(0) : default;
                 set => Link(0, value);
             }
-
-            public CapnpGen.WeaponPickedUp.WRITER WeaponPickedUp
-            {
-                get => which == WHICH.WeaponPickedUp ? BuildPointer<CapnpGen.WeaponPickedUp.WRITER>(0) : default;
-                set => Link(0, value);
-            }
         }
     }
 
@@ -1589,7 +1457,6 @@ namespace CapnpGen
             ServerTick = reader.ServerTick;
             Players = reader.Players?.ToReadOnlyList(_ => CapnpSerializable.Create<CapnpGen.PlayerState>(_));
             Events = reader.Events?.ToReadOnlyList(_ => CapnpSerializable.Create<CapnpGen.ServerEvent>(_));
-            Spawns = reader.Spawns?.ToReadOnlyList(_ => CapnpSerializable.Create<CapnpGen.WeaponSpawnState>(_));
             applyDefaults();
         }
 
@@ -1598,7 +1465,6 @@ namespace CapnpGen
             writer.ServerTick = ServerTick;
             writer.Players.Init(Players, (_s1, _v1) => _v1?.serialize(_s1));
             writer.Events.Init(Events, (_s1, _v1) => _v1?.serialize(_s1));
-            writer.Spawns.Init(Spawns, (_s1, _v1) => _v1?.serialize(_s1));
         }
 
         void ICapnpSerializable.Serialize(SerializerState arg_)
@@ -1628,12 +1494,6 @@ namespace CapnpGen
             set;
         }
 
-        public IReadOnlyList<CapnpGen.WeaponSpawnState> Spawns
-        {
-            get;
-            set;
-        }
-
         public struct READER
         {
             readonly DeserializerState ctx;
@@ -1648,14 +1508,13 @@ namespace CapnpGen
             public ulong ServerTick => ctx.ReadDataULong(0UL, 0UL);
             public IReadOnlyList<CapnpGen.PlayerState.READER> Players => ctx.ReadList(0).Cast(CapnpGen.PlayerState.READER.create);
             public IReadOnlyList<CapnpGen.ServerEvent.READER> Events => ctx.ReadList(1).Cast(CapnpGen.ServerEvent.READER.create);
-            public IReadOnlyList<CapnpGen.WeaponSpawnState.READER> Spawns => ctx.ReadList(2).Cast(CapnpGen.WeaponSpawnState.READER.create);
         }
 
         public class WRITER : SerializerState
         {
             public WRITER()
             {
-                this.SetStruct(1, 3);
+                this.SetStruct(1, 2);
             }
 
             public ulong ServerTick
@@ -1674,12 +1533,6 @@ namespace CapnpGen
             {
                 get => BuildPointer<ListOfStructsSerializer<CapnpGen.ServerEvent.WRITER>>(1);
                 set => Link(1, value);
-            }
-
-            public ListOfStructsSerializer<CapnpGen.WeaponSpawnState.WRITER> Spawns
-            {
-                get => BuildPointer<ListOfStructsSerializer<CapnpGen.WeaponSpawnState.WRITER>>(2);
-                set => Link(2, value);
             }
         }
     }
@@ -2088,6 +1941,7 @@ namespace CapnpGen
             PlayerJoined = 5,
             LobbyInfo = 6,
             ServerFull = 7,
+            ItemSpawns = 8,
             undefined = 65535
         }
 
@@ -2119,6 +1973,9 @@ namespace CapnpGen
                     break;
                 case WHICH.ServerFull:
                     ServerFull = CapnpSerializable.Create<CapnpGen.ServerFull>(reader.ServerFull);
+                    break;
+                case WHICH.ItemSpawns:
+                    ItemSpawns = CapnpSerializable.Create<CapnpGen.ItemSpawnsSnapshot>(reader.ItemSpawns);
                     break;
             }
 
@@ -2161,6 +2018,9 @@ namespace CapnpGen
                     case WHICH.ServerFull:
                         _content = null;
                         break;
+                    case WHICH.ItemSpawns:
+                        _content = null;
+                        break;
                 }
             }
         }
@@ -2193,6 +2053,9 @@ namespace CapnpGen
                     break;
                 case WHICH.ServerFull:
                     ServerFull?.serialize(writer.ServerFull);
+                    break;
+                case WHICH.ItemSpawns:
+                    ItemSpawns?.serialize(writer.ItemSpawns);
                     break;
             }
         }
@@ -2286,6 +2149,16 @@ namespace CapnpGen
             }
         }
 
+        public CapnpGen.ItemSpawnsSnapshot ItemSpawns
+        {
+            get => _which == WHICH.ItemSpawns ? (CapnpGen.ItemSpawnsSnapshot)_content : null;
+            set
+            {
+                _which = WHICH.ItemSpawns;
+                _content = value;
+            }
+        }
+
         public struct READER
         {
             readonly DeserializerState ctx;
@@ -2306,6 +2179,7 @@ namespace CapnpGen
             public CapnpGen.PlayerJoined.READER PlayerJoined => which == WHICH.PlayerJoined ? ctx.ReadStruct(0, CapnpGen.PlayerJoined.READER.create) : default;
             public CapnpGen.LobbyInfo.READER LobbyInfo => which == WHICH.LobbyInfo ? ctx.ReadStruct(0, CapnpGen.LobbyInfo.READER.create) : default;
             public CapnpGen.ServerFull.READER ServerFull => which == WHICH.ServerFull ? ctx.ReadStruct(0, CapnpGen.ServerFull.READER.create) : default;
+            public CapnpGen.ItemSpawnsSnapshot.READER ItemSpawns => which == WHICH.ItemSpawns ? ctx.ReadStruct(0, CapnpGen.ItemSpawnsSnapshot.READER.create) : default;
         }
 
         public class WRITER : SerializerState
@@ -2366,6 +2240,12 @@ namespace CapnpGen
             public CapnpGen.ServerFull.WRITER ServerFull
             {
                 get => which == WHICH.ServerFull ? BuildPointer<CapnpGen.ServerFull.WRITER>(0) : default;
+                set => Link(0, value);
+            }
+
+            public CapnpGen.ItemSpawnsSnapshot.WRITER ItemSpawns
+            {
+                get => which == WHICH.ItemSpawns ? BuildPointer<CapnpGen.ItemSpawnsSnapshot.WRITER>(0) : default;
                 set => Link(0, value);
             }
         }

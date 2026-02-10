@@ -55,9 +55,6 @@ public class NetClient : MonoBehaviour
     readonly Dictionary<ulong, GameObject> _players = new();
     readonly Dictionary<ulong, string> _playerNames = new();
 
-    // cache spawns from snapshot (spawnId -> state)
-    readonly Dictionary<ushort, WeaponSpawnState.READER> _spawns = new();
-
     public ulong myPlayerId { get; private set; } = 0;
 
     public GameObject playerPrefab;
@@ -268,6 +265,16 @@ else if (msg.which == ServerMsg.WHICH.PlayerJoined)
                 ShowPopup($"Server is full.\nMax players: {max}");
                 Disconnect();
             }
+            else if (msg.which == ServerMsg.WHICH.ItemSpawns) {
+                var ItemSanp = msg.ItemSpawns;
+                var ItemList = ItemSanp.Items;
+                int index = 0;
+                foreach (var item in ItemList)
+                {
+                    Debug.Log($"[NetClient] Item Spawn location {index} has {item}");
+                    index++;
+                }
+            }
         }
         catch (Exception e)
         {
@@ -343,7 +350,6 @@ else if (msg.which == ServerMsg.WHICH.PlayerJoined)
     void ApplySnapshot(Snapshot.READER snap)
     {
         ApplyPlayers(snap);
-        ApplySpawns(snap);
         ApplyEvents(snap);
     }
 
@@ -457,14 +463,6 @@ else if (msg.which == ServerMsg.WHICH.PlayerJoined)
         }
     }
 
-    // ---------------- SNAPSHOT: SPAWNS ----------------
-
-    void ApplySpawns(Snapshot.READER snap)
-    {
-        if (snap.Spawns == null) return;
-        foreach (var s in snap.Spawns)
-            _spawns[(ushort)s.SpawnId] = s;
-    }
 
     // ---------------- SNAPSHOT: EVENTS ----------------
 
