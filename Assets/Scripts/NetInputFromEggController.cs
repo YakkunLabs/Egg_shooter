@@ -13,6 +13,7 @@ public class NetInputFromEggController : MonoBehaviour
     bool _pendingJump = false;
     bool _pendingReload = false;
     bool _pendingSwitch = false;
+    bool _pendingInteract = false;
 
     void Start()
     {
@@ -71,12 +72,11 @@ public class NetInputFromEggController : MonoBehaviour
             //if (myGun != null) myGun.AttemptToReload(); // 2. RELOAD LOCALLY
         }
 
-        bool interact_pressed = false;
+        // bool interact_pressed = false;
         // --- Weapon switch ---
         if (Input.GetKeyDown(KeyCode.F))
         {
-            interact_pressed = true;  // 1. Queue for Network
-            //if (myGun != null) myGun.AttemptToReload(); // 2. RELOAD LOCALLY
+            _pendingInteract = true; 
         }
 
         // ---------------------------------------------------------------------
@@ -105,6 +105,7 @@ public class NetInputFromEggController : MonoBehaviour
         bool jumpPressed = _pendingJump;
         bool reloadPressed = _pendingReload;
         bool weapon_switch = _pendingSwitch;
+        bool interactPressed = _pendingInteract;
 
         // --- CALCULATE ANGLES (Use Camera for accuracy) ---
         
@@ -145,7 +146,7 @@ public class NetInputFromEggController : MonoBehaviour
         netClient.SendInput(
             sendW, a, sendS, d,
             run, jumpPressed, faceYaw,
-            aimYaw, aimPitch, shootPressed, reloadPressed,interact_pressed, weapon_switch,
+            aimYaw, aimPitch, shootPressed, reloadPressed,interactPressed, weapon_switch,
             dtMs
         );
 
@@ -154,5 +155,6 @@ public class NetInputFromEggController : MonoBehaviour
         _pendingJump = false;
         _pendingReload = false;
         _pendingSwitch = false;
+        _pendingInteract = false;
     }
 }

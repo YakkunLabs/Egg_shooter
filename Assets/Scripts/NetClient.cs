@@ -21,6 +21,10 @@ using Unity.VisualScripting;
 
 public class NetClient : MonoBehaviour
 {
+    [Header("Item Spawns")]
+    // IMPORTANT: Drag your Spawn Points here in the SAME ORDER as the Server!
+    public ItemSpawnVisuals[] itemSpawnPoints;
+
     [Header("Visuals")]
     public GameObject bulletPrefab;
 
@@ -265,16 +269,29 @@ else if (msg.which == ServerMsg.WHICH.PlayerJoined)
                 ShowPopup($"Server is full.\nMax players: {max}");
                 Disconnect();
             }
-            else if (msg.which == ServerMsg.WHICH.ItemSpawns) {
-                var ItemSanp = msg.ItemSpawns;
-                var ItemList = ItemSanp.Items;
+
+            else if (msg.which == ServerMsg.WHICH.ItemSpawns) 
+        {
+            var itemSnap = msg.ItemSpawns;
+            var itemList = itemSnap.Items;
+
+            // Run on Main Thread because we are touching GameObjects
+            _mainThread.Enqueue(() => 
+            {
                 int index = 0;
-                foreach (var item in ItemList)
+                foreach (var item in itemList)
                 {
-                    Debug.Log($"[NetClient] Item Spawn location {index} has {item}");
+                    // Safety check: Do we have a spawn point for this index?
+                    if (index < itemSpawnPoints.Length && itemSpawnPoints[index] != null)
+                    {
+                        // Cast 'item' to int (assuming it's an Enum or ID)
+                        itemSpawnPoints[index].SetItem((int)item);
+                        Debug.Log($"[NetClient] Item Spawn location {index} has {item}");
+                    }
                     index++;
                 }
-            }
+            });
+        }
         }
         catch (Exception e)
         {
@@ -414,6 +431,15 @@ else if (msg.which == ServerMsg.WHICH.PlayerJoined)
                 int equippedSlot = (int)p.EquippedSlot;
                 bool isReloading = p.IsReloading;
                 int skinIndex = (int)p.SkinId;
+
+                if (id == myPlayerId)
+                {
+                    // If Secondary is NOT Empty(0) and NOT Pistol(1)
+                    if (secWeapon > 1) 
+                    {
+                        Debug.Log($"[NetClient] 🔫 Server says I have Weapon ID: {secWeapon} | Slot: {equippedSlot}");
+                    }
+                }
 
                 var t = visualSetup.GetType();
                 var mNew = t.GetMethod("UpdateVisuals", new[] {
@@ -588,14 +614,15 @@ else if (msg.which == ServerMsg.WHICH.PlayerJoined)
         ushort dtMs
     )
     {
+        
         if (!isGameStarted)
         {
             w = a = s = d = false;
             run = jumpPressed = shootPressed = reloadPressed = false;
-            interactPressed = false;
+            // interactPressed = false;
             switchWeaponPressed = false;
         }
-
+        
         if (_net == null || !_net.IsConnected) return;
         if (myPlayerId == 0) return;
 
@@ -620,6 +647,11 @@ else if (msg.which == ServerMsg.WHICH.PlayerJoined)
 
         root.Input.ShootPressed = shootPressed;
         root.Input.ReloadPressed = reloadPressed;
+
+    //     if (interactPressed) 
+    // {
+    //     Debug.Log($"[NetClient] 🟢 Sending Interact (F) to Server! Frame: {Time.frameCount}");
+    // }
 
         root.Input.InteractPressed = interactPressed;
         root.Input.SwitchWeaponPressed = switchWeaponPressed;
