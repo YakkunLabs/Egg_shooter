@@ -50,6 +50,10 @@ public class NetClient : MonoBehaviour
     public float capsuleHeight = 2f;
     public float capsuleRadius = 0.5f;
 
+    [Header("Interpolation Smoothing")]
+    public float positionLerpSpeed = 15f;   // higher = snappier
+    public float rotationLerpSpeed = 20f;
+
     [Header("Debug")]
     public bool log = true;
 
@@ -63,6 +67,22 @@ public class NetClient : MonoBehaviour
 
     public GameObject playerPrefab;
     public GameObject enemyPrefab;
+
+    [Serializable]
+    public struct PlayerSample
+    {
+        public float t;          // local time when we received this sample (or server time if you have it)
+        public Vector3 pos;
+        public float yawDeg;
+    }
+
+    private readonly Dictionary<ulong, List<PlayerSample>> _history = new Dictionary<ulong, List<PlayerSample>>();
+
+    // Tuning
+    public float interpBackTime = 0.12f;     // 120ms "render delay" (increase if you still jitter)
+    public float maxExtrapolate = 0.10f;     // 100ms extrapolation cap
+    public int maxSamplesPerPlayer = 32;
+
 
     INetTransport _net;
 
@@ -415,9 +435,26 @@ else if (msg.which == ServerMsg.WHICH.PlayerJoined)
                 }
             }
 
-            go.transform.position = new Vector3(p.X, p.Y, p.Z);
-            if (id != myPlayerId)
-                go.transform.rotation = Quaternion.Euler(0f, p.Yaw * Mathf.Rad2Deg, 0f);
+            // Store sample instead of applying immediately
+            var sample = new PlayerSample
+            {
+                // If your snapshot has server time/tick, use that instead of Time.time for better results.
+                t = Time.time,
+                pos = new Vector3(p.X, p.Y, p.Z),
+                yawDeg = p.Yaw * Mathf.Rad2Deg
+            };
+
+            if (!_history.TryGetValue(id, out var list))
+            {
+                list = new List<PlayerSample>(maxSamplesPerPlayer);
+                _history[id] = list;
+            }
+
+            list.Add(sample);
+
+            // keep list size bounded
+            if (list.Count > maxSamplesPerPlayer)
+                list.RemoveRange(0, list.Count - maxSamplesPerPlayer);
 
             NetworkPlayerSetup visualSetup = go.GetComponent<NetworkPlayerSetup>();
             if (visualSetup != null)
@@ -495,7 +532,12 @@ else if (msg.which == ServerMsg.WHICH.PlayerJoined)
                 toRemove.Add(kv.Key);
             }
         }
-        foreach (var id in toRemove) _players.Remove(id);
+
+        foreach (var id in toRemove)
+        {
+            _players.Remove(id);
+            _history.Remove(id);
+        }
 
         if (playerCountText != null)
         {
@@ -833,6 +875,106 @@ else if (msg.which == ServerMsg.WHICH.PlayerJoined)
             return buf;
         }
     }
+
+    void LateUpdate()
+    {
+        ApplyInterpolation();
+    }
+
+    void ApplyInterpolation()
+    {
+        float renderTime = Time.time - interpBackTime;
+
+        foreach (var kv in _players)
+        {
+            ulong id = kv.Key;
+            var go = kv.Value;
+            if (go == null) continue;
+
+            // Optional: treat local player differently (prediction + reconciliation).
+            // For now: still interpolate local to reduce visible jitter from corrections.
+            if (!_history.TryGetValue(id, out var h) || h.Count == 0)
+                continue;
+
+            // Drop samples that are too old (we want two samples around renderTime)
+            while (h.Count >= 3 && h[1].t <= renderTime)
+                h.RemoveAt(0);
+
+            if (h.Count >= 2 && h[0].t <= renderTime && renderTime <= h[1].t)
+            {
+                // Normal interpolation
+                var a = h[0];
+                var b = h[1];
+
+                float span = b.t - a.t;
+                float alpha = (span > 0.0001f) ? (renderTime - a.t) / span : 0f;
+
+                Vector3 pos = Vector3.Lerp(a.pos, b.pos, alpha);
+                go.transform.position = Vector3.Lerp(
+                    go.transform.position,
+                    pos,
+                    1f - Mathf.Exp(-positionLerpSpeed * Time.deltaTime)
+                );
+
+                if (id != myPlayerId)
+                {
+                    float yaw = Mathf.LerpAngle(a.yawDeg, b.yawDeg, alpha);
+                    Quaternion targetRot = Quaternion.Euler(0f, yaw, 0f);
+
+                    go.transform.rotation = Quaternion.Slerp(
+                        go.transform.rotation,
+                        targetRot,
+                        1f - Mathf.Exp(-rotationLerpSpeed * Time.deltaTime)
+                    );
+                }
+            }
+            else
+            {
+                // Not enough future data → small extrapolation (optional)
+                // If we only have one sample, just snap to it.
+                if (h.Count == 1)
+                {
+                    go.transform.position = Vector3.Lerp(
+                        go.transform.position,
+                        h[0].pos,
+                        1f - Mathf.Exp(-positionLerpSpeed * Time.deltaTime)
+                    );
+                    if (id != myPlayerId)
+                        go.transform.rotation = Quaternion.Euler(0f, h[0].yawDeg, 0f);
+                    continue;
+                }
+
+                var last = h[h.Count - 1];
+                var prev = h[h.Count - 2];
+
+                float dt = last.t - prev.t;
+                if (dt < 0.0001f)
+                {
+                    go.transform.position = last.pos;
+                    if (id != myPlayerId)
+                        go.transform.rotation = Quaternion.Euler(0f, last.yawDeg, 0f);
+                    continue;
+                }
+
+                Vector3 vel = (last.pos - prev.pos) / dt;
+
+                float extrapT = renderTime - last.t;
+                extrapT = Mathf.Clamp(extrapT, 0f, maxExtrapolate);
+
+                Vector3 targetPos = last.pos + vel * extrapT;
+
+                go.transform.position = Vector3.Lerp(
+                    go.transform.position,
+                    targetPos,
+                    1f - Mathf.Exp(-positionLerpSpeed * Time.deltaTime)
+                );
+
+                if (id != myPlayerId)
+                    go.transform.rotation = Quaternion.Euler(0f, last.yawDeg, 0f);
+            }
+        }
+    }
+
 
     // ---------------- WebSocket transport (WebGL) ----------------
 #if UNITY_WEBGL && !UNITY_EDITOR
