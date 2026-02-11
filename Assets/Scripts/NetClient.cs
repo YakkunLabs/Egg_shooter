@@ -84,6 +84,11 @@ public class NetClient : MonoBehaviour
     public int maxSamplesPerPlayer = 32;
 
 
+    // ---------------- Ping/RTT ----------------
+    readonly Dictionary<uint, float> _pongSentAt = new();   // nonce -> realtimeSinceStartup
+    public float logPingEvery = 2f;                         // optional: rate-limit logs
+    float _lastPingLogAt = -999f;
+
     INetTransport _net;
 
     void Start() => Connect();
@@ -306,27 +311,44 @@ else if (msg.which == ServerMsg.WHICH.PlayerJoined)
             }
 
             else if (msg.which == ServerMsg.WHICH.ItemSpawns) 
-        {
-            var itemSnap = msg.ItemSpawns;
-            var itemList = itemSnap.Items;
-
-            // Run on Main Thread because we are touching GameObjects
-            _mainThread.Enqueue(() => 
             {
-                int index = 0;
-                foreach (var item in itemList)
+                var itemSnap = msg.ItemSpawns;
+                var itemList = itemSnap.Items;
+
+                // Run on Main Thread because we are touching GameObjects
+                _mainThread.Enqueue(() => 
                 {
-                    // Safety check: Do we have a spawn point for this index?
-                    if (index < itemSpawnPoints.Length && itemSpawnPoints[index] != null)
+                    int index = 0;
+                    foreach (var item in itemList)
                     {
-                        // Cast 'item' to int (assuming it's an Enum or ID)
-                        itemSpawnPoints[index].SetItem((int)item);
-                        Debug.Log($"[NetClient] Item Spawn location {index} has {item}");
+                        // Safety check: Do we have a spawn point for this index?
+                        if (index < itemSpawnPoints.Length && itemSpawnPoints[index] != null)
+                        {
+                            // Cast 'item' to int (assuming it's an Enum or ID)
+                            itemSpawnPoints[index].SetItem((int)item);
+                            //Debug.Log($"[NetClient] Item Spawn location {index} has {item}");
+                        }
+                        index++;
                     }
-                    index++;
-                }
-            });
-        }
+                });
+            }
+            else if (msg.which == ServerMsg.WHICH.Ping)
+            {
+                var ping = msg.Ping;
+                uint nonce = ping.Nonce;
+
+                // MUST run on main thread (Unity Time API)
+                _mainThread.Enqueue(() => SendPongMainThread(nonce));
+            }
+            else if (msg.which == ServerMsg.WHICH.PingAck)
+            {
+                var ack = msg.PingAck;
+                uint nonce = ack.Nonce;
+
+                // MUST run on main thread (Unity Time API + Debug.Log)
+                _mainThread.Enqueue(() => OnPingAckMainThread(nonce));
+            }
+
         }
         catch (Exception e)
         {
@@ -355,6 +377,39 @@ else if (msg.which == ServerMsg.WHICH.PlayerJoined)
             isGameStarted = false;
 
             Debug.Log("[NetClient] Disconnected");
+        }
+    }
+
+    // ---------------- Ping/RTT ----------------
+    void SendPongMainThread(uint nonce)
+    {
+        if (_net == null || !_net.IsConnected) return;
+
+        // timestamp must be captured on main thread
+        _pongSentAt[nonce] = Time.realtimeSinceStartup;
+
+        var mb = MessageBuilder.Create();
+        var root = mb.BuildRoot<ClientMsg.WRITER>();
+
+        root.which = ClientMsg.WHICH.Pong;
+        root.Pong.Nonce = nonce;
+
+        SendClientMsg(mb);
+
+        if (log) Debug.Log($"[NetClient] 🏓 Pong -> nonce={nonce}");
+    }
+
+    void OnPingAckMainThread(uint nonce)
+    {
+        if (_pongSentAt.TryGetValue(nonce, out var t0))
+        {
+            _pongSentAt.Remove(nonce);
+            float rttMs = (Time.realtimeSinceStartup - t0) * 1000f;
+            Debug.Log($"[NetClient] 📶 RTT ~ {rttMs:F1} ms (nonce={nonce})");
+        }
+        else
+        {
+            if (log) Debug.Log($"[NetClient] PingAck nonce={nonce} (no matching pong timestamp)");
         }
     }
 
@@ -489,7 +544,7 @@ else if (msg.which == ServerMsg.WHICH.PlayerJoined)
                     // If Secondary is NOT Empty(0) and NOT Pistol(1)
                     if (secWeapon > 1) 
                     {
-                        Debug.Log($"[NetClient] 🔫 Server says I have Weapon ID: {secWeapon} | Slot: {equippedSlot}");
+                        //Debug.Log($"[NetClient] 🔫 Server says I have Weapon ID: {secWeapon} | Slot: {equippedSlot}");
                     }
                 }
 
@@ -587,6 +642,49 @@ else if (msg.which == ServerMsg.WHICH.PlayerJoined)
             }
         }
     }
+
+    void SendPong(uint nonce)
+    {
+        if (_net == null || !_net.IsConnected) return;
+
+        var mb = MessageBuilder.Create();
+        var root = mb.BuildRoot<ClientMsg.WRITER>();
+
+        root.which = ClientMsg.WHICH.Pong;
+        root.Pong.Nonce = nonce;
+
+        // record send time (use realtimeSinceStartup for stable timing)
+        _pongSentAt[nonce] = Time.realtimeSinceStartup;
+
+        SendClientMsg(mb);
+
+        if (log) Debug.Log($"[NetClient] 🏓 Pong -> nonce={nonce}");
+    }
+
+    void OnPingAck(uint nonce)
+    {
+        if (_pongSentAt.TryGetValue(nonce, out var t0))
+        {
+            _pongSentAt.Remove(nonce);
+            float rttMs = (Time.realtimeSinceStartup - t0) * 1000f;
+
+            // optional: rate-limit logs (avoid spam if interval small)
+            if (Time.realtimeSinceStartup - _lastPingLogAt >= logPingEvery)
+            {
+                _lastPingLogAt = Time.realtimeSinceStartup;
+                Debug.Log($"[NetClient] 📶 RTT ~ {rttMs:F1} ms (nonce={nonce})");
+            }
+            else if (log)
+            {
+                Debug.Log($"[NetClient] 📶 RTT ~ {rttMs:F1} ms (nonce={nonce})");
+            }
+        }
+        else
+        {
+            if (log) Debug.Log($"[NetClient] PingAck nonce={nonce} (no matching pong timestamp)");
+        }
+    }
+
 
     // ---------------- TX ----------------
 
