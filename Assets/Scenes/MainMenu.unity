@@ -210,6 +210,7 @@ GameObject:
   - component: {fileID: 2351048}
   - component: {fileID: 2351047}
   - component: {fileID: 2351046}
+  - component: {fileID: 2351049}
   m_Layer: 0
   m_Name: ShoutGun
   m_TagString: Untagged
@@ -331,6 +332,23 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2351044}
   m_CullTransparentMesh: 1
+--- !u!114 &2351049
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2351044}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a2773b5ccadd5c4496786bc41f3a754, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShinyButton
+  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  shineColor: {r: 1, g: 0.8431373, b: 0, a: 1}
+  shineSpeed: 3
+  outlineWidth: {x: 4, y: 4}
+  isSelected: 0
 --- !u!1 &47518311
 GameObject:
   m_ObjectHideFlags: 0
@@ -381,14 +399,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.RawImage
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.4117647, g: 0.4117647, b: 0.4117647, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Texture: {fileID: 2800000, guid: c92270fd4944a7641bbc98526f090019, type: 3}
+  m_Texture: {fileID: 0}
   m_UVRect:
     serializedVersion: 2
     x: 0
@@ -415,6 +433,7 @@ GameObject:
   - component: {fileID: 70568715}
   - component: {fileID: 70568714}
   - component: {fileID: 70568713}
+  - component: {fileID: 70568716}
   m_Layer: 0
   m_Name: White Skin Button
   m_TagString: Untagged
@@ -536,6 +555,23 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 70568711}
   m_CullTransparentMesh: 1
+--- !u!114 &70568716
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 70568711}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a2773b5ccadd5c4496786bc41f3a754, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShinyButton
+  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  shineColor: {r: 1, g: 0.8431373, b: 0, a: 1}
+  shineSpeed: 3
+  outlineWidth: {x: 4, y: 4}
+  isSelected: 0
 --- !u!1001 &134858945
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1253,6 +1289,7 @@ GameObject:
   - component: {fileID: 586279225}
   - component: {fileID: 586279224}
   - component: {fileID: 586279223}
+  - component: {fileID: 586279226}
   m_Layer: 0
   m_Name: Zombie Skin Button
   m_TagString: Untagged
@@ -1374,6 +1411,23 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 586279221}
   m_CullTransparentMesh: 1
+--- !u!114 &586279226
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 586279221}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a2773b5ccadd5c4496786bc41f3a754, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShinyButton
+  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  shineColor: {r: 1, g: 0.8431373, b: 0, a: 1}
+  shineSpeed: 3
+  outlineWidth: {x: 4, y: 4}
+  isSelected: 0
 --- !u!1 &813408556
 GameObject:
   m_ObjectHideFlags: 0
@@ -6804,6 +6858,7 @@ GameObject:
   - component: {fileID: 1302607609}
   - component: {fileID: 1302607608}
   - component: {fileID: 1302607607}
+  - component: {fileID: 1302607610}
   m_Layer: 0
   m_Name: Army Skin Button
   m_TagString: Untagged
@@ -6925,6 +6980,23 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1302607605}
   m_CullTransparentMesh: 1
+--- !u!114 &1302607610
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1302607605}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a2773b5ccadd5c4496786bc41f3a754, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShinyButton
+  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  shineColor: {r: 1, g: 0.8431373, b: 0, a: 1}
+  shineSpeed: 3
+  outlineWidth: {x: 4, y: 4}
+  isSelected: 0
 --- !u!1 &1392628910 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2332414970728685264, guid: 76276d30a11c06640aa35415434c6be7, type: 3}
@@ -7790,21 +7862,19 @@ MonoBehaviour:
   weaponButtons:
   - {fileID: 0}
   - {fileID: 0}
-  - {fileID: 1833730415}
+  - {fileID: 1833730418}
   - {fileID: 0}
-  - {fileID: 2351046}
-  - {fileID: 1773910106}
+  - {fileID: 2351049}
+  - {fileID: 1773910109}
   menuPlayerMesh: {fileID: 336554602}
   allSkins:
   - {fileID: 2100000, guid: 52ad5d5058cdcd04b91895ee0c82d9b0, type: 2}
   - {fileID: 2100000, guid: cccf87e80ee9f214c8367f224fb10940, type: 2}
   - {fileID: 2100000, guid: 8a9b496c89514e84aab004beddc6d21d, type: 2}
   skinButtons:
-  - {fileID: 70568713}
-  - {fileID: 1302607607}
-  - {fileID: 586279223}
-  selectedColor: {r: 0, g: 1, b: 0, a: 1}
-  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  - {fileID: 70568716}
+  - {fileID: 1302607610}
+  - {fileID: 586279226}
 --- !u!4 &1715471323
 Transform:
   m_ObjectHideFlags: 0
@@ -7832,6 +7902,7 @@ GameObject:
   - component: {fileID: 1773910108}
   - component: {fileID: 1773910107}
   - component: {fileID: 1773910106}
+  - component: {fileID: 1773910109}
   m_Layer: 0
   m_Name: Snipper
   m_TagString: Untagged
@@ -7953,6 +8024,23 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1773910104}
   m_CullTransparentMesh: 1
+--- !u!114 &1773910109
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1773910104}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a2773b5ccadd5c4496786bc41f3a754, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShinyButton
+  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  shineColor: {r: 1, g: 0.8431373, b: 0, a: 1}
+  shineSpeed: 3
+  outlineWidth: {x: 4, y: 4}
+  isSelected: 0
 --- !u!1001 &1776457270
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8303,6 +8391,7 @@ GameObject:
   - component: {fileID: 1833730417}
   - component: {fileID: 1833730416}
   - component: {fileID: 1833730415}
+  - component: {fileID: 1833730418}
   m_Layer: 0
   m_Name: Rifile
   m_TagString: Untagged
@@ -8424,6 +8513,23 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1833730413}
   m_CullTransparentMesh: 1
+--- !u!114 &1833730418
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1833730413}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a2773b5ccadd5c4496786bc41f3a754, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ShinyButton
+  normalColor: {r: 1, g: 1, b: 1, a: 1}
+  shineColor: {r: 1, g: 0.8431373, b: 0, a: 1}
+  shineSpeed: 3
+  outlineWidth: {x: 4, y: 4}
+  isSelected: 0
 --- !u!1 &1840985784 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 5458038062095458562, guid: 76276d30a11c06640aa35415434c6be7, type: 3}
