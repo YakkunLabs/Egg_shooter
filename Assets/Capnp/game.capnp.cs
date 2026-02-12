@@ -8,6 +8,216 @@ using System.Threading.Tasks;
 
 namespace CapnpGen
 {
+    [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0x89cd7dce6049504cUL)]
+    public class Ping : ICapnpSerializable
+    {
+        public const UInt64 typeId = 0x89cd7dce6049504cUL;
+        void ICapnpSerializable.Deserialize(DeserializerState arg_)
+        {
+            var reader = READER.create(arg_);
+            Nonce = reader.Nonce;
+            ServerMs = reader.ServerMs;
+            applyDefaults();
+        }
+
+        public void serialize(WRITER writer)
+        {
+            writer.Nonce = Nonce;
+            writer.ServerMs = ServerMs;
+        }
+
+        void ICapnpSerializable.Serialize(SerializerState arg_)
+        {
+            serialize(arg_.Rewrap<WRITER>());
+        }
+
+        public void applyDefaults()
+        {
+        }
+
+        public uint Nonce
+        {
+            get;
+            set;
+        }
+
+        public ulong ServerMs
+        {
+            get;
+            set;
+        }
+
+        public struct READER
+        {
+            readonly DeserializerState ctx;
+            public READER(DeserializerState ctx)
+            {
+                this.ctx = ctx;
+            }
+
+            public static READER create(DeserializerState ctx) => new READER(ctx);
+            public static implicit operator DeserializerState(READER reader) => reader.ctx;
+            public static implicit operator READER(DeserializerState ctx) => new READER(ctx);
+            public uint Nonce => ctx.ReadDataUInt(0UL, 0U);
+            public ulong ServerMs => ctx.ReadDataULong(64UL, 0UL);
+        }
+
+        public class WRITER : SerializerState
+        {
+            public WRITER()
+            {
+                this.SetStruct(2, 0);
+            }
+
+            public uint Nonce
+            {
+                get => this.ReadDataUInt(0UL, 0U);
+                set => this.WriteData(0UL, value, 0U);
+            }
+
+            public ulong ServerMs
+            {
+                get => this.ReadDataULong(64UL, 0UL);
+                set => this.WriteData(64UL, value, 0UL);
+            }
+        }
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xe9bf3c618f089a79UL)]
+    public class Pong : ICapnpSerializable
+    {
+        public const UInt64 typeId = 0xe9bf3c618f089a79UL;
+        void ICapnpSerializable.Deserialize(DeserializerState arg_)
+        {
+            var reader = READER.create(arg_);
+            Nonce = reader.Nonce;
+            ClientMs = reader.ClientMs;
+            applyDefaults();
+        }
+
+        public void serialize(WRITER writer)
+        {
+            writer.Nonce = Nonce;
+            writer.ClientMs = ClientMs;
+        }
+
+        void ICapnpSerializable.Serialize(SerializerState arg_)
+        {
+            serialize(arg_.Rewrap<WRITER>());
+        }
+
+        public void applyDefaults()
+        {
+        }
+
+        public uint Nonce
+        {
+            get;
+            set;
+        }
+
+        public ulong ClientMs
+        {
+            get;
+            set;
+        }
+
+        public struct READER
+        {
+            readonly DeserializerState ctx;
+            public READER(DeserializerState ctx)
+            {
+                this.ctx = ctx;
+            }
+
+            public static READER create(DeserializerState ctx) => new READER(ctx);
+            public static implicit operator DeserializerState(READER reader) => reader.ctx;
+            public static implicit operator READER(DeserializerState ctx) => new READER(ctx);
+            public uint Nonce => ctx.ReadDataUInt(0UL, 0U);
+            public ulong ClientMs => ctx.ReadDataULong(64UL, 0UL);
+        }
+
+        public class WRITER : SerializerState
+        {
+            public WRITER()
+            {
+                this.SetStruct(2, 0);
+            }
+
+            public uint Nonce
+            {
+                get => this.ReadDataUInt(0UL, 0U);
+                set => this.WriteData(0UL, value, 0U);
+            }
+
+            public ulong ClientMs
+            {
+                get => this.ReadDataULong(64UL, 0UL);
+                set => this.WriteData(64UL, value, 0UL);
+            }
+        }
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xd59a24c408fb5251UL)]
+    public class PingAck : ICapnpSerializable
+    {
+        public const UInt64 typeId = 0xd59a24c408fb5251UL;
+        void ICapnpSerializable.Deserialize(DeserializerState arg_)
+        {
+            var reader = READER.create(arg_);
+            Nonce = reader.Nonce;
+            applyDefaults();
+        }
+
+        public void serialize(WRITER writer)
+        {
+            writer.Nonce = Nonce;
+        }
+
+        void ICapnpSerializable.Serialize(SerializerState arg_)
+        {
+            serialize(arg_.Rewrap<WRITER>());
+        }
+
+        public void applyDefaults()
+        {
+        }
+
+        public uint Nonce
+        {
+            get;
+            set;
+        }
+
+        public struct READER
+        {
+            readonly DeserializerState ctx;
+            public READER(DeserializerState ctx)
+            {
+                this.ctx = ctx;
+            }
+
+            public static READER create(DeserializerState ctx) => new READER(ctx);
+            public static implicit operator DeserializerState(READER reader) => reader.ctx;
+            public static implicit operator READER(DeserializerState ctx) => new READER(ctx);
+            public uint Nonce => ctx.ReadDataUInt(0UL, 0U);
+        }
+
+        public class WRITER : SerializerState
+        {
+            public WRITER()
+            {
+                this.SetStruct(1, 0);
+            }
+
+            public uint Nonce
+            {
+                get => this.ReadDataUInt(0UL, 0U);
+                set => this.WriteData(0UL, value, 0U);
+            }
+        }
+    }
+
     [System.CodeDom.Compiler.GeneratedCode("capnpc-csharp", "1.3.0.0"), TypeId(0xb529b57e7db04faaUL)]
     public enum WeaponType : ushort
     {
@@ -499,6 +709,7 @@ namespace CapnpGen
         {
             SelectLoadout = 0,
             Input = 1,
+            Pong = 2,
             undefined = 65535
         }
 
@@ -512,6 +723,9 @@ namespace CapnpGen
                     break;
                 case WHICH.Input:
                     Input = CapnpSerializable.Create<CapnpGen.ClientInput>(reader.Input);
+                    break;
+                case WHICH.Pong:
+                    Pong = CapnpSerializable.Create<CapnpGen.Pong>(reader.Pong);
                     break;
             }
 
@@ -536,6 +750,9 @@ namespace CapnpGen
                     case WHICH.Input:
                         _content = null;
                         break;
+                    case WHICH.Pong:
+                        _content = null;
+                        break;
                 }
             }
         }
@@ -550,6 +767,9 @@ namespace CapnpGen
                     break;
                 case WHICH.Input:
                     Input?.serialize(writer.Input);
+                    break;
+                case WHICH.Pong:
+                    Pong?.serialize(writer.Pong);
                     break;
             }
         }
@@ -583,6 +803,16 @@ namespace CapnpGen
             }
         }
 
+        public CapnpGen.Pong Pong
+        {
+            get => _which == WHICH.Pong ? (CapnpGen.Pong)_content : null;
+            set
+            {
+                _which = WHICH.Pong;
+                _content = value;
+            }
+        }
+
         public struct READER
         {
             readonly DeserializerState ctx;
@@ -597,6 +827,7 @@ namespace CapnpGen
             public WHICH which => (WHICH)ctx.ReadDataUShort(0U, (ushort)0);
             public CapnpGen.SelectLoadout.READER SelectLoadout => which == WHICH.SelectLoadout ? ctx.ReadStruct(0, CapnpGen.SelectLoadout.READER.create) : default;
             public CapnpGen.ClientInput.READER Input => which == WHICH.Input ? ctx.ReadStruct(0, CapnpGen.ClientInput.READER.create) : default;
+            public CapnpGen.Pong.READER Pong => which == WHICH.Pong ? ctx.ReadStruct(0, CapnpGen.Pong.READER.create) : default;
         }
 
         public class WRITER : SerializerState
@@ -621,6 +852,12 @@ namespace CapnpGen
             public CapnpGen.ClientInput.WRITER Input
             {
                 get => which == WHICH.Input ? BuildPointer<CapnpGen.ClientInput.WRITER>(0) : default;
+                set => Link(0, value);
+            }
+
+            public CapnpGen.Pong.WRITER Pong
+            {
+                get => which == WHICH.Pong ? BuildPointer<CapnpGen.Pong.WRITER>(0) : default;
                 set => Link(0, value);
             }
         }
@@ -1942,6 +2179,8 @@ namespace CapnpGen
             LobbyInfo = 6,
             ServerFull = 7,
             ItemSpawns = 8,
+            Ping = 9,
+            PingAck = 10,
             undefined = 65535
         }
 
@@ -1976,6 +2215,12 @@ namespace CapnpGen
                     break;
                 case WHICH.ItemSpawns:
                     ItemSpawns = CapnpSerializable.Create<CapnpGen.ItemSpawnsSnapshot>(reader.ItemSpawns);
+                    break;
+                case WHICH.Ping:
+                    Ping = CapnpSerializable.Create<CapnpGen.Ping>(reader.Ping);
+                    break;
+                case WHICH.PingAck:
+                    PingAck = CapnpSerializable.Create<CapnpGen.PingAck>(reader.PingAck);
                     break;
             }
 
@@ -2021,6 +2266,12 @@ namespace CapnpGen
                     case WHICH.ItemSpawns:
                         _content = null;
                         break;
+                    case WHICH.Ping:
+                        _content = null;
+                        break;
+                    case WHICH.PingAck:
+                        _content = null;
+                        break;
                 }
             }
         }
@@ -2056,6 +2307,12 @@ namespace CapnpGen
                     break;
                 case WHICH.ItemSpawns:
                     ItemSpawns?.serialize(writer.ItemSpawns);
+                    break;
+                case WHICH.Ping:
+                    Ping?.serialize(writer.Ping);
+                    break;
+                case WHICH.PingAck:
+                    PingAck?.serialize(writer.PingAck);
                     break;
             }
         }
@@ -2159,6 +2416,26 @@ namespace CapnpGen
             }
         }
 
+        public CapnpGen.Ping Ping
+        {
+            get => _which == WHICH.Ping ? (CapnpGen.Ping)_content : null;
+            set
+            {
+                _which = WHICH.Ping;
+                _content = value;
+            }
+        }
+
+        public CapnpGen.PingAck PingAck
+        {
+            get => _which == WHICH.PingAck ? (CapnpGen.PingAck)_content : null;
+            set
+            {
+                _which = WHICH.PingAck;
+                _content = value;
+            }
+        }
+
         public struct READER
         {
             readonly DeserializerState ctx;
@@ -2180,6 +2457,8 @@ namespace CapnpGen
             public CapnpGen.LobbyInfo.READER LobbyInfo => which == WHICH.LobbyInfo ? ctx.ReadStruct(0, CapnpGen.LobbyInfo.READER.create) : default;
             public CapnpGen.ServerFull.READER ServerFull => which == WHICH.ServerFull ? ctx.ReadStruct(0, CapnpGen.ServerFull.READER.create) : default;
             public CapnpGen.ItemSpawnsSnapshot.READER ItemSpawns => which == WHICH.ItemSpawns ? ctx.ReadStruct(0, CapnpGen.ItemSpawnsSnapshot.READER.create) : default;
+            public CapnpGen.Ping.READER Ping => which == WHICH.Ping ? ctx.ReadStruct(0, CapnpGen.Ping.READER.create) : default;
+            public CapnpGen.PingAck.READER PingAck => which == WHICH.PingAck ? ctx.ReadStruct(0, CapnpGen.PingAck.READER.create) : default;
         }
 
         public class WRITER : SerializerState
@@ -2246,6 +2525,18 @@ namespace CapnpGen
             public CapnpGen.ItemSpawnsSnapshot.WRITER ItemSpawns
             {
                 get => which == WHICH.ItemSpawns ? BuildPointer<CapnpGen.ItemSpawnsSnapshot.WRITER>(0) : default;
+                set => Link(0, value);
+            }
+
+            public CapnpGen.Ping.WRITER Ping
+            {
+                get => which == WHICH.Ping ? BuildPointer<CapnpGen.Ping.WRITER>(0) : default;
+                set => Link(0, value);
+            }
+
+            public CapnpGen.PingAck.WRITER PingAck
+            {
+                get => which == WHICH.PingAck ? BuildPointer<CapnpGen.PingAck.WRITER>(0) : default;
                 set => Link(0, value);
             }
         }
