@@ -1,24 +1,23 @@
 using UnityEngine;
 using UnityEngine.SceneManagement; 
-using UnityEngine.UI; // Required for UI Buttons
+using UnityEngine.UI; 
 
 public class MainMenu : MonoBehaviour
 {
     [Header("Secondary Weapon Selection")]
-    // Drag your weapon models here (e.g. 0=Pistol, 1=Rifle, 2=Shotgun)
     public GameObject[] secondaryWeaponModels; 
-    public Button[] weaponButtons; // <--- NEW: Drag your UI Buttons here (Order must match models!)
+    
+    // ✅ CHANGE: Use ShinyButton instead of Button
+    public ShinyButton[] weaponButtons; 
 
     [Header("Skin Selection")]
     public MeshRenderer menuPlayerMesh; 
     public Material[] allSkins;
-    public Button[] skinButtons;   // <--- NEW: Drag your Skin Buttons here
+    
+    // ✅ CHANGE: Use ShinyButton instead of Button
+    public ShinyButton[] skinButtons; 
 
-    [Header("Highlight Settings")]
-    public Color selectedColor = Color.green; 
-    public Color normalColor = Color.white;
-
-    // We store the "Secondary Weapon" choice here
+    // We store the choice here
     private int selectedSecondaryWeaponIndex = 0;
     private int selectedSkinIndex = 0;
 
@@ -35,8 +34,8 @@ public class MainMenu : MonoBehaviour
         UpdateWeaponVisuals();
         UpdateSkinVisuals();
         
-        // 3. APPLY HIGHLIGHTS INITIALY
-        UpdateHighlights();
+        // 3. APPLY SHINY HIGHLIGHTS
+        UpdateShinySelection();
     }
     
     public void PlayGame()
@@ -62,7 +61,7 @@ public class MainMenu : MonoBehaviour
         PlayerPrefs.Save();
         
         UpdateWeaponVisuals();
-        UpdateHighlights(); // <--- NEW: Updates colors when clicked
+        UpdateShinySelection(); // ✅ Update Shine
     }
 
     void UpdateWeaponVisuals()
@@ -92,7 +91,7 @@ public class MainMenu : MonoBehaviour
         PlayerPrefs.Save();
         
         UpdateSkinVisuals();
-        UpdateHighlights(); // <--- NEW: Updates colors when clicked
+        UpdateShinySelection(); // ✅ Update Shine
     }
 
     void UpdateSkinVisuals()
@@ -106,8 +105,8 @@ public class MainMenu : MonoBehaviour
         }
     }
 
-    // --- NEW: HIGHLIGHT LOGIC ---
-    void UpdateHighlights()
+    // --- NEW: SHINY OUTLINE LOGIC ---
+    void UpdateShinySelection()
     {
         // 1. Highlight Weapon Buttons
         if (weaponButtons != null)
@@ -116,12 +115,8 @@ public class MainMenu : MonoBehaviour
             {
                 if (weaponButtons[i] == null) continue;
                 
-                Image btnImg = weaponButtons[i].GetComponent<Image>();
-                if (btnImg != null)
-                {
-                    // If index matches selection, use Green. Else White.
-                    btnImg.color = (i == selectedSecondaryWeaponIndex) ? selectedColor : normalColor;
-                }
+                // If 'i' matches the selected index, turn ON shine. Otherwise OFF.
+                weaponButtons[i].SetSelected(i == selectedSecondaryWeaponIndex);
             }
         }
 
@@ -132,11 +127,8 @@ public class MainMenu : MonoBehaviour
             {
                 if (skinButtons[i] == null) continue;
 
-                Image btnImg = skinButtons[i].GetComponent<Image>();
-                if (btnImg != null)
-                {
-                    btnImg.color = (i == selectedSkinIndex) ? selectedColor : normalColor;
-                }
+                // If 'i' matches the selected index, turn ON shine. Otherwise OFF.
+                skinButtons[i].SetSelected(i == selectedSkinIndex);
             }
         }
     }
