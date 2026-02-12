@@ -9,11 +9,27 @@ public class ItemSpawnVisuals : MonoBehaviour
     [Header("UI Prompt")]
     public GameObject pickupText; // Drag your "Press F" text object here
 
+    [Header("Item Animation")] // ✅ NEW: Animation Settings
+    public float rotationSpeed = 50f; // Speed of spinning
+    public bool enableBobbing = true; // Should it float up and down?
+    public float bobSpeed = 2f;       // How fast it bobs
+    public float bobHeight = 0.15f;   // How high it bobs
+
     private int currentItemType = 0;
-    private Transform _localPlayer; // Cache the player for performance
+    private Transform _localPlayer; 
+    private Vector3[] _initialLocalPositions; // To store original positions
 
     void Start()
     {
+        // ✅ 1. Remember the starting positions of your models
+        // This ensures the bobbing animation stays in the right place relative to the Spawn Point.
+        _initialLocalPositions = new Vector3[weaponModels.Length];
+        for (int i = 0; i < weaponModels.Length; i++)
+        {
+            if (weaponModels[i] != null) 
+                _initialLocalPositions[i] = weaponModels[i].transform.localPosition;
+        }
+
         HideAll();
         if (pickupText != null) pickupText.SetActive(false);
     }
@@ -48,6 +64,30 @@ public class ItemSpawnVisuals : MonoBehaviour
 
     void Update()
     {
+        // ✅ 2. ANIMATE THE ACTIVE ITEM (Spin & Bob)
+        if (currentItemType > 0 && currentItemType < weaponModels.Length)
+        {
+            GameObject activeModel = weaponModels[currentItemType];
+            if (activeModel != null && activeModel.activeSelf)
+            {
+                // A. Rotate (Spin)
+                activeModel.transform.Rotate(Vector3.up * rotationSpeed * Time.deltaTime);
+
+                // B. Bobbing (Float Up/Down)
+                if (enableBobbing)
+                {
+                    Vector3 startPos = _initialLocalPositions[currentItemType];
+                    // Calculate new Y using Sine wave
+                    float newY = startPos.y + Mathf.Sin(Time.time * bobSpeed) * bobHeight;
+                    
+                    // Apply position relative to the Spawn Point parent
+                    activeModel.transform.localPosition = new Vector3(startPos.x, newY, startPos.z);
+                }
+            }
+        }
+
+        // --- EXISTING UI LOGIC ---
+
         // 1. If there is no item here, never show text
         if (currentItemType == 0 || pickupText == null) 
         {
@@ -71,7 +111,7 @@ public class ItemSpawnVisuals : MonoBehaviour
             bool isClose = dist < 3.0f; 
             pickupText.SetActive(isClose);
 
-            // 4. (Optional) Make text always face the camera
+            // 4. Make text always face the camera
             if (isClose && Camera.main != null)
             {
                 pickupText.transform.LookAt(Camera.main.transform);
