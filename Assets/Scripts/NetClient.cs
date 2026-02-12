@@ -301,7 +301,7 @@ else if (msg.which == ServerMsg.WHICH.PlayerJoined)
                         int itemId = (int)item;
 
                         // ✅ LOGS ADDED:
-                        // Debug.Log($"[NetClient] 📦 Spawn Update -> Location ID: {locationId} | Item ID: {itemId}");
+                        Debug.Log($"[NetClient] 📦 Spawn Update -> Location ID: {locationId} | Item ID: {itemId}");
 
                         // Update the Manager
                         ItemSpawnManager.Instance.UpdateLocation(locationId, itemId);

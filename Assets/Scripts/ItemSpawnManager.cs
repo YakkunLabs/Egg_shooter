@@ -1,6 +1,10 @@
 using UnityEngine;
 using System.Collections.Generic;
 
+#if UNITY_EDITOR
+using UnityEditor; // Required for Handles.Label
+#endif
+
 public class ItemSpawnManager : MonoBehaviour
 {
     public static ItemSpawnManager Instance;
@@ -10,7 +14,6 @@ public class ItemSpawnManager : MonoBehaviour
     public Transform[] spawnLocations; 
 
     // ⚠️ Drag Prefabs here. Index matches Item ID (Element 1 = Pistol, 11 = Rifle)
-    // Make sure Element 0 is Empty!
     public GameObject[] itemPrefabs; 
 
     // Internal tracker of what is currently spawned
@@ -25,32 +28,61 @@ public class ItemSpawnManager : MonoBehaviour
         _activeItems = new GameObject[spawnLocations.Length];
     }
 
+    void Start()
+    {
+        // ✅ LOG: Print all locations to Console on Start
+        LogAllLocations();
+    }
+
     // Called by NetClient
     public void UpdateLocation(int locationIndex, int itemId)
     {
         // 1. Validate Input
         if (locationIndex < 0 || locationIndex >= spawnLocations.Length) return;
 
-        // 2. Cleanup Old Item (If exists)
+        // 2. Cleanup Old Item
         if (_activeItems[locationIndex] != null)
         {
             Destroy(_activeItems[locationIndex]);
             _activeItems[locationIndex] = null;
         }
 
-        // 3. Spawn New Item (If ID is valid)
-        // We check if we have a prefab for this ID
+        // 3. Spawn New Item
         if (itemId > 0 && itemId < itemPrefabs.Length && itemPrefabs[itemId] != null)
         {
             Transform loc = spawnLocations[locationIndex];
-            
-            // Instantiate the correct prefab at the location
             GameObject newItem = Instantiate(itemPrefabs[itemId], loc.position, loc.rotation);
-            
-            // Keep track of it so we can delete it later
             _activeItems[locationIndex] = newItem;
+
+            // ✅ LOG: Print when an item actually spawns
+            Debug.Log($"[ItemManager] 📦 Spawned '{itemPrefabs[itemId].name}' at Location ID: {locationIndex}");
         }
     }
+
+    // ---------------------------------------------------------
+    // ✅ DEBUG TOOLS (Copy this part!)
+    // ---------------------------------------------------------
+    
+    public void LogAllLocations()
+    {
+        Debug.Log("--- 🗺️ SPAWN LOCATION MAP ---");
+        for (int i = 0; i < spawnLocations.Length; i++)
+        {
+            if (spawnLocations[i] != null)
+            {
+                string status = (_activeItems[i] != null) ? _activeItems[i].name : "Empty";
+                Debug.Log($"[ID {i}] Position: {spawnLocations[i].position} | Current Item: {status}");
+            }
+            else
+            {
+                Debug.LogError($"[ID {i}] ❌ MISSING TRANSFORM! Check Inspector.");
+            }
+        }
+        Debug.Log("-----------------------------");
+    }
+
+#if UNITY_EDITOR
+    // Visualizes IDs in the Scene View
     private void OnDrawGizmos()
     {
         if (spawnLocations == null) return;
@@ -59,19 +91,25 @@ public class ItemSpawnManager : MonoBehaviour
         {
             if (spawnLocations[i] != null)
             {
-                // 1. Draw a Cyan Sphere to show the spot
-                Gizmos.color = Color.cyan;
+                // Green if occupied, Yellow if empty
+                bool hasItem = (_activeItems != null && i < _activeItems.Length && _activeItems[i] != null);
+                Gizmos.color = hasItem ? Color.green : Color.yellow;
+                
                 Gizmos.DrawWireSphere(spawnLocations[i].position, 0.5f);
 
-                // 2. Draw the ID Number text (Only visible in Unity Editor)
-                #if UNITY_EDITOR
-                UnityEditor.Handles.Label(spawnLocations[i].position + Vector3.up * 1.5f, $"SERVER ID: {i}", new GUIStyle() 
+                // Draw Text Label
+                string itemName = hasItem ? _activeItems[i].name : "Empty";
+                string label = $"ID: {i}\n{itemName}";
+
+                Handles.Label(spawnLocations[i].position + Vector3.up * 1.5f, label, new GUIStyle() 
                 { 
-                    normal = new GUIStyleState() { textColor = Color.yellow },
-                    fontSize = 20,
-                    fontStyle = FontStyle.Bold
+                    normal = new GUIStyleState() { textColor = Gizmos.color },
+                    fontSize = 15,
+                    fontStyle = FontStyle.Bold,
+                    alignment = TextAnchor.MiddleCenter
                 });
-                #endif
             }
-        }}
+        }
+    }
+#endif
 }
