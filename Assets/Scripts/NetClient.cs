@@ -21,10 +21,6 @@ using Unity.VisualScripting;
 
 public class NetClient : MonoBehaviour
 {
-    [Header("Item Spawns")]
-    // IMPORTANT: Drag your Spawn Points here in the SAME ORDER as the Server!
-    public ItemSpawnVisuals[] itemSpawnPoints;
-
     [Header("Visuals")]
     public GameObject bulletPrefab;
 
