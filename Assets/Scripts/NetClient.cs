@@ -21,10 +21,6 @@ using Unity.VisualScripting;
 
 public class NetClient : MonoBehaviour
 {
-    [Header("Item Spawns")]
-    // IMPORTANT: Drag your Spawn Points here in the SAME ORDER as the Server!
-    public ItemSpawnVisuals[] itemSpawnPoints;
-
     [Header("Visuals")]
     public GameObject bulletPrefab;
 
@@ -285,28 +281,35 @@ else if (msg.which == ServerMsg.WHICH.PlayerJoined)
                 Disconnect();
             }
 
-            else if (msg.which == ServerMsg.WHICH.ItemSpawns) 
-        {
-            var itemSnap = msg.ItemSpawns;
-            var itemList = itemSnap.Items;
-
-            // Run on Main Thread because we are touching GameObjects
-            _mainThread.Enqueue(() => 
+           else if (msg.which == ServerMsg.WHICH.ItemSpawns) 
             {
-                int index = 0;
-                foreach (var item in itemList)
+                var itemSnap = msg.ItemSpawns;
+                var itemList = itemSnap.Items;
+
+                _mainThread.Enqueue(() => 
                 {
-                    // Safety check: Do we have a spawn point for this index?
-                    if (index < itemSpawnPoints.Length && itemSpawnPoints[index] != null)
+                    // Safety check
+                    if (ItemSpawnManager.Instance == null) 
                     {
-                        // Cast 'item' to int (assuming it's an Enum or ID)
-                        itemSpawnPoints[index].SetItem((int)item);
-                        Debug.Log($"[NetClient] Item Spawn location {index} has {item}");
+                        Debug.LogError("❌ [NetClient] ItemSpawnManager is missing from the scene!");
+                        return;
                     }
-                    index++;
-                }
-            });
-        }
+
+                    int locationId = 0; // This index represents the location
+                    foreach (var item in itemList)
+                    {
+                        int itemId = (int)item;
+
+                        // ✅ LOGS ADDED:
+                        // Debug.Log($"[NetClient] 📦 Spawn Update -> Location ID: {locationId} | Item ID: {itemId}");
+
+                        // Update the Manager
+                        ItemSpawnManager.Instance.UpdateLocation(locationId, itemId);
+                        
+                        locationId++;
+                    }
+                });
+            }
         }
         catch (Exception e)
         {
