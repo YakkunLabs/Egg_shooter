@@ -32,6 +32,10 @@ public class NetClient : MonoBehaviour
     public TMPro.TextMeshProUGUI playerCountText;
     public TMPro.TextMeshProUGUI scoreText;
 
+    public TMPro.TextMeshProUGUI pingText; 
+    private bool _showPingUI = false; 
+    private float _latestPingMs = 0f;
+
     public bool isGameStarted = false;
 
     [Header("TCP (Editor/Standalone)")]
@@ -87,8 +91,15 @@ public class NetClient : MonoBehaviour
 
     INetTransport _net;
 
-    void Start() => Connect();
     void OnDestroy() => Shutdown();
+
+    void Start()
+    {
+        // ✅ Hide ping text at the start
+        if (pingText != null) pingText.gameObject.SetActive(false); 
+        
+        Connect();
+    }
 
     void Update()
     {
@@ -96,6 +107,20 @@ public class NetClient : MonoBehaviour
 
         while (_mainThread.TryDequeue(out var a))
             a();
+
+        if (Input.GetKeyDown(KeyCode.I))
+        {
+            _showPingUI = !_showPingUI;
+            
+            if (pingText != null)
+            {
+                pingText.gameObject.SetActive(_showPingUI);
+                if (_showPingUI) 
+                {
+                    pingText.text = $"Ping: {_latestPingMs:F1} ms";
+                }
+            }
+        }
     }
 
     // ---------------- CONNECT ----------------
@@ -406,7 +431,16 @@ else if (msg.which == ServerMsg.WHICH.PlayerJoined)
         {
             _pongSentAt.Remove(nonce);
             float rttMs = (Time.realtimeSinceStartup - t0) * 1000f;
-            Debug.Log($"[NetClient] 📶 RTT ~ {rttMs:F1} ms (nonce={nonce})");
+            Debug.Log($"[NetClient] 📶 RTT ~ {rttMs:F1} ms (nonce={nonce})"); //add this in UI
+
+            _latestPingMs = rttMs;
+
+            if (_showPingUI && pingText != null)
+            {
+                pingText.text = $"Ping: {rttMs:F0} ms"; // F0 removes decimals for a cleaner look
+            }
+
+            Debug.Log($"[NetClient] 📶 RTT ~ {rttMs:F1} ms (nonce={nonce})"); 
         }
         else
         {
