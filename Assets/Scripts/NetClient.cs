@@ -46,6 +46,10 @@ public class NetClient : MonoBehaviour
     public float capsuleHeight = 2f;
     public float capsuleRadius = 0.5f;
 
+    [Header("Interpolation Smoothing")]
+    public float positionLerpSpeed = 15f;   // higher = snappier
+    public float rotationLerpSpeed = 20f;
+
     [Header("Debug")]
     public bool log = true;
 
@@ -59,6 +63,27 @@ public class NetClient : MonoBehaviour
 
     public GameObject playerPrefab;
     public GameObject enemyPrefab;
+
+    [Serializable]
+    public struct PlayerSample
+    {
+        public float t;          // local time when we received this sample (or server time if you have it)
+        public Vector3 pos;
+        public float yawDeg;
+    }
+
+    private readonly Dictionary<ulong, List<PlayerSample>> _history = new Dictionary<ulong, List<PlayerSample>>();
+
+    // Tuning
+    public float interpBackTime = 0.12f;     // 120ms "render delay" (increase if you still jitter)
+    public float maxExtrapolate = 0.10f;     // 100ms extrapolation cap
+    public int maxSamplesPerPlayer = 32;
+
+
+    // ---------------- Ping/RTT ----------------
+    readonly Dictionary<uint, float> _pongSentAt = new();   // nonce -> realtimeSinceStartup
+    public float logPingEvery = 2f;                         // optional: rate-limit logs
+    float _lastPingLogAt = -999f;
 
     INetTransport _net;
 
@@ -281,35 +306,45 @@ else if (msg.which == ServerMsg.WHICH.PlayerJoined)
                 Disconnect();
             }
 
-           else if (msg.which == ServerMsg.WHICH.ItemSpawns) 
+            else if (msg.which == ServerMsg.WHICH.ItemSpawns) 
             {
                 var itemSnap = msg.ItemSpawns;
                 var itemList = itemSnap.Items;
 
+                // Run on Main Thread because we are touching GameObjects
                 _mainThread.Enqueue(() => 
                 {
-                    // Safety check
-                    if (ItemSpawnManager.Instance == null) 
-                    {
-                        Debug.LogError("❌ [NetClient] ItemSpawnManager is missing from the scene!");
-                        return;
-                    }
-
-                    int locationId = 0; // This index represents the location
+                    int index = 0;
                     foreach (var item in itemList)
                     {
-                        int itemId = (int)item;
-
-                        // ✅ LOGS ADDED:
-                        Debug.Log($"[NetClient] 📦 Spawn Update -> Location ID: {locationId} | Item ID: {itemId}");
-
-                        // Update the Manager
-                        ItemSpawnManager.Instance.UpdateLocation(locationId, itemId);
-                        
-                        locationId++;
+                        // Safety check: Do we have a spawn point for this index?
+                        if (index < itemSpawnPoints.Length && itemSpawnPoints[index] != null)
+                        {
+                            // Cast 'item' to int (assuming it's an Enum or ID)
+                            itemSpawnPoints[index].SetItem((int)item);
+                            //Debug.Log($"[NetClient] Item Spawn location {index} has {item}");
+                        }
+                        index++;
                     }
                 });
             }
+            else if (msg.which == ServerMsg.WHICH.Ping)
+            {
+                var ping = msg.Ping;
+                uint nonce = ping.Nonce;
+
+                // MUST run on main thread (Unity Time API)
+                _mainThread.Enqueue(() => SendPongMainThread(nonce));
+            }
+            else if (msg.which == ServerMsg.WHICH.PingAck)
+            {
+                var ack = msg.PingAck;
+                uint nonce = ack.Nonce;
+
+                // MUST run on main thread (Unity Time API + Debug.Log)
+                _mainThread.Enqueue(() => OnPingAckMainThread(nonce));
+            }
+
         }
         catch (Exception e)
         {
@@ -338,6 +373,39 @@ else if (msg.which == ServerMsg.WHICH.PlayerJoined)
             isGameStarted = false;
 
             Debug.Log("[NetClient] Disconnected");
+        }
+    }
+
+    // ---------------- Ping/RTT ----------------
+    void SendPongMainThread(uint nonce)
+    {
+        if (_net == null || !_net.IsConnected) return;
+
+        // timestamp must be captured on main thread
+        _pongSentAt[nonce] = Time.realtimeSinceStartup;
+
+        var mb = MessageBuilder.Create();
+        var root = mb.BuildRoot<ClientMsg.WRITER>();
+
+        root.which = ClientMsg.WHICH.Pong;
+        root.Pong.Nonce = nonce;
+
+        SendClientMsg(mb);
+
+        if (log) Debug.Log($"[NetClient] 🏓 Pong -> nonce={nonce}");
+    }
+
+    void OnPingAckMainThread(uint nonce)
+    {
+        if (_pongSentAt.TryGetValue(nonce, out var t0))
+        {
+            _pongSentAt.Remove(nonce);
+            float rttMs = (Time.realtimeSinceStartup - t0) * 1000f;
+            Debug.Log($"[NetClient] 📶 RTT ~ {rttMs:F1} ms (nonce={nonce})");
+        }
+        else
+        {
+            if (log) Debug.Log($"[NetClient] PingAck nonce={nonce} (no matching pong timestamp)");
         }
     }
 
@@ -418,9 +486,26 @@ else if (msg.which == ServerMsg.WHICH.PlayerJoined)
                 }
             }
 
-            go.transform.position = new Vector3(p.X, p.Y, p.Z);
-            if (id != myPlayerId)
-                go.transform.rotation = Quaternion.Euler(0f, p.Yaw * Mathf.Rad2Deg, 0f);
+            // Store sample instead of applying immediately
+            var sample = new PlayerSample
+            {
+                // If your snapshot has server time/tick, use that instead of Time.time for better results.
+                t = Time.time,
+                pos = new Vector3(p.X, p.Y, p.Z),
+                yawDeg = p.Yaw * Mathf.Rad2Deg
+            };
+
+            if (!_history.TryGetValue(id, out var list))
+            {
+                list = new List<PlayerSample>(maxSamplesPerPlayer);
+                _history[id] = list;
+            }
+
+            list.Add(sample);
+
+            // keep list size bounded
+            if (list.Count > maxSamplesPerPlayer)
+                list.RemoveRange(0, list.Count - maxSamplesPerPlayer);
 
             NetworkPlayerSetup visualSetup = go.GetComponent<NetworkPlayerSetup>();
             if (visualSetup != null)
@@ -455,7 +540,7 @@ else if (msg.which == ServerMsg.WHICH.PlayerJoined)
                     // If Secondary is NOT Empty(0) and NOT Pistol(1)
                     if (secWeapon > 1) 
                     {
-                        Debug.Log($"[NetClient] 🔫 Server says I have Weapon ID: {secWeapon} | Slot: {equippedSlot}");
+                        //Debug.Log($"[NetClient] 🔫 Server says I have Weapon ID: {secWeapon} | Slot: {equippedSlot}");
                     }
                 }
 
@@ -498,7 +583,12 @@ else if (msg.which == ServerMsg.WHICH.PlayerJoined)
                 toRemove.Add(kv.Key);
             }
         }
-        foreach (var id in toRemove) _players.Remove(id);
+
+        foreach (var id in toRemove)
+        {
+            _players.Remove(id);
+            _history.Remove(id);
+        }
 
         if (playerCountText != null)
         {
@@ -548,6 +638,49 @@ else if (msg.which == ServerMsg.WHICH.PlayerJoined)
             }
         }
     }
+
+    void SendPong(uint nonce)
+    {
+        if (_net == null || !_net.IsConnected) return;
+
+        var mb = MessageBuilder.Create();
+        var root = mb.BuildRoot<ClientMsg.WRITER>();
+
+        root.which = ClientMsg.WHICH.Pong;
+        root.Pong.Nonce = nonce;
+
+        // record send time (use realtimeSinceStartup for stable timing)
+        _pongSentAt[nonce] = Time.realtimeSinceStartup;
+
+        SendClientMsg(mb);
+
+        if (log) Debug.Log($"[NetClient] 🏓 Pong -> nonce={nonce}");
+    }
+
+    void OnPingAck(uint nonce)
+    {
+        if (_pongSentAt.TryGetValue(nonce, out var t0))
+        {
+            _pongSentAt.Remove(nonce);
+            float rttMs = (Time.realtimeSinceStartup - t0) * 1000f;
+
+            // optional: rate-limit logs (avoid spam if interval small)
+            if (Time.realtimeSinceStartup - _lastPingLogAt >= logPingEvery)
+            {
+                _lastPingLogAt = Time.realtimeSinceStartup;
+                Debug.Log($"[NetClient] 📶 RTT ~ {rttMs:F1} ms (nonce={nonce})");
+            }
+            else if (log)
+            {
+                Debug.Log($"[NetClient] 📶 RTT ~ {rttMs:F1} ms (nonce={nonce})");
+            }
+        }
+        else
+        {
+            if (log) Debug.Log($"[NetClient] PingAck nonce={nonce} (no matching pong timestamp)");
+        }
+    }
+
 
     // ---------------- TX ----------------
 
@@ -836,6 +969,106 @@ else if (msg.which == ServerMsg.WHICH.PlayerJoined)
             return buf;
         }
     }
+
+    void LateUpdate()
+    {
+        ApplyInterpolation();
+    }
+
+    void ApplyInterpolation()
+    {
+        float renderTime = Time.time - interpBackTime;
+
+        foreach (var kv in _players)
+        {
+            ulong id = kv.Key;
+            var go = kv.Value;
+            if (go == null) continue;
+
+            // Optional: treat local player differently (prediction + reconciliation).
+            // For now: still interpolate local to reduce visible jitter from corrections.
+            if (!_history.TryGetValue(id, out var h) || h.Count == 0)
+                continue;
+
+            // Drop samples that are too old (we want two samples around renderTime)
+            while (h.Count >= 3 && h[1].t <= renderTime)
+                h.RemoveAt(0);
+
+            if (h.Count >= 2 && h[0].t <= renderTime && renderTime <= h[1].t)
+            {
+                // Normal interpolation
+                var a = h[0];
+                var b = h[1];
+
+                float span = b.t - a.t;
+                float alpha = (span > 0.0001f) ? (renderTime - a.t) / span : 0f;
+
+                Vector3 pos = Vector3.Lerp(a.pos, b.pos, alpha);
+                go.transform.position = Vector3.Lerp(
+                    go.transform.position,
+                    pos,
+                    1f - Mathf.Exp(-positionLerpSpeed * Time.deltaTime)
+                );
+
+                if (id != myPlayerId)
+                {
+                    float yaw = Mathf.LerpAngle(a.yawDeg, b.yawDeg, alpha);
+                    Quaternion targetRot = Quaternion.Euler(0f, yaw, 0f);
+
+                    go.transform.rotation = Quaternion.Slerp(
+                        go.transform.rotation,
+                        targetRot,
+                        1f - Mathf.Exp(-rotationLerpSpeed * Time.deltaTime)
+                    );
+                }
+            }
+            else
+            {
+                // Not enough future data → small extrapolation (optional)
+                // If we only have one sample, just snap to it.
+                if (h.Count == 1)
+                {
+                    go.transform.position = Vector3.Lerp(
+                        go.transform.position,
+                        h[0].pos,
+                        1f - Mathf.Exp(-positionLerpSpeed * Time.deltaTime)
+                    );
+                    if (id != myPlayerId)
+                        go.transform.rotation = Quaternion.Euler(0f, h[0].yawDeg, 0f);
+                    continue;
+                }
+
+                var last = h[h.Count - 1];
+                var prev = h[h.Count - 2];
+
+                float dt = last.t - prev.t;
+                if (dt < 0.0001f)
+                {
+                    go.transform.position = last.pos;
+                    if (id != myPlayerId)
+                        go.transform.rotation = Quaternion.Euler(0f, last.yawDeg, 0f);
+                    continue;
+                }
+
+                Vector3 vel = (last.pos - prev.pos) / dt;
+
+                float extrapT = renderTime - last.t;
+                extrapT = Mathf.Clamp(extrapT, 0f, maxExtrapolate);
+
+                Vector3 targetPos = last.pos + vel * extrapT;
+
+                go.transform.position = Vector3.Lerp(
+                    go.transform.position,
+                    targetPos,
+                    1f - Mathf.Exp(-positionLerpSpeed * Time.deltaTime)
+                );
+
+                if (id != myPlayerId)
+                    go.transform.rotation = Quaternion.Euler(0f, last.yawDeg, 0f);
+            }
+        }
+    }
+
 
     // ---------------- WebSocket transport (WebGL) ----------------
 #if UNITY_WEBGL && !UNITY_EDITOR
