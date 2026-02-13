@@ -314,17 +314,22 @@ else if (msg.which == ServerMsg.WHICH.PlayerJoined)
                 // Run on Main Thread because we are touching GameObjects
                 _mainThread.Enqueue(() => 
                 {
-                    int index = 0;
+                    // Safety check: Make sure the Manager exists in the scene
+                    if (ItemSpawnManager.Instance == null) 
+                    {
+                        Debug.LogError("❌ [NetClient] ItemSpawnManager is missing from the scene!");
+                        return;
+                    }
+
+                    int locationId = 0; // This index represents the location
                     foreach (var item in itemList)
                     {
-                        // Safety check: Do we have a spawn point for this index?
-                        if (index < itemSpawnPoints.Length && itemSpawnPoints[index] != null)
-                        {
-                            // Cast 'item' to int (assuming it's an Enum or ID)
-                            itemSpawnPoints[index].SetItem((int)item);
-                            //Debug.Log($"[NetClient] Item Spawn location {index} has {item}");
-                        }
-                        index++;
+                        int itemId = (int)item;
+
+                        // ✅ Delegate the spawning work to the new Manager
+                        ItemSpawnManager.Instance.UpdateLocation(locationId, itemId);
+                        
+                        locationId++;
                     }
                 });
             }
