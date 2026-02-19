@@ -179,6 +179,10 @@ public class AdvancedGunSystem : MonoBehaviour
             isReloading = false; 
             if (reloadIndicator != null) reloadIndicator.gameObject.SetActive(false);
         }
+        if (isScoped)
+        {
+            OnUnscoped(); // Forces the UI off and resets the Camera FOV
+        }
     }
 
     void Update()
